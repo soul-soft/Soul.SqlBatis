@@ -1,10 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<xs:schema targetNamespace="https://github.com/soul-soft/Soul.SqlBatis/blob/main/sqlbatis.xsd"
-    elementFormDefault="sqlbatis"
-    xmlns="https://github.com/soul-soft/Soul.SqlBatis/blob/main/sqlbatis.xsd"
-    xmlns:mstns="https://github.com/soul-soft/Soul.SqlBatis/blob/main/sqlbatis.xsd"
-    xmlns:xs="http://www.w3.org/2001/XMLSchema"
->
+<xs:schema xmlns="https://github.com/soul-soft/Soul.SqlBatis/blob/main/sqlbatis.xsd">
 	<xs:element name="sqlbatis">
 	</xs:element>
 </xs:schema>
