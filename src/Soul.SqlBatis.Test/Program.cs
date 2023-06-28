@@ -12,7 +12,7 @@ sb = sb.From("students join schools on students.sch_id = schools.id")
     .OrderBy("students.age desc")
     .Page(1, 20);
 
-var querySql = sb.Select("students.id,students.age,schools.name");
+var querySql = sb.Select();
 var countSql = sb.Count();
 Console.WriteLine(querySql);
 Console.WriteLine(countSql);

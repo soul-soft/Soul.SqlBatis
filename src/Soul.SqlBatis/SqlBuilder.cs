@@ -61,7 +61,7 @@ namespace Soul.SqlBatis
             return Limit((row - 1) * size, size);
         }
 
-        public string Select(string columns)
+        public string Select(string columns = "*")
         {
             return Build($"SELECT {columns}", _tokens);
         }
