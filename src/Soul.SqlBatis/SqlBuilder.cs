@@ -13,6 +13,14 @@ namespace Soul.SqlBatis
             _tokens.Add(new Token(TokenType.From, sql));
             return this;
         }
+        public SqlBuilder Set(string sql, bool flag = true)
+        {
+            if (flag)
+            {
+                _tokens.Add(new Token(TokenType.Set, sql));
+            }
+            return this;
+        }
 
         public SqlBuilder Where(string sql, bool flag = true)
         {
@@ -67,9 +75,31 @@ namespace Soul.SqlBatis
             return Build($"SELECT {columns}", tokens);
         }
 
+        public string Update()
+        {
+            var tokens = _tokens
+               .Where(a => a.Type != TokenType.OrderBy)
+               .Where(a => a.Type != TokenType.Having)
+               .Where(a => a.Type != TokenType.GroupBy)
+               .Where(a => a.Type != TokenType.Limit);
+            return Build($"UPDATE", tokens);
+        }
+
+        public string Delete()
+        {
+            var tokens = _tokens
+               .Where(a => a.Type != TokenType.Set)
+               .Where(a => a.Type != TokenType.OrderBy)
+               .Where(a => a.Type != TokenType.Having)
+               .Where(a => a.Type != TokenType.GroupBy)
+               .Where(a => a.Type != TokenType.Limit);
+            return Build($"DELETE", tokens);
+        }
+
         public string Count()
         {
             var tokens = _tokens
+                .Where(a => a.Type != TokenType.Set)
                 .Where(a => a.Type != TokenType.OrderBy)
                 .Where(a => a.Type != TokenType.Limit);
             return Build($"SELECT COUNT(*)", tokens);
@@ -98,7 +128,9 @@ namespace Soul.SqlBatis
                     switch (s.Key)
                     {
                         case TokenType.From:
-                            return $"FROM {expr}";
+                            return select == "UPDATE" ? expr : $"FROM {expr}";
+                        case TokenType.Set:
+                            return $"SET {expr}";
                         case TokenType.Where:
                             return $"WHERE {expr}";
                         case TokenType.GroupBy:
@@ -132,6 +164,7 @@ namespace Soul.SqlBatis
         enum TokenType
         {
             From,
+            Set,
             Where,
             GroupBy,
             Having,
