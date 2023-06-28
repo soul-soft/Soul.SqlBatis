@@ -21,7 +21,11 @@ var countSql = sb.Page(1, 20).Count();
 ## 配合dapper
 
 ``` C#
-var values = new DynamicValues();
+var req = new
+{
+    Age = (int?)50
+};
+var values = new DynamicValues(req);
 var connection = new MysqlConnection("...");
 var sb = new SqlBuilder();
 sb = sb.From("students join schools on students.sch_id = schools.id")
