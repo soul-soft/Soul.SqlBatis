@@ -15,7 +15,7 @@ sb = sb.From("students join schools on students.sch_id = schools.id")
     .Page(1, 20);
 
 var querySql = sb.Select("students.id,students.age,schools.name");
-var countSql = sb).Count();
+var countSql = sb.Count();
 ```
 
 ## 配合dapper
