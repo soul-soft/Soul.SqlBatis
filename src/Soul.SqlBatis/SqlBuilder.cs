@@ -63,7 +63,8 @@ namespace Soul.SqlBatis
 
         public string Select(string columns = "*")
         {
-            return Build($"SELECT {columns}", _tokens);
+            var tokens = _tokens;
+            return Build($"SELECT {columns}", tokens);
         }
 
         public string Count()
