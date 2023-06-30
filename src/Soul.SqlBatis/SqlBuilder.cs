@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Soul.SqlBatis
 {
@@ -72,7 +73,7 @@ namespace Soul.SqlBatis
         public string Select(string columns = "*")
         {
             var tokens = _tokens;
-            return Build($"SELECT {columns}", tokens);
+            return string.Join(" ", $"SELECT {columns} FROM {View}", GetFilter(tokens));
         }
 
         public string Update()
@@ -82,7 +83,7 @@ namespace Soul.SqlBatis
                .Where(a => a.Type != TokenType.Having)
                .Where(a => a.Type != TokenType.GroupBy)
                .Where(a => a.Type != TokenType.Limit);
-            return Build($"UPDATE", tokens);
+            return string.Join(" ", $"UPDATE {View}", GetFilter(tokens));
         }
 
         public string Delete()
@@ -93,7 +94,7 @@ namespace Soul.SqlBatis
                .Where(a => a.Type != TokenType.Having)
                .Where(a => a.Type != TokenType.GroupBy)
                .Where(a => a.Type != TokenType.Limit);
-            return Build($"DELETE", tokens);
+            return string.Join(" ", $"DELETE FROM {View}", GetFilter(tokens));
         }
 
         public string Count()
@@ -102,7 +103,23 @@ namespace Soul.SqlBatis
                 .Where(a => a.Type != TokenType.Set)
                 .Where(a => a.Type != TokenType.OrderBy)
                 .Where(a => a.Type != TokenType.Limit);
-            return Build($"SELECT COUNT(*)", tokens);
+            return string.Join(" ", $"SELECT COUNT(*) FROM {View}", GetFilter(tokens));
+        }
+
+        public string Build(string format)
+        {
+            var tokens = GetTokens(_tokens);
+            return Regex.Replace(format, @"/\*\*(?<token>\w+)\*\*/", match =>
+            {
+                var token = match.Groups["token"].Value.ToUpper();
+                var value = match.Value;
+                var key = GetTokenType(token);
+                if (key.HasValue && tokens.ContainsKey(key.Value))
+                {
+                    return tokens[key.Value];
+                }
+                return value;
+            }, RegexOptions.IgnoreCase);
         }
 
         public SqlBuilder Clone()
@@ -115,9 +132,19 @@ namespace Soul.SqlBatis
             return sb;
         }
 
-        private static string Build(string select, IEnumerable<Token> tokens)
+        private string View
         {
-            var list = tokens.GroupBy(a => a.Type)
+            get
+            {
+                return _tokens.Where(a => a.Type == TokenType.From).Select(s => s.Text).FirstOrDefault() ?? string.Empty;
+            }
+        }
+
+        private static Dictionary<TokenType, string> GetTokens(IEnumerable<Token> tokens)
+        {
+            return tokens
+                .Where(a => a.Type != TokenType.From && a.Type != TokenType.Limit)
+                .GroupBy(a => a.Type)
                 .OrderBy(s => s.Key)
                 .Select(s =>
                 {
@@ -125,27 +152,56 @@ namespace Soul.SqlBatis
                     if (s.Key == TokenType.Where || s.Key == TokenType.GroupBy)
                         connector = " AND ";
                     var expr = string.Join(connector, s.Select(a => a.Text));
+                    var values = string.Empty;
                     switch (s.Key)
                     {
-                        case TokenType.From:
-                            return select == "UPDATE" ? expr : $"FROM {expr}";
                         case TokenType.Set:
-                            return $"SET {expr}";
+                            values = $"SET {expr}";
+                            break;
                         case TokenType.Where:
-                            return $"WHERE {expr}";
+                            values = $"WHERE {expr}";
+                            break;
                         case TokenType.GroupBy:
-                            return $"Group By {expr}";
+                            values = $"Group By {expr}";
+                            break;
                         case TokenType.Having:
-                            return $"HAVING {expr}";
+                            values = $"HAVING {expr}";
+                            break;
                         case TokenType.OrderBy:
-                            return $"ORDER BY {expr}";
+                            values = $"ORDER BY {expr}";
+                            break;
                         case TokenType.Limit:
-                            return $"LIMIT {expr}";
-                        default:
-                            throw new NotImplementedException();
+                            values = $"LIMIT {expr}";
+                            break;
                     }
-                });
-            return $"{select} {string.Join(" ", list)}";
+                    return new KeyValuePair<TokenType, string>(s.Key, values);
+                })
+                .ToDictionary(s => s.Key, s => s.Value);
+        }
+
+        private static string GetFilter(IEnumerable<Token> tokens)
+        {
+            return string.Join(" ", GetTokens(tokens).Select(s => s.Value));
+        }
+
+        private static TokenType? GetTokenType(string token)
+        {
+            switch (token)
+            {
+                case "SET":
+                    return TokenType.Set;
+                case "WHERE":
+                    return TokenType.Where;
+                case "GROUPBY":
+                    return TokenType.GroupBy;
+                case "HAVING":
+                    return TokenType.Having;
+                case "ORDERBY":
+                    return TokenType.OrderBy;
+                case "LIMIT":
+                    return TokenType.Limit;
+            }
+            return null;
         }
 
         class Token

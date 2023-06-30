@@ -6,6 +6,7 @@ var req = new
 {
     Age = (int?)50
 };
+
 var query = new SqlBuilder();
 query = query.From("students join schools on students.sch_id = schools.id")
     .Where("age > @Age", req.Age != null)
@@ -17,8 +18,7 @@ var countSql = query.Count();
 Console.WriteLine(querySql);
 Console.WriteLine(countSql);
 
-var update = new SqlBuilder()
-    .From("student")
+var update = new SqlBuilder().From("student")
     .Set("age = @Age")
     .Set("name = @Name")
     .Where("id = 1")
@@ -30,3 +30,6 @@ var delete = new SqlBuilder()
     .Where("id = 1")
     .Delete();
 Console.WriteLine(delete);
+
+var cc = query.Build("SELECT COUNT(*) FROM students /**WHERE**/ /**ORDERBY**/");
+Console.WriteLine(cc);
