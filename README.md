@@ -18,6 +18,17 @@ var querySql = sb.Select("students.id,students.age,schools.name");
 var countSql = sb.Count();
 ```
 
+## 模板方式
+
+``` C#
+var sb = new SqlBuilder();
+sb.Where("students.age > @Age", req.Age != null);
+sb.Where("students.name LIKE @Name", req.Name != null);
+sb.OrderBy("students.age desc");
+var countSql = sb.Build("SELECT COUNT(*) FROM /**WHERE**/");
+var querySql = sb.Build("SELECT * FROM /**WHERE**/ /**ORDERBY**/");
+```
+
 ## 配合dapper
 
 ``` C#
