@@ -103,7 +103,12 @@ namespace Soul.SqlBatis
                 .Where(a => a.Type != TokenType.Set)
                 .Where(a => a.Type != TokenType.OrderBy)
                 .Where(a => a.Type != TokenType.Limit);
-            return string.Join(" ", $"SELECT COUNT(*) FROM {View}", Build(tokens));
+            if (_tokens.Any(a => a.Type == TokenType.GroupBy))
+            {
+                var sql = string.Join(" ", $"SELECT * FROM {View}", Build(tokens));
+                return $"SELECT COUNT(*) FROM ({sql}) AS t";
+            }
+            return string.Join(" ", $"SELECT COUNT(*) FROM {View}", Build(tokens)); ;
         }
 
         public string Build(string format)

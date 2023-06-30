@@ -8,28 +8,11 @@ var req = new
 };
 
 var query = new SqlBuilder();
-query = query.From("students join schools on students.sch_id = schools.id")
+var sb = query
+    .From("students")
     .Where("age > @Age", req.Age != null)
     .OrderBy("students.age desc")
-    .Page(1, 20);
+    .GroupBy("students.name");
 
-var querySql = query.Select();
-var countSql = query.Count();
-Console.WriteLine(querySql);
-Console.WriteLine(countSql);
-
-var update = new SqlBuilder().From("student")
-    .Set("age = @Age")
-    .Set("name = @Name")
-    .Where("id = 1")
-    .Update();
-Console.WriteLine(update);
-
-var delete = new SqlBuilder()
-    .From("student")
-    .Where("id = 1")
-    .Delete();
-Console.WriteLine(delete);
-
-var cc = query.Build("SELECT COUNT(*) FROM students /**WHERE**/ /**ORDERBY**/");
-Console.WriteLine(cc);
+var count = sb.Count();
+Console.WriteLine(count);
