@@ -73,7 +73,7 @@ namespace Soul.SqlBatis
         public string Select(string columns = "*")
         {
             var tokens = _tokens;
-            return string.Join(" ", $"SELECT {columns} FROM {View}", GetFilter(tokens));
+            return string.Join(" ", $"SELECT {columns} FROM {View}", Build(tokens));
         }
 
         public string Update()
@@ -83,7 +83,7 @@ namespace Soul.SqlBatis
                .Where(a => a.Type != TokenType.Having)
                .Where(a => a.Type != TokenType.GroupBy)
                .Where(a => a.Type != TokenType.Limit);
-            return string.Join(" ", $"UPDATE {View}", GetFilter(tokens));
+            return string.Join(" ", $"UPDATE {View}", Build(tokens));
         }
 
         public string Delete()
@@ -94,7 +94,7 @@ namespace Soul.SqlBatis
                .Where(a => a.Type != TokenType.Having)
                .Where(a => a.Type != TokenType.GroupBy)
                .Where(a => a.Type != TokenType.Limit);
-            return string.Join(" ", $"DELETE FROM {View}", GetFilter(tokens));
+            return string.Join(" ", $"DELETE FROM {View}", Build(tokens));
         }
 
         public string Count()
@@ -103,12 +103,12 @@ namespace Soul.SqlBatis
                 .Where(a => a.Type != TokenType.Set)
                 .Where(a => a.Type != TokenType.OrderBy)
                 .Where(a => a.Type != TokenType.Limit);
-            return string.Join(" ", $"SELECT COUNT(*) FROM {View}", GetFilter(tokens));
+            return string.Join(" ", $"SELECT COUNT(*) FROM {View}", Build(tokens));
         }
 
         public string Build(string format)
         {
-            var tokens = GetTokens(_tokens);
+            var tokens = GetGroupTokens(_tokens);
             return Regex.Replace(format, @"/\*\*(?<token>\w+)\*\*/", match =>
             {
                 var token = match.Groups["token"].Value.ToUpper();
@@ -140,7 +140,7 @@ namespace Soul.SqlBatis
             }
         }
 
-        private static Dictionary<TokenType, string> GetTokens(IEnumerable<Token> tokens)
+        private static Dictionary<TokenType, string> GetGroupTokens(IEnumerable<Token> tokens)
         {
             return tokens
                 .Where(a => a.Type != TokenType.From && a.Type != TokenType.Limit)
@@ -179,9 +179,9 @@ namespace Soul.SqlBatis
                 .ToDictionary(s => s.Key, s => s.Value);
         }
 
-        private static string GetFilter(IEnumerable<Token> tokens)
+        private static string Build(IEnumerable<Token> tokens)
         {
-            return string.Join(" ", GetTokens(tokens).Select(s => s.Value));
+            return string.Join(" ", GetGroupTokens(tokens).Select(s => s.Value));
         }
 
         private static TokenType? GetTokenType(string token)
