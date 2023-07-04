@@ -148,7 +148,7 @@ namespace Soul.SqlBatis
         private static Dictionary<TokenType, string> GetGroupTokens(IEnumerable<Token> tokens)
         {
             return tokens
-                .Where(a => a.Type != TokenType.From && a.Type != TokenType.Limit)
+                .Where(a => a.Type != TokenType.From)
                 .GroupBy(a => a.Type)
                 .OrderBy(s => s.Key)
                 .Select(s =>

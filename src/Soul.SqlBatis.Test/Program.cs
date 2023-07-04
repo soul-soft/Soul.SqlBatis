@@ -8,11 +8,7 @@ var req = new
 };
 
 var query = new SqlBuilder();
-var sb = query
-    .From("students")
-    .Where("age > @Age", req.Age != null)
-    .OrderBy("students.age desc")
-    .GroupBy("students.name");
+var sb = query.Page(1, 20).Build("SELECT * FROM STUDENTS /**LIMIT**/");
 
 var count = sb.Count();
 Console.WriteLine(count);
