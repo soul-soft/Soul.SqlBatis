@@ -32,6 +32,15 @@ namespace Soul.SqlBatis
             return this;
         }
 
+        public SqlBuilder Join(string sql, bool flag = true)
+        {
+            if (flag)
+            {
+                _tokens.Add(new Token(TokenType.Join, sql));
+            }
+            return this;
+        }
+
         public SqlBuilder Having(string sql, bool flag = true)
         {
             if (flag)
@@ -156,6 +165,8 @@ namespace Soul.SqlBatis
                     var connector = ", ";
                     if (s.Key == TokenType.Where || s.Key == TokenType.GroupBy)
                         connector = " AND ";
+                    if (s.Key == TokenType.Join)
+                        connector = " ";
                     var expr = string.Join(connector, s.Select(a => a.Text));
                     var values = string.Empty;
                     switch (s.Key)
@@ -165,6 +176,9 @@ namespace Soul.SqlBatis
                             break;
                         case TokenType.Where:
                             values = $"WHERE {expr}";
+                            break;
+                        case TokenType.Join:
+                            values = $"{expr}";
                             break;
                         case TokenType.GroupBy:
                             values = $"Group By {expr}";
@@ -197,6 +211,8 @@ namespace Soul.SqlBatis
                     return TokenType.Set;
                 case "WHERE":
                     return TokenType.Where;
+                case "JOIN":
+                    return TokenType.Join;
                 case "GROUPBY":
                     return TokenType.GroupBy;
                 case "HAVING":
@@ -227,6 +243,7 @@ namespace Soul.SqlBatis
             From,
             Set,
             Where,
+            Join,
             GroupBy,
             Having,
             OrderBy,
