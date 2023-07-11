@@ -8,10 +8,7 @@ var req = new
 };
 
 var query = new SqlBuilder();
-var sb = query.Page(1, 20)
-    .Join("LEFT JOIN schools ON schools.sc_id = students.id")
-    .Join("LEFT JOIN schools ON schools.sc_id = students.id")
-    .Build("SELECT * FROM students /**JOIN**/ /**LIMIT**/");
-
+var sb = query.Where("Id = @Id",false);
+var wh = sb.Build("/**WHERE**/");
 var count = sb.Count();
 Console.WriteLine(count);

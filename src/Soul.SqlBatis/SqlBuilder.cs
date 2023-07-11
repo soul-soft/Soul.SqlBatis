@@ -132,7 +132,7 @@ namespace Soul.SqlBatis
                 {
                     return tokens[key.Value];
                 }
-                return value;
+                return string.Empty;
             }, RegexOptions.IgnoreCase);
         }
 
