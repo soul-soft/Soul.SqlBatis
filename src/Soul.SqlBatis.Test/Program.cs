@@ -1,14 +1,11 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using Soul.SqlBatis;
+using Soul.SqlBatis.Expressions;
+using Soul.SqlBatis.Test;
 
-
-using Soul.SqlBatis;
-var req = new
-{
-    Age = (int?)50
-};
-
-var query = new SqlBuilder();
-var sb = query.Where("Id = @Id",false);
-var wh = sb.Build("/**WHERE**/");
-var count = sb.Count();
-Console.WriteLine(count);
+var context = new MyDbContext();
+var list = new int[] { };
+var sql = context.Set<Student>()
+	.FromSql("select * from student")
+	.Where(a => Db.IsNull(a.Name))
+	.Select(a => a.Id)
+	.ToList();

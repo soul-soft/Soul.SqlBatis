@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Soul.SqlBatis.Test
+﻿namespace Soul.SqlBatis.Test
 {
-    internal class Student
+    public class Student
     {
+        public int? Id { get; set; }
+        public string Name { get; set; }
     }
 }
