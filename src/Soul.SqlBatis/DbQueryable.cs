@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Linq.Expressions;
 using Soul.SqlBatis.Expressions;
 
@@ -110,7 +109,7 @@ namespace Soul.SqlBatis
 			{
 				AddExpression(SqlExpression.Select(sql));
 			}
-			return new DbQueryable<TResult>(_context, GetExpressions());
+			return new DbQueryable<TResult>(_context, Expressions);
 		}
 
 		public IDbQueryable<TResult> Select<TResult>(Expression<Func<T, TResult>> expression, bool flag = true)
@@ -119,7 +118,7 @@ namespace Soul.SqlBatis
 			{
 				AddExpression(SqlExpression.Select(expression));
 			}
-			return new DbQueryable<TResult>(_context, GetExpressions());
+			return new DbQueryable<TResult>(_context, Expressions);
 		}
 
 		public IDbQueryable<T> Skip(int count, bool flag = true)

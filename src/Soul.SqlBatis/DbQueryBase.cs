@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Common;
+﻿using System.Collections.Generic;
 using Soul.SqlBatis.Expressions;
 
 namespace Soul.SqlBatis
 {
 	public abstract class DbQueryBase
 	{
-		private List<SqlExpression> _expressions = new List<SqlExpression>();
+		public List<SqlExpression> Expressions { get; } = new List<SqlExpression>();
 
 		private Dictionary<string, object> _parameters = new Dictionary<string, object>();
 
@@ -21,7 +19,7 @@ namespace Soul.SqlBatis
 		public DbQueryBase(DbContext context, List<SqlExpression> expressions)
 		{
 			DbContext = context;
-			_expressions = expressions;
+			Expressions = expressions;
 		}
 
 		protected void AddParameter(object param)
@@ -48,12 +46,7 @@ namespace Soul.SqlBatis
 
 		protected void AddExpression(SqlExpression expression)
 		{
-			_expressions.Add(expression);
-		}
-
-		protected List<SqlExpression> GetExpressions()
-		{
-			return _expressions; 
+			Expressions.Add(expression);
 		}
 
 		public DbCommand Build()
