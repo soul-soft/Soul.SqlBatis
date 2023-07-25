@@ -23,9 +23,9 @@ namespace Soul.SqlBatis.Model
         }
     }
 
-    public class IEntityBuilder<T> : EntityBuilder
+    public class EntityBuilder<T> : EntityBuilder
     {
-        public IEntityBuilder() 
+        public EntityBuilder() 
             : base(typeof(T))
         {
 

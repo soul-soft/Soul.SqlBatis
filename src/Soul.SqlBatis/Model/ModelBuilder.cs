@@ -5,7 +5,7 @@ namespace Soul.SqlBatis.Model
 {
     public class ModelBuilder
     {
-        public IEntityBuilder<T> Entity<T>()
+        public EntityBuilder<T> Entity<T>()
         {
             throw new NotImplementedException();
         }
