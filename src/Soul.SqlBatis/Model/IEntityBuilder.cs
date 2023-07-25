@@ -3,9 +3,42 @@ using System.Linq.Expressions;
 
 namespace Soul.SqlBatis.Model
 {
-    public interface IEntityBuilder<T>
+    public class EntityBuilder
     {
-        void HasKey<TProperty>(Expression<Func<T, TProperty>> expression);
-        IPropertyBuilder Property<TProperty>(Expression<Func<T, TProperty>> expression);
+        public Type EntityType { get; }
+
+        public EntityBuilder(Type entityType)
+        {
+            EntityType = entityType;
+        }
+
+        public void HasKey(string property)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IPropertyBuilder Property<TProperty>(string property)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class IEntityBuilder<T> : EntityBuilder
+    {
+        public IEntityBuilder() 
+            : base(typeof(T))
+        {
+
+        }
+
+        public void HasKey<TProperty>(Expression<Func<T, TProperty>> expression)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IPropertyBuilder Property<TProperty>(Expression<Func<T, TProperty>> expression)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

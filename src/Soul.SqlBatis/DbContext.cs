@@ -12,17 +12,17 @@ namespace Soul.SqlBatis
     public abstract class DbContext : IDisposable
     {
         private IModel _model;
-        
+
         private IDbConnection _connection;
-        
+
         private DbContextTransaction _transaction;
-        
+
         private DbContextOptions _options;
-        
+
         public IModel Model => _model;
-       
+
         public DbContextOptions Options => _options;
-       
+
         public DbContextTransaction CurrentDbTransaction => _transaction;
 
         public DbContext()
@@ -94,7 +94,7 @@ namespace Soul.SqlBatis
 
         protected void OnModelCreating(ModelBuilder builder)
         {
-            
+
         }
 
         public void Dispose()
@@ -108,9 +108,13 @@ namespace Soul.SqlBatis
         {
             var builder = new ModelBuilder();
             var entities = GetType().GetProperties()
-                .Where(a=>a.PropertyType.IsGenericType)
-                .Where(a=>a.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
+                .Where(a => a.PropertyType.IsGenericType)
+                .Where(a => a.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
                 .Select(s => s.PropertyType.GenericTypeArguments[0]);
+            foreach (var item in entities)
+            {
+                builder.Entity(item);
+            }
             return builder;
         }
     }

@@ -9,6 +9,11 @@ namespace Soul.SqlBatis.Model
         {
             throw new NotImplementedException();
         }
+        
+        public EntityBuilder Entity(Type type)
+        {
+            return new EntityBuilder(type);
+        }
 
         public IModel Build()
         { 
