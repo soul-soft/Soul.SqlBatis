@@ -1,10 +1,18 @@
-﻿using Soul.SqlBatis.Linq;
+﻿using System;
+using Soul.SqlBatis.Linq;
 
 namespace Soul.SqlBatis.Model
 {
-    public interface IModelBuilder
+    public class ModelBuilder
     {
-        IEntityBuilder<T> Entity<T>();
-        IModel Build();
+        public IEntityBuilder<T> Entity<T>()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IModel Build()
+        { 
+            throw new NotImplementedException();
+        }
     }
 }

@@ -10,14 +10,23 @@ namespace Soul.SqlBatis
     public abstract class DbContext : IDisposable
     {
         private IModel _model;
-
         private IDbConnection _connection;
-
         private DbContextTransaction _transaction;
-
+        private DbContextOptions _options;
+        
+        public IModel Model => _model;
+       
+        public DbContextOptions Options => _options;
+       
         public DbContextTransaction CurrentDbTransaction => _transaction;
 
-        public IModel Model => _model;
+        public DbContext(DbContextOptions options)
+        {
+            _options = options;
+            var modelBuilder = new ModelBuilder();
+            OnModelCreating(modelBuilder);
+            _model = modelBuilder.Build();
+        }
 
         public DbSet<T> Set<T>()
             where T : class
@@ -79,7 +88,7 @@ namespace Soul.SqlBatis
             return Task.FromResult(new DbContextTransaction(transaction));
         }
 
-        protected void OnModelCreating(IModelBuilder builder)
+        protected void OnModelCreating(ModelBuilder builder)
         {
             
         }
