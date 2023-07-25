@@ -10,8 +10,11 @@ namespace Soul.SqlBatis
     public abstract class DbContext : IDisposable
     {
         private IModel _model;
+        
         private IDbConnection _connection;
+        
         private DbContextTransaction _transaction;
+        
         private DbContextOptions _options;
         
         public IModel Model => _model;
@@ -23,7 +26,7 @@ namespace Soul.SqlBatis
         public DbContext(DbContextOptions options)
         {
             _options = options;
-            var modelBuilder = new ModelBuilder();
+            var modelBuilder = CreateModelBuilder();
             OnModelCreating(modelBuilder);
             _model = modelBuilder.Build();
         }
@@ -98,6 +101,12 @@ namespace Soul.SqlBatis
             _connection?.Close();
             _connection?.Dispose();
             _connection = null;
+        }
+
+        private ModelBuilder CreateModelBuilder()
+        {
+            var builder = new ModelBuilder();
+            return builder;
         }
     }
 }
