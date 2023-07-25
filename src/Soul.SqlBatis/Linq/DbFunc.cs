@@ -24,5 +24,10 @@ namespace Soul.SqlBatis.Expressions
 		{
 			throw new NotImplementedException();
 		}
+
+		public static bool Sql()
+		{
+			
+		}
 	}
 }
