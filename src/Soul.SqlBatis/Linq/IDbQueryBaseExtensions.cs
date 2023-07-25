@@ -6,7 +6,7 @@ using Dapper;
 
 namespace Soul.SqlBatis
 {
-	public static class IDbQueryBaseExtensions
+    public static class IDbQueryBaseExtensions
 	{
 		public static List<T> ToList<T>(this IDbQueryable<T> queryable)
 		{
@@ -15,7 +15,7 @@ namespace Soul.SqlBatis
 				throw new InvalidOperationException();
 			}
 			var query = queryable as DbQueryBase;
-			return ExecuteQuery<T>(query).ToList();
+			return Query<T>(query).ToList();
 		}
 
 		public static async Task<List<T>> ToListAsync<T>(this IDbQueryable<T> queryable)
@@ -25,7 +25,7 @@ namespace Soul.SqlBatis
 				throw new InvalidOperationException();
 			}
 			var query = queryable as DbQueryBase;
-			return (await ExecuteQueryAsync<T>(query)).ToList();
+			return (await QueryAsync<T>(query)).ToList();
 		}
 
 		public static T[] ToArray<T>(this IDbQueryable<T> queryable)
@@ -35,7 +35,7 @@ namespace Soul.SqlBatis
 				throw new InvalidOperationException();
 			}
 			var query = queryable as DbQueryBase;
-			return ExecuteQuery<T>(query).ToArray();
+			return Query<T>(query).ToArray();
 		}
 
 		public static async Task<T[]> ToArrayAsync<T>(this IDbQueryable<T> queryable)
@@ -45,24 +45,24 @@ namespace Soul.SqlBatis
 				throw new InvalidOperationException();
 			}
 			var query = queryable as DbQueryBase;
-			return (await ExecuteQueryAsync<T>(query)).ToArray();
+			return (await QueryAsync<T>(query)).ToArray();
 		}
 
-		private static IEnumerable<T> ExecuteQuery<T>(DbQueryBase query)
+		private static IEnumerable<T> Query<T>(DbQueryBase query)
 		{
 			var command = query.Build();
 			var context = query.DbContext;
 			var connection = context.GetDbConnection();
-			var transaction = context.GetDbTransaction();
+			var transaction = context.CurrentDbTransaction?.GetDbTransaction();
 			return connection.Query<T>(command.CommandText, command.Parameters, transaction);
 		}
 
-		private static Task<IEnumerable<T>> ExecuteQueryAsync<T>(DbQueryBase query)
+		private static Task<IEnumerable<T>> QueryAsync<T>(DbQueryBase query)
 		{
 			var command = query.Build();
 			var context = query.DbContext;
 			var connection = context.GetDbConnection();
-			var transaction = context.GetDbTransaction();
+			var transaction = context.CurrentDbTransaction?.GetDbTransaction();
 			return connection.QueryAsync<T>(command.CommandText, command.Parameters, transaction);
 		}
 	}
