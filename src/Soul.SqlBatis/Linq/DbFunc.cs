@@ -25,9 +25,9 @@ namespace Soul.SqlBatis.Expressions
 			throw new NotImplementedException();
 		}
 
-		public static bool Sql()
-		{
-			
-		}
-	}
+        public static T Sql<T>(DbSql syntax)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

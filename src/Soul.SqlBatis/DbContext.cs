@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.Common;
 using System.Threading.Tasks;
 
 namespace Soul.SqlBatis
 {
-	public abstract class DbContext : IDisposable
+    public abstract class DbContext : IDisposable
 	{
 		private IDbConnection _connection;
 		
@@ -69,9 +68,9 @@ namespace Soul.SqlBatis
 
 		public void Dispose()
 		{
-			Connection?.Close();
-			Connection?.Dispose();
-			Connection = null;
+			_connection?.Close();
+			_connection?.Dispose();
+            _connection = null;
 		}
 	}
 }
