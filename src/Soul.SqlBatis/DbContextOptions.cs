@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Soul.SqlBatis
+﻿namespace Soul.SqlBatis
 {
-	public abstract class DbContextOptions
+    public abstract class DbContextOptions
 	{
-
+		public string ConnecionString { get; }
 	}
 }

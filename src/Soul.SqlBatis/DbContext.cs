@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Linq;
 using System.Threading.Tasks;
 using Soul.SqlBatis.Linq;
 using Soul.SqlBatis.Model;
@@ -23,9 +25,8 @@ namespace Soul.SqlBatis
        
         public DbContextTransaction CurrentDbTransaction => _transaction;
 
-        public DbContext(DbContextOptions options)
+        public DbContext()
         {
-            _options = options;
             var modelBuilder = CreateModelBuilder();
             OnModelCreating(modelBuilder);
             _model = modelBuilder.Build();
@@ -106,6 +107,10 @@ namespace Soul.SqlBatis
         private ModelBuilder CreateModelBuilder()
         {
             var builder = new ModelBuilder();
+            var entities = GetType().GetProperties()
+                .Where(a=>a.PropertyType.IsGenericType)
+                .Where(a=>a.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
+                .Select(s => s.PropertyType.GenericTypeArguments[0]);
             return builder;
         }
     }

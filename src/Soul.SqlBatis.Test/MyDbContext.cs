@@ -2,6 +2,11 @@
 {
 	public class MyDbContext : DbContext
 	{
-		public DbSet<Student> Students => Set<Student>();
+        public MyDbContext() 
+        {
+
+        }
+
+        public DbSet<Student> Students => Set<Student>();
 	}
 }
