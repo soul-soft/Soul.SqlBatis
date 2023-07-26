@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
@@ -90,7 +91,7 @@ namespace Soul.SqlBatis
             return Task.FromResult(new DbContextTransaction(transaction));
         }
 
-        protected void OnModelCreating(ModelBuilder builder)
+        protected virtual void OnModelCreating(ModelBuilder builder)
         {
 
         }
@@ -105,15 +106,20 @@ namespace Soul.SqlBatis
         private ModelBuilder CreateModelBuilder()
         {
             var builder = new ModelBuilder();
-            var entities = GetType().GetProperties()
-                .Where(a => a.PropertyType.IsGenericType)
-                .Where(a => a.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
-                .Select(s => s.PropertyType.GenericTypeArguments[0]);
+            var entities = GetCurrentEntityTypes();
             foreach (var item in entities)
             {
-                builder.Entity(item).Property("Af");
+                builder.Entity(item);
             }
             return builder;
+        }
+
+        private IEnumerable<Type> GetCurrentEntityTypes()
+        {
+            return GetType().GetProperties()
+               .Where(a => a.PropertyType.IsGenericType)
+               .Where(a => a.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
+               .Select(s => s.PropertyType.GenericTypeArguments[0]);
         }
     }
 }

@@ -6,23 +6,23 @@ namespace Soul.SqlBatis.Infrastructure
 {
     public class Model
     {
-        private readonly List<Entity> _entities;
-
-        public IReadOnlyCollection<Entity> Entities => _entities;
-
-        public Model(IEnumerable<Entity> entities)
+        private readonly List<EntityType> _entities;
+      
+        public Model(IEnumerable<EntityType> entities)
         {
-            _entities = entities.ToList();
+            _entities.AddRange(entities);
+        }
+        
+        public IReadOnlyCollection<EntityType> Entities => _entities;
+
+        public EntityType GetEntity(Type type)
+        {
+            return _entities.Where(a => a.Type == type).FirstOrDefault();
         }
 
-        public Entity GetEntity(Type entityType)
+        public bool IsEntity(Type type)
         {
-            return _entities.Where(a => a.EntityType == entityType).FirstOrDefault();
-        }
-
-        public bool IsEntity(Type entityType)
-        {
-            return _entities.Any(a => a.EntityType == entityType);
+            return _entities.Any(a => a.Type == type);
         }
     }
 }

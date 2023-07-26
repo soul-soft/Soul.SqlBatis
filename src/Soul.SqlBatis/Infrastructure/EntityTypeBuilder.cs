@@ -5,11 +5,11 @@ namespace Soul.SqlBatis.Infrastructure
 {
     public class EntityTypeBuilder
     {
-        private readonly Type _type;
+        private readonly EntityType _entityType;
 
-        public EntityTypeBuilder(Type type)
+        public EntityTypeBuilder(EntityType entityType)
         {
-            _type = type;
+            _entityType = entityType;
         }
 
         public void HasKey(string property)
@@ -22,16 +22,16 @@ namespace Soul.SqlBatis.Infrastructure
             throw new NotImplementedException();
         }
 
-        public EntityType Build()
+        public void Build(EntityType entityType)
         {
-            return new EntityType(null);
+
         }
     }
 
     public class EntityTypeBuilder<T> : EntityTypeBuilder
     {
-        public EntityTypeBuilder()
-            : base(typeof(T))
+        public EntityTypeBuilder(EntityType entityType)
+            : base(entityType)
         {
 
         }

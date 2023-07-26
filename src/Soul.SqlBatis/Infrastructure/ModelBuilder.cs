@@ -1,25 +1,33 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 
 namespace Soul.SqlBatis.Infrastructure
 {
     public class ModelBuilder
     {
-        private readonly List<EntityTypeBuilder> _entities = new List<EntityTypeBuilder>();
+        private readonly ConcurrentDictionary<Type, EntityType> _entityTypes = new ConcurrentDictionary<Type, EntityType>();
 
         public EntityTypeBuilder Entity(Type type)
         {
-            return new EntityTypeBuilder(type);
+            return new EntityTypeBuilder(GetEntityType(type));
+        }
+
+        public EntityTypeBuilder Entity<T>()
+        {
+            return new EntityTypeBuilder<T>(GetEntityType(typeof(T)));
         }
 
         public Model Build()
         {
-            throw new NotImplementedException();
+            return new Model(_entityTypes.Values);
         }
 
-        private static EntityTypeBuilder Create(Type type)
+        private EntityType GetEntityType(Type type)
         {
-            return new EntityTypeBuilder(type);
+            return _entityTypes.GetOrAdd(type, key =>
+            {
+                return new EntityType(type);
+            });
         }
     }
 }

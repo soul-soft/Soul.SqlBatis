@@ -7,13 +7,17 @@ namespace Soul.SqlBatis.Infrastructure
 {
     public class EntityType
     {
+        private readonly Type _type;
+
         private List<Property> _properties;
+
+        public Type Type => _type;
 
         public IReadOnlyCollection<Property> Properties => _properties;
 
-        public EntityType(List<Property> properties)
+        public EntityType(Type type)
         {
-            _properties = properties;
+            _type = type;
         }
 
         public Property GetProperty(MemberInfo member)
