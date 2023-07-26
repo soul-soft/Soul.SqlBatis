@@ -1,11 +1,45 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Soul.SqlBatis.Expressions
 {
-    internal static class SqlExpressionUtility
+    internal static class DbExpressionUtility
     {
-        public static string GetSqlExpressionType(ExpressionType expressionType)
+        public static object GetDbExpressionValue(Expression expression)
+        {
+            object value = null;
+            if (expression is ConstantExpression constant)
+                value = constant.Value;
+            else if (expression is MemberExpression)
+            {
+                var expressions = new Stack<MemberExpression>();
+                var temp = expression;
+                while (temp is MemberExpression memberExpression)
+                {
+                    expressions.Push(memberExpression);
+                    temp = memberExpression.Expression;
+                }
+                foreach (var item in expressions)
+                {
+                    if (item.Expression is ConstantExpression constantExpression)
+                        value = constantExpression.Value;
+                    if (item.Member is PropertyInfo property)
+                        value = property.GetValue(value);
+                    else if (item.Member is FieldInfo field)
+                        value = field.GetValue(value);
+                }
+            }
+            else
+            {
+                value = Expression.Lambda(expression).Compile().DynamicInvoke();
+            }
+           
+            return value;
+        }
+
+        public static string GetDbExpressionType(ExpressionType expressionType)
         {
             string result = string.Empty;
             switch (expressionType)

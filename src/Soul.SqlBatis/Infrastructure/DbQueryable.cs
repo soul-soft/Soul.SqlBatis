@@ -5,7 +5,7 @@ using Soul.SqlBatis.Expressions;
 
 namespace Soul.SqlBatis
 {
-	public class DbQueryable<T> : DbQuery, IDbQueryable<T>
+	public class DbQueryable<T> : DbQueryBuilder, IDbQueryable<T>
 	{
 		private readonly DbContext _context;
 
@@ -15,7 +15,7 @@ namespace Soul.SqlBatis
 			_context = context;
 		}
 
-		public DbQueryable(DbContext context, List<DbSyntaxToken> expressions)
+		public DbQueryable(DbContext context, List<DbExpression> expressions)
 			: base(context, expressions)
 		{
 			_context = context;
@@ -25,7 +25,7 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				AddExpression(DbSyntaxToken.From(sql));
+				AddExpression(DbExpression.From(sql));
 			}
 			return this;
 		}
@@ -34,7 +34,7 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				AddExpression(DbSyntaxToken.GroupBy(sql));
+				AddExpression(DbExpression.GroupBy(sql));
 			}
 			return this;
 		}
@@ -43,7 +43,7 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				AddExpression(DbSyntaxToken.GroupBy(expression));
+				AddExpression(DbExpression.GroupBy(expression));
 			}
 			return this;
 		}
@@ -53,7 +53,7 @@ namespace Soul.SqlBatis
 			if (flag)
 			{
 				AddParameter(param);
-				AddExpression(DbSyntaxToken.Having(sql));
+				AddExpression(DbExpression.Having(sql));
 			}
 			return this;
 		}
@@ -62,7 +62,7 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				AddExpression(DbSyntaxToken.Having(expression));
+				AddExpression(DbExpression.Having(expression));
 			}
 			return this;
 		}
@@ -71,7 +71,7 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				AddExpression(DbSyntaxToken.OrderBy(sql));
+				AddExpression(DbExpression.OrderBy(sql));
 			}
 			return this;
 		}
@@ -80,7 +80,7 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				AddExpression(DbSyntaxToken.OrderBy(expression));
+				AddExpression(DbExpression.OrderBy(expression));
 			}
 			return this;
 		}
@@ -89,7 +89,7 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				AddExpression(DbSyntaxToken.OrderBy(sql));
+				AddExpression(DbExpression.OrderBy(sql));
 			}
 			return this;
 		}
@@ -98,7 +98,7 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				AddExpression(DbSyntaxToken.OrderBy(expression));
+				AddExpression(DbExpression.OrderBy(expression));
 			}
 			return this;
 		}
@@ -107,7 +107,7 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				AddExpression(DbSyntaxToken.Select(sql));
+				AddExpression(DbExpression.Select(sql));
 			}
 			return new DbQueryable<TResult>(_context, Expressions);
 		}
@@ -116,7 +116,7 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				AddExpression(DbSyntaxToken.Select(expression));
+				AddExpression(DbExpression.Select(expression));
 			}
 			return new DbQueryable<TResult>(_context, Expressions);
 		}
@@ -125,7 +125,7 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				Expressions.Add(DbSyntaxToken.Skip(count));
+				Expressions.Add(DbExpression.Skip(count));
 
 			}
 			return this;
@@ -135,7 +135,7 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				Expressions.Add(DbSyntaxToken.Take(count));
+				Expressions.Add(DbExpression.Take(count));
 			}
 			return this;
 		}
@@ -145,7 +145,7 @@ namespace Soul.SqlBatis
 			if (flag)
 			{
 				AddParameter(param);
-				AddExpression(DbSyntaxToken.Where(sql));
+				AddExpression(DbExpression.Where(sql));
 			}
 			return this;
 		}
@@ -154,7 +154,7 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				AddExpression(DbSyntaxToken.Where(expression));
+				AddExpression(DbExpression.Where(expression));
 			}
 			return this;
 		}

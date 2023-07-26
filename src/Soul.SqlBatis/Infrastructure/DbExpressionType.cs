@@ -1,6 +1,6 @@
 ﻿namespace Soul.SqlBatis.Expressions
 {
-    public enum DbSyntaxTokenType
+    public enum DbExpressionType
     {
         Select,
         From,

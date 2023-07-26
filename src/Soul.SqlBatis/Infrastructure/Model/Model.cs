@@ -10,7 +10,7 @@ namespace Soul.SqlBatis.Infrastructure
       
         public Model(IEnumerable<EntityType> entities)
         {
-            _entities.AddRange(entities);
+            _entities = entities.ToList();
         }
         
         public IReadOnlyCollection<EntityType> Entities => _entities;

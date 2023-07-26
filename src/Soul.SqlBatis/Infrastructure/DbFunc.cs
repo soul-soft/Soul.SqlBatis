@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Soul.SqlBatis.Expressions
+namespace Soul.SqlBatis
 {
-	public static class Db
+	public static class DbFunc
 	{
 		public static bool Like(string column, string value)
 		{
@@ -25,7 +25,7 @@ namespace Soul.SqlBatis.Expressions
 			throw new NotImplementedException();
 		}
 
-        public static T Sql<T>(DbSyntax syntax)
+        public static T Raw<T>(DbSyntax syntax)
         {
             throw new NotImplementedException();
         }
