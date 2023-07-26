@@ -1,19 +1,19 @@
 ﻿using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
-using Soul.SqlBatis.Linq;
+using Soul.SqlBatis.Infrastructure;
 
 namespace Soul.SqlBatis.Expressions
 {
     public abstract class SqlExpressionVisitor : ExpressionVisitor
     {
-        private readonly IModel _model;
+        private readonly Model _model;
 
         private readonly StringBuilder _buffer = new StringBuilder();
 
         private readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
 
-        protected SqlExpressionVisitor(IModel model)
+        protected SqlExpressionVisitor(Model model)
         {
             _model = model;
         }
@@ -25,7 +25,7 @@ namespace Soul.SqlBatis.Expressions
 
         public abstract string Build(Expression expression, Dictionary<string, object> parameters);
 
-        protected void SetExpressionType(ExpressionType expressionType)
+        protected void SetBinaryType(ExpressionType expressionType)
         {
             var value = SqlExpressionUtility.GetSqlExpressionType(expressionType);
             _buffer.Append(value);
@@ -34,7 +34,7 @@ namespace Soul.SqlBatis.Expressions
         protected void SetColumn(MemberExpression expression)
         {
             var entity = _model.GetEntity(expression.Type);
-            var column = entity.GetColumnName(expression.Member.Name);
+            var column = entity.GetProperty(expression.Member).ColumnName;
             _buffer.Append(column);
         }
 

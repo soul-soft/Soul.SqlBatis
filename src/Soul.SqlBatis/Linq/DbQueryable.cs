@@ -5,7 +5,7 @@ using Soul.SqlBatis.Expressions;
 
 namespace Soul.SqlBatis
 {
-	public class DbQueryable<T> : DbQueryBase, IDbQueryable<T>
+	public class DbQueryable<T> : DbQuery, IDbQueryable<T>
 	{
 		private readonly DbContext _context;
 
@@ -15,26 +15,26 @@ namespace Soul.SqlBatis
 			_context = context;
 		}
 
-		public DbQueryable(DbContext context, List<SqlExpression> expressions)
+		public DbQueryable(DbContext context, List<DbSyntaxToken> expressions)
 			: base(context, expressions)
 		{
 			_context = context;
 		}
 
-		public IDbQueryable<T> FromSql(DbSql sql, bool flag = true)
+		public IDbQueryable<T> FromSql(DbSyntax sql, bool flag = true)
 		{
 			if (flag)
 			{
-				AddExpression(SqlExpression.From(sql));
+				AddExpression(DbSyntaxToken.From(sql));
 			}
 			return this;
 		}
 
-		public IDbQueryable<T> GroupBy(DbSql sql, bool flag = true)
+		public IDbQueryable<T> GroupBy(DbSyntax sql, bool flag = true)
 		{
 			if (flag)
 			{
-				AddExpression(SqlExpression.GroupBy(sql));
+				AddExpression(DbSyntaxToken.GroupBy(sql));
 			}
 			return this;
 		}
@@ -43,17 +43,17 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				AddExpression(SqlExpression.GroupBy(expression));
+				AddExpression(DbSyntaxToken.GroupBy(expression));
 			}
 			return this;
 		}
 
-		public IDbQueryable<T> Having(DbSql sql, object param = null, bool flag = true)
+		public IDbQueryable<T> Having(DbSyntax sql, object param = null, bool flag = true)
 		{
 			if (flag)
 			{
 				AddParameter(param);
-				AddExpression(SqlExpression.Having(sql));
+				AddExpression(DbSyntaxToken.Having(sql));
 			}
 			return this;
 		}
@@ -62,16 +62,16 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				AddExpression(SqlExpression.Having(expression));
+				AddExpression(DbSyntaxToken.Having(expression));
 			}
 			return this;
 		}
 
-		public IDbQueryable<T> OrderBy(DbSql sql, bool flag = true)
+		public IDbQueryable<T> OrderBy(DbSyntax sql, bool flag = true)
 		{
 			if (flag)
 			{
-				AddExpression(SqlExpression.OrderBy(sql));
+				AddExpression(DbSyntaxToken.OrderBy(sql));
 			}
 			return this;
 		}
@@ -80,16 +80,16 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				AddExpression(SqlExpression.OrderBy(expression));
+				AddExpression(DbSyntaxToken.OrderBy(expression));
 			}
 			return this;
 		}
 
-		public IDbQueryable<T> OrderByDescending(DbSql sql, bool flag = true)
+		public IDbQueryable<T> OrderByDescending(DbSyntax sql, bool flag = true)
 		{
 			if (flag)
 			{
-				AddExpression(SqlExpression.OrderBy(sql));
+				AddExpression(DbSyntaxToken.OrderBy(sql));
 			}
 			return this;
 		}
@@ -98,16 +98,16 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				AddExpression(SqlExpression.OrderBy(expression));
+				AddExpression(DbSyntaxToken.OrderBy(expression));
 			}
 			return this;
 		}
 
-		public IDbQueryable<TResult> Select<TResult>(DbSql sql, bool flag = true)
+		public IDbQueryable<TResult> Select<TResult>(DbSyntax sql, bool flag = true)
 		{
 			if (flag)
 			{
-				AddExpression(SqlExpression.Select(sql));
+				AddExpression(DbSyntaxToken.Select(sql));
 			}
 			return new DbQueryable<TResult>(_context, Expressions);
 		}
@@ -116,7 +116,7 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				AddExpression(SqlExpression.Select(expression));
+				AddExpression(DbSyntaxToken.Select(expression));
 			}
 			return new DbQueryable<TResult>(_context, Expressions);
 		}
@@ -125,7 +125,7 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				Expressions.Add(SqlExpression.Skip(count));
+				Expressions.Add(DbSyntaxToken.Skip(count));
 
 			}
 			return this;
@@ -135,17 +135,17 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				Expressions.Add(SqlExpression.Take(count));
+				Expressions.Add(DbSyntaxToken.Take(count));
 			}
 			return this;
 		}
 
-		public IDbQueryable<T> Where(DbSql sql, object param = null, bool flag = true)
+		public IDbQueryable<T> Where(DbSyntax sql, object param = null, bool flag = true)
 		{
 			if (flag)
 			{
 				AddParameter(param);
-				AddExpression(SqlExpression.Where(sql));
+				AddExpression(DbSyntaxToken.Where(sql));
 			}
 			return this;
 		}
@@ -154,7 +154,7 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				AddExpression(SqlExpression.Where(expression));
+				AddExpression(DbSyntaxToken.Where(expression));
 			}
 			return this;
 		}

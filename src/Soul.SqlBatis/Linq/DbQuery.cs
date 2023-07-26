@@ -3,20 +3,20 @@ using Soul.SqlBatis.Expressions;
 
 namespace Soul.SqlBatis
 {
-	public abstract class DbQueryBase
+	public abstract class DbQuery
 	{
-		public List<SqlExpression> Expressions { get; } = new List<SqlExpression>();
+		public List<DbSyntaxToken> Expressions { get; } = new List<DbSyntaxToken>();
 
 		private Dictionary<string, object> _parameters = new Dictionary<string, object>();
 
 		public DbContext DbContext { get; }
 
-		public DbQueryBase(DbContext context)
+		public DbQuery(DbContext context)
 		{
 			DbContext = context;
 		}
 
-		public DbQueryBase(DbContext context, List<SqlExpression> expressions)
+		public DbQuery(DbContext context, List<DbSyntaxToken> expressions)
 		{
 			DbContext = context;
 			Expressions = expressions;
@@ -44,13 +44,14 @@ namespace Soul.SqlBatis
 			}
 		}
 
-		protected void AddExpression(SqlExpression expression)
+		protected void AddExpression(DbSyntaxToken expression)
 		{
 			Expressions.Add(expression);
 		}
 
 		public DbCommand Build()
 		{
+			var tokens = new Dictionary<DbSyntaxTokenType, string>();
 			return new DbCommand();
 		}
 	}

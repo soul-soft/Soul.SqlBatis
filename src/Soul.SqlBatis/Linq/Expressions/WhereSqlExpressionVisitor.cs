@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using Soul.SqlBatis.Linq;
+using Soul.SqlBatis.Infrastructure;
 
 namespace Soul.SqlBatis.Expressions
 {
     internal class WhereSqlExpressionVisitor : SqlExpressionVisitor
     {
-        private readonly IModel _model;
+        private readonly Model _model;
 
-        public WhereSqlExpressionVisitor(Dictionary<string, object> parameters, IModel model)
+        public WhereSqlExpressionVisitor(Dictionary<string, object> parameters, Model model)
             : base(parameters)
         {
             _model = model;
@@ -23,7 +23,7 @@ namespace Soul.SqlBatis.Expressions
         protected override Expression VisitBinary(BinaryExpression node)
         {
             Visit(node.Left);
-            SetExpressionType(node.NodeType);
+            SetBinaryType(node.NodeType);
             Visit(node.Right);
 
             return base.VisitBinary(node);
