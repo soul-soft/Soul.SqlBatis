@@ -2,15 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Soul.SqlBatis.Linq
+namespace Soul.SqlBatis.Infrastructure
 {
-    public interface IModel
-    {
-        bool IsEntity(Type type);
-        Entity GetEntity(Type type);
-    }
-
-    public class Model : IModel
+    public class Model
     {
         private readonly List<Entity> _entities;
 

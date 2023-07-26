@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Linq.Expressions;
 
-namespace Soul.SqlBatis.Model
+namespace Soul.SqlBatis.Infrastructure
 {
-    public class EntityBuilder
+    public class EntityTypeBuilder
     {
-        public Type EntityType { get; }
+        private readonly Type _type;
 
-        public EntityBuilder(Type entityType)
+        public EntityTypeBuilder(Type type)
         {
-            EntityType = entityType;
+            _type = type;
         }
 
         public void HasKey(string property)
@@ -17,15 +17,20 @@ namespace Soul.SqlBatis.Model
             throw new NotImplementedException();
         }
 
-        public IPropertyBuilder Property<TProperty>(string property)
+        public PropertyBuilder Property(string property)
         {
             throw new NotImplementedException();
         }
+
+        public EntityType Build()
+        {
+            return new EntityType(null);
+        }
     }
 
-    public class EntityBuilder<T> : EntityBuilder
+    public class EntityTypeBuilder<T> : EntityTypeBuilder
     {
-        public EntityBuilder() 
+        public EntityTypeBuilder()
             : base(typeof(T))
         {
 
@@ -36,7 +41,7 @@ namespace Soul.SqlBatis.Model
             throw new NotImplementedException();
         }
 
-        public IPropertyBuilder Property<TProperty>(Expression<Func<T, TProperty>> expression)
+        public PropertyBuilder Property<TProperty>(Expression<Func<T, TProperty>> expression)
         {
             throw new NotImplementedException();
         }

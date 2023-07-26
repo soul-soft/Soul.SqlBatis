@@ -1,17 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
-using Soul.SqlBatis.Linq;
-using Soul.SqlBatis.Model;
+using Soul.SqlBatis.Infrastructure;
 
 namespace Soul.SqlBatis
 {
     public abstract class DbContext : IDisposable
     {
-        private IModel _model;
+        private Model _model;
 
         private IDbConnection _connection;
 
@@ -19,7 +17,7 @@ namespace Soul.SqlBatis
 
         private DbContextOptions _options;
 
-        public IModel Model => _model;
+        public Model Model => _model;
 
         public DbContextOptions Options => _options;
 
@@ -113,7 +111,7 @@ namespace Soul.SqlBatis
                 .Select(s => s.PropertyType.GenericTypeArguments[0]);
             foreach (var item in entities)
             {
-                builder.Entity(item);
+                builder.Entity(item).Property("Af");
             }
             return builder;
         }
