@@ -56,12 +56,12 @@ namespace Soul.SqlBatis
 
 		private string Build(Type type)
 		{
-			var engine = new DbExpressionEngine(_context.Model, _parameters);
+			var builder = new DbExpressionBuilder(_context.Model, _parameters);
 
 			var tokens = _expressions.Select(s => new
 			{
 				s.ExpressionType,
-				Expression = engine.Build(s)
+				Expression = builder.Build(s)
 			}).ToList();
 
 			var entityType = _context.Model.GetEntityType(type);

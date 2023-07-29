@@ -5,13 +5,13 @@ using Soul.SqlBatis.Infrastructure;
 
 namespace Soul.SqlBatis.Linq
 {
-    public class DbExpressionEngine
+    public class DbExpressionBuilder
     {
         private readonly Model _model;
        
         private readonly Dictionary<string, object> _parameters;
 
-        public DbExpressionEngine(Model model, Dictionary<string, object> parametsers)
+        public DbExpressionBuilder(Model model, Dictionary<string, object> parametsers)
         {
             _model = model;
             _parameters = parametsers;
@@ -19,7 +19,12 @@ namespace Soul.SqlBatis.Linq
 
         public string Build(DbExpression expression)
         {
-            if (expression.ExpressionType == DbExpressionType.Where)
+			if (expression.ExpressionType == DbExpressionType.From)
+			{
+				var visitor = new WhereDbExpressionVisitor(_model, _parameters);
+				return visitor.Build(expression.Expression);
+			}
+			if (expression.ExpressionType == DbExpressionType.Where)
             {
                 var visitor = new WhereDbExpressionVisitor(_model, _parameters);
                 return visitor.Build(expression.Expression);
