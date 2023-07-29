@@ -15,7 +15,7 @@ namespace Soul.SqlBatis.Infrastructure
         
         public IReadOnlyCollection<EntityType> Entities => _entities;
 
-        public EntityType GetEntity(Type type)
+        public EntityType GetEntityType(Type type)
         {
             return _entities.Where(a => a.Type == type).FirstOrDefault();
         }

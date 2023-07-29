@@ -54,28 +54,82 @@ namespace Soul.SqlBatis
 			_expressions.Add(expression);
 		}
 
-		private string Build()
+		private string Build(Type type)
 		{
 			var engine = new DbExpressionEngine(_context.Model, _parameters);
 
-			var list = _expressions.Select(s => new
+			var tokens = _expressions.Select(s => new
 			{
-				Type = s.ExpressionType,
-				Sql = engine.Build(s)
+				s.ExpressionType,
+				Expression = engine.Build(s)
 			}).ToList();
 
-			return string.Empty;
+			var entityType = _context.Model.GetEntityType(type);
+			var sb = new SqlBuilder();
+			if (tokens.Any(a => a.ExpressionType == DbExpressionType.From))
+			{
+				var view = tokens.Where(a => a.ExpressionType == DbExpressionType.From).First().Expression;
+				sb.From(view);
+			}
+			else
+			{
+				var view = entityType.TableName;
+				sb.From(view);
+			}
+			if (tokens.Any(a => a.ExpressionType == DbExpressionType.Select))
+			{
+				var columns = tokens.Where(a => a.ExpressionType == DbExpressionType.Select).First().Expression;
+				sb.Select(columns);
+			}
+			else
+			{
+				var columns = entityType.Properties.Select(s => $"{s.ColumnName} AS {s.Member.Name}");
+				sb.Select(columns);
+			}
+			if (tokens.Any(a => a.ExpressionType == DbExpressionType.Where))
+			{
+				var wheres = tokens.Where(a => a.ExpressionType == DbExpressionType.Where);
+				foreach (var item in wheres)
+				{
+					sb.Where(item.Expression);
+				}
+			}
+			if (tokens.Any(a => a.ExpressionType == DbExpressionType.Having))
+			{
+				var havings = tokens.Where(a => a.ExpressionType == DbExpressionType.Having);
+				foreach (var item in havings)
+				{
+					sb.Where(item.Expression);
+				}
+			}
+			if (tokens.Any(a => a.ExpressionType == DbExpressionType.GroupBy))
+			{
+				var groups = tokens.Where(a => a.ExpressionType == DbExpressionType.GroupBy);
+				foreach (var item in groups)
+				{
+					sb.Where(item.Expression);
+				}
+			}
+			if (tokens.Any(a => a.ExpressionType == DbExpressionType.OrderBy))
+			{
+				var orders = tokens.Where(a => a.ExpressionType == DbExpressionType.OrderBy);
+				foreach (var item in orders)
+				{
+					sb.Where(item.Expression);
+				}
+			}
+			return sb.Select();
 		}
 
 		public List<T> ToList<T>()
 		{
-			var sql = Build();
+			var sql = Build(typeof(T));
 			return _context.Query<T>(sql, _parameters).ToList();
 		}
 
 		public async Task<List<T>> ToListAsync<T>()
 		{
-			var sql = Build();
+			var sql = Build(typeof(T));
 			var list = await _context.QueryAsync<T>(sql, _parameters);
 			return list.ToList();
 		}

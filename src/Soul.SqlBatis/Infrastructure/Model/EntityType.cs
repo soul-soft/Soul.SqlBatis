@@ -16,7 +16,11 @@ namespace Soul.SqlBatis.Infrastructure
 
         public IReadOnlyCollection<Property> Properties => _properties;
 
-        public EntityType(Type type)
+        public string TableName => _type.Name;
+
+		public object ColumnNames { get; internal set; }
+
+		public EntityType(Type type)
         {
             _type = type;
             _properties = GetProperties();

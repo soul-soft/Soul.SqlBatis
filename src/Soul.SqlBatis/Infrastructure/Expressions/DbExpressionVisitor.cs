@@ -39,7 +39,7 @@ namespace Soul.SqlBatis.Expressions
       
         protected string GetColumn(MemberInfo member)
         {
-            var entity = Model.GetEntity(member.DeclaringType);
+            var entity = Model.GetEntityType(member.DeclaringType);
             return entity.GetProperty(member).ColumnName;
         }
 

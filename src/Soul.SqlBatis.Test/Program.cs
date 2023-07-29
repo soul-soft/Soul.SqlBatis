@@ -8,3 +8,4 @@ var sql = context.Set<Student>()
     .Where("age = 20")
     .Where(a => DbFunc.Raw<int>("COUNT(*)") > req.Age)
     .ToList();
+Console.WriteLine();
