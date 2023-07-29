@@ -21,12 +21,12 @@ namespace Soul.SqlBatis.Linq
         {
 			if (expression.ExpressionType == DbExpressionType.From)
 			{
-				var visitor = new WhereDbExpressionVisitor(_model, _parameters);
+				var visitor = new DbExpressionVisitor(_model, _parameters);
 				return visitor.Build(expression.Expression);
 			}
 			if (expression.ExpressionType == DbExpressionType.Where)
             {
-                var visitor = new WhereDbExpressionVisitor(_model, _parameters);
+                var visitor = new DbExpressionVisitor(_model, _parameters);
                 return visitor.Build(expression.Expression);
             }
             if (expression.ExpressionType == DbExpressionType.Select)

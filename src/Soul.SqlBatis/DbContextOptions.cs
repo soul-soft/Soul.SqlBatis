@@ -1,7 +1,10 @@
-﻿namespace Soul.SqlBatis
+﻿using System;
+using System.Data;
+
+namespace Soul.SqlBatis
 {
-    public abstract class DbContextOptions
+	public class DbContextOptions
 	{
-		public string ConnecionString { get; }
+		public Func<IDbConnection> ConnecionProvider { get; set; }
 	}
 }

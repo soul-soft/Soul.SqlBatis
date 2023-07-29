@@ -39,6 +39,7 @@ namespace Soul.SqlBatis
 				{
 					_parameters.Add(item.Key, item.Value);
 				}
+				return;
 			}
 			var properties = param.GetType().GetProperties();
 			foreach (var property in properties)
@@ -47,6 +48,7 @@ namespace Soul.SqlBatis
 				var value = property.GetValue(param);
 				_parameters.Add(name, value);
 			}
+			return;
 		}
 
 		protected void AddExpression(DbExpression expression)
@@ -115,7 +117,14 @@ namespace Soul.SqlBatis
 			}
 			else
 			{
-				var columns = entityType.Properties.Select(s => $"{s.ColumnName} AS {s.Member.Name}");
+				var columns = entityType.Properties.Select(s => 
+				{
+					if (s.ColumnName == s.Member.Name)
+					{
+						return s.Member.Name;
+					}
+					return $"{s.ColumnName} AS {s.Member.Name}";
+				});
 				return sb.Select(columns);
 			}
 		}
@@ -146,9 +155,7 @@ namespace Soul.SqlBatis
 			: base(context)
 		{
 			foreach (var item in expressions)
-			{
 				AddExpression(item);
-			}
 			AddParameters(parameters);
 		}
 
@@ -252,9 +259,7 @@ namespace Soul.SqlBatis
 		public IDbQueryable<T> Where(Expression<Func<T, bool>> expression, bool flag = true)
 		{
 			if (flag)
-			{
 				AddExpression(DbExpression.FromExpression(expression, DbExpressionType.Where));
-			}
 			return this;
 		}
 	}

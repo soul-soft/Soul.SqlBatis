@@ -25,11 +25,12 @@ namespace Soul.SqlBatis
 
         public DbContextTransaction CurrentDbTransaction => _transaction;
 
-        public DbContext()
+        public DbContext(DbContextOptions options)
         {
             var modelBuilder = CreateModelBuilder();
             OnModelCreating(modelBuilder);
             _model = modelBuilder.Build();
+            _connection = options.ConnecionProvider();
         }
 
         public DbSet<T> Set<T>()

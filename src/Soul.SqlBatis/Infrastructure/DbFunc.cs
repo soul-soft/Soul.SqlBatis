@@ -5,7 +5,17 @@ namespace Soul.SqlBatis
 {
 	public static class DbFunc
 	{
-		public static bool Like(string column, string value)
+		public static bool Contains(string column, string value)
+		{
+			throw new NotImplementedException();
+		}
+
+		public static bool StartsWith(string column, string value)
+		{
+			throw new NotImplementedException();
+		}
+
+		public static bool EndsWith(string column, string value)
 		{
 			throw new NotImplementedException();
 		}

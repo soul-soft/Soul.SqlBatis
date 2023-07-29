@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Xml.Linq;
 using Soul.SqlBatis.Infrastructure;
 
 namespace Soul.SqlBatis.Expressions
 {
-	public abstract class DbExpressionVisitor : ExpressionVisitor
+	public class DbExpressionVisitor : ExpressionVisitor
 	{
 		protected Model Model { get; }
 
@@ -20,10 +21,104 @@ namespace Soul.SqlBatis.Expressions
 			Model = model;
 			Parameters = parameters;
 		}
+		
+		protected override Expression VisitConstant(ConstantExpression node)
+		{
+			if (node.Value is DbSql raw)
+			{
+				SetSql(raw.Raw);
+			}
+			else
+			{
+				SetParameter(node);
+			}
+			return node;
+		}
 
-		protected void Sql(string sql)
+		protected string BuildDbOperation(Expression expression)
+		{
+			return new OperationDbExpressionVisitor(Model, Parameters).Build(expression);
+		}
+
+		protected override Expression VisitUnary(UnaryExpression node)
+		{
+			if (node.NodeType == ExpressionType.Convert)
+			{
+				Visit(node.Operand);
+			}
+			return node;
+		}
+
+		protected override Expression VisitBinary(BinaryExpression node)
+		{
+			if (IsNullExpression(node))
+			{
+				var memberExpression = node.Left is MemberExpression ? node.Left : node.Right;
+				Visit(memberExpression);
+				SetBlankSpace();
+				SetIsNULL();
+			}
+			else if (IsNotNullExpression(node))
+			{
+				var memberExpression = node.Left is MemberExpression ? node.Left : node.Right;
+				Visit(memberExpression);
+				SetBlankSpace();
+				SetIsNotNULL();
+			}
+			else
+			{
+				Visit(node.Left);
+				SetBlankSpace();
+				SetBinaryType(node.NodeType);
+				SetBlankSpace();
+				Visit(node.Right);
+			}
+			return node;
+		}
+
+		protected override Expression VisitMember(MemberExpression node)
+		{
+			if (node.Expression is ParameterExpression)
+			{
+				SetColumn(node.Member);
+			}
+			else
+			{
+				SetParameter(node);
+			}
+			return node;
+		}
+
+		protected override Expression VisitMethodCall(MethodCallExpression node)
+		{
+			var function = new FunctionDbExpressionVisitor(Model, Parameters).Build(node);
+			SetSql(function);
+			return node;
+		}
+
+		protected bool IsNullExpression(BinaryExpression expression)
+		{
+			return (expression.NodeType == ExpressionType.Equal) && ((expression.Left is ConstantExpression leftExpression && leftExpression.Value == null) || (expression.Right is ConstantExpression rightExpression && rightExpression.Value == null));
+		}
+
+		protected bool IsNotNullExpression(BinaryExpression expression)
+		{
+			return (expression.NodeType == ExpressionType.NotEqual) && ((expression.Left is ConstantExpression leftExpression && leftExpression.Value == null) || (expression.Right is ConstantExpression rightExpression && rightExpression.Value == null));
+		}
+
+		protected void SetSql(string sql)
 		{
 			_buffer.Append(sql);
+		}
+
+		protected void SetIsNULL()
+		{
+			_buffer.Append("IS NULL");
+		}
+
+		protected void SetIsNotNULL()
+		{
+			_buffer.Append("IS NOT NULL");
 		}
 
 		protected void SetBlankSpace()
@@ -48,7 +143,7 @@ namespace Soul.SqlBatis.Expressions
 			return property.ColumnName;
 		}
 
-		protected void SetParameter(Expression expression)
+		protected virtual void SetParameter(Expression expression)
 		{
 			var name = $"@P_{Parameters.Count}";
 			_buffer.Append(name);

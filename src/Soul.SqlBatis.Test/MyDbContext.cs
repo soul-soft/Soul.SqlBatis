@@ -3,6 +3,12 @@ namespace Soul.SqlBatis.Test
 {
 	public class MyDbContext : DbContext
 	{
-        public DbSet<Student> Students => Set<Student>();
-    }
+		public MyDbContext(DbContextOptions options)
+			: base(options)
+		{
+
+		}
+
+		public DbSet<Student> Students => Set<Student>();
+	}
 }

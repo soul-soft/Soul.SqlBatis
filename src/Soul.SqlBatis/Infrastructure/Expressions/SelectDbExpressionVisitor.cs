@@ -29,7 +29,7 @@ namespace Soul.SqlBatis.Expressions
             {
                 var member = item.Name;
                 var expression = node.Arguments[node.Members.IndexOf(item)];
-                var column = new WhereDbExpressionVisitor(Model, Parameters).Build(expression);
+                var column = new DbExpressionVisitor(Model, Parameters).Build(expression);
                 AddColumn(column, member);
             }
             return node;
@@ -37,7 +37,7 @@ namespace Soul.SqlBatis.Expressions
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
-            var column = new WhereDbExpressionVisitor(Model, Parameters).Build(node);
+            var column = new DbExpressionVisitor(Model, Parameters).Build(node);
             AddColumn(column);
             return node;
         }
