@@ -21,7 +21,7 @@ namespace Soul.SqlBatis
 			_context = context;
 		}
 
-		public IDbQueryable<T> FromSql(DbSyntax sql, bool flag = true)
+		public IDbQueryable<T> FromSql(DbSql sql, bool flag = true)
 		{
 			if (flag)
 			{
@@ -30,7 +30,7 @@ namespace Soul.SqlBatis
 			return this;
 		}
 
-		public IDbQueryable<T> GroupBy(DbSyntax sql, bool flag = true)
+		public IDbQueryable<T> GroupBy(DbSql sql, bool flag = true)
 		{
 			if (flag)
 			{
@@ -48,7 +48,7 @@ namespace Soul.SqlBatis
 			return this;
 		}
 
-		public IDbQueryable<T> Having(DbSyntax sql, object param = null, bool flag = true)
+		public IDbQueryable<T> Having(DbSql sql, object param = null, bool flag = true)
 		{
 			if (flag)
 			{
@@ -67,7 +67,7 @@ namespace Soul.SqlBatis
 			return this;
 		}
 
-		public IDbQueryable<T> OrderBy(DbSyntax sql, bool flag = true)
+		public IDbQueryable<T> OrderBy(DbSql sql, bool flag = true)
 		{
 			if (flag)
 			{
@@ -85,7 +85,7 @@ namespace Soul.SqlBatis
 			return this;
 		}
 
-		public IDbQueryable<T> OrderByDescending(DbSyntax sql, bool flag = true)
+		public IDbQueryable<T> OrderByDescending(DbSql sql, bool flag = true)
 		{
 			if (flag)
 			{
@@ -103,7 +103,7 @@ namespace Soul.SqlBatis
 			return this;
 		}
 
-		public IDbQueryable<TResult> Select<TResult>(DbSyntax sql, bool flag = true)
+		public IDbQueryable<TResult> Select<TResult>(DbSql sql, bool flag = true)
 		{
 			if (flag)
 			{
@@ -140,7 +140,7 @@ namespace Soul.SqlBatis
 			return this;
 		}
 
-		public IDbQueryable<T> Where(DbSyntax sql, object param = null, bool flag = true)
+		public IDbQueryable<T> Where(DbSql sql, object param = null, bool flag = true)
 		{
 			if (flag)
 			{

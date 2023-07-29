@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq.Expressions;
-using Soul.SqlBatis.Infrastructure;
+﻿using System.Linq.Expressions;
 
 namespace Soul.SqlBatis.Expressions
 {
@@ -15,7 +13,7 @@ namespace Soul.SqlBatis.Expressions
             ExpressionType = expressionType;
         }
 
-        public static DbExpression From(DbSyntax sql)
+        public static DbExpression From(DbSql sql)
         {
             return From(Expression.Constant(sql));
         }
@@ -25,7 +23,7 @@ namespace Soul.SqlBatis.Expressions
             return new DbExpression(expression, DbExpressionType.From);
         }
 
-        public static DbExpression Select(DbSyntax sql)
+        public static DbExpression Select(DbSql sql)
         {
             return Select(Expression.Constant(sql));
         }
@@ -35,7 +33,7 @@ namespace Soul.SqlBatis.Expressions
             return new DbExpression(expression, DbExpressionType.Select);
         }
 
-        public static DbExpression Where(DbSyntax sql)
+        public static DbExpression Where(DbSql sql)
         {
             return Where(Expression.Constant(sql));
         }
@@ -45,7 +43,7 @@ namespace Soul.SqlBatis.Expressions
             return new DbExpression(expression, DbExpressionType.Where);
         }
 
-        public static DbExpression GroupBy(DbSyntax sql)
+        public static DbExpression GroupBy(DbSql sql)
         {
             return GroupBy(sql);
         }
@@ -55,7 +53,7 @@ namespace Soul.SqlBatis.Expressions
             return new DbExpression(expression, DbExpressionType.GroupBy);
         }
 
-        public static DbExpression Having(DbSyntax sql)
+        public static DbExpression Having(DbSql sql)
         {
             return Having(Expression.Constant(sql));
         }
@@ -65,7 +63,7 @@ namespace Soul.SqlBatis.Expressions
             return new DbExpression(expression, DbExpressionType.Having);
         }
 
-        public static DbExpression OrderBy(DbSyntax sql)
+        public static DbExpression OrderBy(DbSql sql)
         {
             return OrderBy(Expression.Constant(sql));
         }

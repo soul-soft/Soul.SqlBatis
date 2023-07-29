@@ -25,7 +25,7 @@ namespace Soul.SqlBatis
 			throw new NotImplementedException();
 		}
 
-        public static T Raw<T>(DbSyntax syntax)
+        public static T Raw<T>(DbSql syntax)
         {
             throw new NotImplementedException();
         }

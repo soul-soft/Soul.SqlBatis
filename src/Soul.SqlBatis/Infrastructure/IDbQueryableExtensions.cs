@@ -6,7 +6,7 @@ using Dapper;
 
 namespace Soul.SqlBatis
 {
-    public static class IDbQueryBaseExtensions
+    public static class IDbQueryableExtensions
 	{
 		public static List<T> ToList<T>(this IDbQueryable<T> queryable)
 		{

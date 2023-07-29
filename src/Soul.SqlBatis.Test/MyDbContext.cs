@@ -13,6 +13,7 @@ namespace Soul.SqlBatis.Test
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
+
         }
     }
 }

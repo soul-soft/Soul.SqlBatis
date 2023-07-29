@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Linq.Expressions;
+using Soul.SqlBatis.Expressions;
 
 namespace Soul.SqlBatis
 {
     public interface IDbQueryable<T>
     {
-        IDbQueryable<T> FromSql(DbSyntax sql, bool flag = true);
-        IDbQueryable<TResult> Select<TResult>(DbSyntax sql, bool flag = true);
-        IDbQueryable<T> Where(DbSyntax sql, object param = null, bool flag = true);
-        IDbQueryable<T> Having(DbSyntax sql, object param = null, bool flag = true);
-        IDbQueryable<T> GroupBy(DbSyntax sql, bool flag = true);
-        IDbQueryable<T> OrderBy(DbSyntax sql, bool flag = true);
-        IDbQueryable<T> OrderByDescending(DbSyntax sql, bool flag = true);
+        IDbQueryable<T> FromSql(DbSql sql, bool flag = true);
+        IDbQueryable<TResult> Select<TResult>(DbSql sql, bool flag = true);
+        IDbQueryable<T> Where(Func<DbExpression> func);
+        IDbQueryable<T> Having(DbSql sql, object param = null, bool flag = true);
+        IDbQueryable<T> GroupBy(DbSql sql, bool flag = true);
+        IDbQueryable<T> OrderBy(DbSql sql, bool flag = true);
+        IDbQueryable<T> OrderByDescending(DbSql sql, bool flag = true);
         IDbQueryable<TResult> Select<TResult>(Expression<Func<T, TResult>> expression, bool flag = true);
         IDbQueryable<T> Where(Expression<Func<T, bool>> expression, bool flag = true);
         IDbQueryable<T> Having(Expression<Func<T, bool>> expression, bool flag = true);

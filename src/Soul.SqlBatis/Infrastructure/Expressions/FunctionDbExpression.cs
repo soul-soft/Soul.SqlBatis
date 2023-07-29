@@ -15,7 +15,7 @@ namespace Soul.SqlBatis.Expressions
 
         protected override Expression VisitConstant(ConstantExpression node)
         {
-            if (node.Value is DbSyntax syntax)
+            if (node.Value is DbSql syntax)
             {
                 Sql(syntax.Raw);
             }
@@ -38,9 +38,9 @@ namespace Soul.SqlBatis.Expressions
         protected override Expression VisitBinary(BinaryExpression node)
         {
             Visit(node.Left);
-            BlankSpace();
+            SetBlankSpace();
             SetBinaryType(node.NodeType);
-            BlankSpace();
+            SetBlankSpace();
             Visit(node.Right);
             return node;
         }
@@ -53,8 +53,7 @@ namespace Soul.SqlBatis.Expressions
             }
             else
             {
-                var value = DbExpressionUtility.GetDbExpressionValue(node);
-                SetParameter(value);
+                SetParameter(node);
             }
             return node;
         }

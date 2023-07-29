@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using Soul.SqlBatis.Infrastructure;
 
@@ -15,13 +14,13 @@ namespace Soul.SqlBatis.Expressions
 
         protected override Expression VisitConstant(ConstantExpression node)
         {
-            if (node.Value is DbSyntax syntax)
+            if (node.Value is DbSql raw)
             {
-                Sql(syntax.Raw);
+                Sql(raw.Raw);
             }
             else
             {
-                SetParameter(node.Value);
+                SetParameter(node);
             }
             return node;
         }
@@ -38,9 +37,9 @@ namespace Soul.SqlBatis.Expressions
         protected override Expression VisitBinary(BinaryExpression node)
         {
             Visit(node.Left);
-            BlankSpace();
+            SetBlankSpace();
             SetBinaryType(node.NodeType);
-            BlankSpace();
+            SetBlankSpace();
             Visit(node.Right);
             return node;
         }
@@ -53,8 +52,7 @@ namespace Soul.SqlBatis.Expressions
             }
             else
             {
-                var value = DbExpressionUtility.GetDbExpressionValue(node);
-                SetParameter(value);
+                SetParameter(node);
             }
             return node;
         }
