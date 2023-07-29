@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using Soul.SqlBatis.Expressions;
 using Soul.SqlBatis.Linq;
 
 namespace Soul.SqlBatis
 {
-	public class DbQueryable<T> : IDbQueryable<T>
+	public abstract class DbQueryable
 	{
 		private readonly DbContext _context;
 
@@ -16,15 +16,87 @@ namespace Soul.SqlBatis
 
 		private readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
 
+		protected DbContext DbContext => _context;
+
+		protected IReadOnlyCollection<DbExpression> Expressions => _expressions;
+
+		protected IReadOnlyDictionary<string, object> Parameters => _parameters;
+
 		public DbQueryable(DbContext context)
 		{
 			_context = context;
 		}
 
-		public DbQueryable(DbContext context, List<DbExpression> expressions)
+		protected void AddParameters(object param)
 		{
-			_context = context;
-			_expressions = expressions;
+			if (param == null)
+			{
+				return;
+			}
+			if (param is Dictionary<string, object> values)
+			{
+				foreach (var item in values)
+				{
+					_parameters.Add(item.Key, item.Value);
+				}
+			}
+			var properties = param.GetType().GetProperties();
+			foreach (var property in properties)
+			{
+				var name = property.Name;
+				var value = property.GetValue(param);
+				_parameters.Add(name, value);
+			}
+		}
+
+		protected void AddExpression(DbExpression expression)
+		{
+			_expressions.Add(expression);
+		}
+
+		private string Build()
+		{
+			var engine = new DbExpressionEngine(_context.Model, _parameters);
+
+			var list = _expressions.Select(s => new
+			{
+				Type = s.ExpressionType,
+				Sql = engine.Build(s)
+			}).ToList();
+
+			return string.Empty;
+		}
+
+		public List<T> ToList<T>()
+		{
+			var sql = Build();
+			return _context.Query<T>(sql, _parameters);
+		}
+
+		public async Task<List<T>> ToListAsync<T>()
+		{
+			var sql = Build();
+			var list = await _context.QueryAsync<T>(sql, _parameters);
+			return list;
+		}
+	}
+
+	public class DbQueryable<T> : DbQueryable, IDbQueryable<T>
+	{
+		public DbQueryable(DbContext context)
+			: base(context)
+		{
+
+		}
+
+		private DbQueryable(DbContext context, IEnumerable<DbExpression> expressions, object parameters)
+			: base(context)
+		{
+			foreach (var item in expressions)
+			{
+				AddExpression(item);
+			}
+			AddParameters(parameters);
 		}
 
 		public IDbQueryable<T> FromSql(DbSql sql, bool flag = true)
@@ -90,14 +162,14 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 				AddExpression(DbExpression.FromDbSql(sql, DbExpressionType.Select));
-			return Clone<TResult>();
+			return new DbQueryable<TResult>(DbContext, Expressions, Parameters);
 		}
 
 		public IDbQueryable<TResult> Select<TResult>(Expression<Func<T, TResult>> expression, bool flag = true)
 		{
 			if (flag)
 				AddExpression(DbExpression.FromExpression(expression, DbExpressionType.Select));
-			return Clone<TResult>();
+			return new DbQueryable<TResult>(DbContext, Expressions, Parameters);
 		}
 
 		public IDbQueryable<T> Skip(int count, bool flag = true)
@@ -131,56 +203,6 @@ namespace Soul.SqlBatis
 				AddExpression(DbExpression.FromExpression(expression, DbExpressionType.Where));
 			}
 			return this;
-		}
-
-		private void AddParameters(object param)
-		{
-			if (param == null)
-			{
-				return;
-			}
-			if (param is Dictionary<string, object> values)
-			{
-				foreach (var item in values)
-				{
-					_parameters.Add(item.Key, item.Value);
-				}
-			}
-			var properties = param.GetType().GetProperties();
-			foreach (var property in properties)
-			{
-				var name = property.Name;
-				var value = property.GetValue(param);
-				_parameters.Add(name, value);
-			}
-		}
-
-		private void AddExpression(DbExpression expression)
-		{
-			_expressions.Add(expression);
-		}
-
-		public DbCommand Build()
-		{
-			var engine = new DbExpressionEngine(_context.Model, _parameters);
-
-			var list = _expressions.Select(s => new
-			{
-				Type = s.ExpressionType,
-				Sql = engine.Build(s)
-			}).ToList();
-
-			return new DbCommand();
-		}
-
-		public IDbQueryable<T> Clone()
-		{
-			return new DbQueryable<T>(_context, _expressions);
-		}
-
-		public IDbQueryable<TResult> Clone<TResult>()
-		{
-			return new DbQueryable<TResult>(_context, _expressions);
 		}
 	}
 }

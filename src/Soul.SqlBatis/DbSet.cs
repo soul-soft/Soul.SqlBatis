@@ -3,10 +3,12 @@
 	public class DbSet<T> : DbQueryable<T>
 		where T : class
 	{
-		internal DbSet(DbContext context)
-			: base(context)
-		{
+		public DbContext DbContext { get; }
 
+		internal DbSet(DbContext context)
+			: base(context.Model)
+		{
+			DbContext = context;
 		}
 	}
 }

@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
+using Dapper;
 using Soul.SqlBatis.Infrastructure;
 
 namespace Soul.SqlBatis
@@ -12,11 +13,11 @@ namespace Soul.SqlBatis
     {
         private Model _model;
 
+        private DbContextOptions _options;
+        
         private IDbConnection _connection;
 
         private DbContextTransaction _transaction;
-
-        private DbContextOptions _options;
 
         public Model Model => _model;
 
@@ -97,7 +98,17 @@ namespace Soul.SqlBatis
 
         }
 
-        public void Dispose()
+        public virtual IEnumerable<T> Query<T>(string sql,object param = null)
+        {
+            return _connection.Query<T>(sql,param);
+        }
+
+		public virtual Task<IEnumerable<T>> QueryAsync<T>(string sql, object param = null)
+		{
+			return _connection.QueryAsync<T>(sql, param);
+		}
+
+		public void Dispose()
         {
             _connection?.Close();
             _connection?.Dispose();
