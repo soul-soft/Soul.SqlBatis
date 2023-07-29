@@ -5,7 +5,6 @@ var context = new MyDbContext();
 var list = new int[] { };
 var req = new { Age = 50 };
 var sql = context.Set<Student>()
-    .Where("age = 20")
-    .Where(a => DbFunc.Raw<int>("COUNT(*)") > req.Age)
+    .Where(a=>a.Id>0)
     .ToList();
 Console.WriteLine();
