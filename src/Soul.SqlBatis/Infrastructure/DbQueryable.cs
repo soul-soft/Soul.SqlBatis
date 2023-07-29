@@ -66,26 +66,6 @@ namespace Soul.SqlBatis
 
 			var entityType = _context.Model.GetEntityType(type);
 			var sb = new SqlBuilder();
-			if (tokens.Any(a => a.ExpressionType == DbExpressionType.From))
-			{
-				var view = tokens.Where(a => a.ExpressionType == DbExpressionType.From).First().Expression;
-				sb.From(view);
-			}
-			else
-			{
-				var view = entityType.TableName;
-				sb.From(view);
-			}
-			if (tokens.Any(a => a.ExpressionType == DbExpressionType.Select))
-			{
-				var columns = tokens.Where(a => a.ExpressionType == DbExpressionType.Select).First().Expression;
-				sb.Select(columns);
-			}
-			else
-			{
-				var columns = entityType.Properties.Select(s => $"{s.ColumnName} AS {s.Member.Name}");
-				sb.Select(columns);
-			}
 			if (tokens.Any(a => a.ExpressionType == DbExpressionType.Where))
 			{
 				var wheres = tokens.Where(a => a.ExpressionType == DbExpressionType.Where);
@@ -118,7 +98,26 @@ namespace Soul.SqlBatis
 					sb.Where(item.Expression);
 				}
 			}
-			return sb.Select();
+			if (tokens.Any(a => a.ExpressionType == DbExpressionType.From))
+			{
+				var view = tokens.Where(a => a.ExpressionType == DbExpressionType.From).First().Expression;
+				sb.From(view);
+			}
+			else
+			{
+				var view = entityType.TableName;
+				sb.From(view);
+			}
+			if (tokens.Any(a => a.ExpressionType == DbExpressionType.Select))
+			{
+				var columns = tokens.Where(a => a.ExpressionType == DbExpressionType.Select).First().Expression;
+				return sb.Select(columns);
+			}
+			else
+			{
+				var columns = entityType.Properties.Select(s => $"{s.ColumnName} AS {s.Member.Name}");
+				return sb.Select(columns);
+			}
 		}
 
 		public List<T> ToList<T>()

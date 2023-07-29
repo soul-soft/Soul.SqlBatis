@@ -6,6 +6,6 @@ var list = new int[] { };
 var req = new { Age = 50 };
 var sql = context.Students
 	.FromSql("students")
-	.Where(a => a.Id > 0)
+	.Where(a => a.Name == null)
 	.ToList();
 Console.WriteLine();

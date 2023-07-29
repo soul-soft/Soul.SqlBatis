@@ -87,8 +87,7 @@ namespace Soul.SqlBatis
 
 		public string Select(IEnumerable<string> columns)
 		{
-			var tokens = _tokens;
-			return string.Join(" ", $"SELECT {string.Join(",", columns)} FROM {View}", Build(tokens));
+			return Select(string.Join(", ", columns));
 		}
 
 		public string Update()

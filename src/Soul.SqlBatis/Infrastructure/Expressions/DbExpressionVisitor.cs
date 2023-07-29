@@ -7,52 +7,57 @@ using Soul.SqlBatis.Infrastructure;
 
 namespace Soul.SqlBatis.Expressions
 {
-    public abstract class DbExpressionVisitor : ExpressionVisitor
-    {
-        protected  Model Model { get; }
+	public abstract class DbExpressionVisitor : ExpressionVisitor
+	{
+		protected Model Model { get; }
 
-        protected Dictionary<string, object> Parameters { get; } = new Dictionary<string, object>();
+		protected Dictionary<string, object> Parameters { get; } = new Dictionary<string, object>();
 
-        private readonly StringBuilder _buffer = new StringBuilder();
+		private readonly StringBuilder _buffer = new StringBuilder();
 
-        public DbExpressionVisitor(Model model, Dictionary<string, object> parameters)
-        {
-            Model = model;
-            Parameters = parameters;
-        }
+		public DbExpressionVisitor(Model model, Dictionary<string, object> parameters)
+		{
+			Model = model;
+			Parameters = parameters;
+		}
 
-        protected void Sql(string sql)
-        {
-            _buffer.Append(sql);
-        }
+		protected void Sql(string sql)
+		{
+			_buffer.Append(sql);
+		}
 
-        protected void SetBlankSpace()
-        {
-            _buffer.Append(' ');
-        }
+		protected void SetBlankSpace()
+		{
+			_buffer.Append(' ');
+		}
 
-        protected void SetColumn(MemberInfo member)
-        {
-            var column = GetColumn(member);
-            _buffer.Append(column);
-        }
-      
-        protected string GetColumn(MemberInfo member)
-        {
-            var entity = Model.GetEntityType(member.DeclaringType);
-            return entity.GetProperty(member).ColumnName;
-        }
+		protected void SetColumn(MemberInfo member)
+		{
+			var column = GetColumn(member);
+			_buffer.Append(column);
+		}
 
-        protected void SetParameter(Expression expression)
-        {
-            var name = $"@P_{Parameters.Count}";
-            _buffer.Append(name);
+		protected string GetColumn(MemberInfo member)
+		{
+			var entity = Model.GetEntityType(member.DeclaringType);
+			var property = entity.GetProperty(member);
+			if (property == null)
+			{
+				throw new ModelException(string.Format("'{0}.{1}' is not mapped", member.DeclaringType.Name, member.Name));
+			}
+			return property.ColumnName;
+		}
+
+		protected void SetParameter(Expression expression)
+		{
+			var name = $"@P_{Parameters.Count}";
+			_buffer.Append(name);
 			var value = GetParameter(expression);
-            Parameters.Add(name, value);
-        }
+			Parameters.Add(name, value);
+		}
 
-        protected object GetParameter(Expression expression)
-        {
+		protected object GetParameter(Expression expression)
+		{
 			object value = null;
 			if (expression is ConstantExpression constant)
 				value = constant.Value;
@@ -292,22 +297,22 @@ namespace Soul.SqlBatis.Expressions
 		}
 
 		public virtual string Build(Expression expression)
-        {
-            if (expression is ConstantExpression constantExpression && constantExpression.Value is DbSql syntax)
-            {
-                _buffer.Append(syntax.Raw);
-            }
-            else
-            {
-                Visit(expression);
-            }
-            return _buffer.ToString();
-        }
+		{
+			if (expression is ConstantExpression constantExpression && constantExpression.Value is DbSql syntax)
+			{
+				_buffer.Append(syntax.Raw);
+			}
+			else
+			{
+				Visit(expression);
+			}
+			return _buffer.ToString();
+		}
 
-        protected string Build(string text)
-        {
-            _buffer.Append(text);
-            return _buffer.ToString();
-        }
-    }
+		protected string Build(string text)
+		{
+			_buffer.Append(text);
+			return _buffer.ToString();
+		}
+	}
 }
