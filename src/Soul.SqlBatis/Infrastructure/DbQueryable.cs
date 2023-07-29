@@ -70,14 +70,14 @@ namespace Soul.SqlBatis
 		public List<T> ToList<T>()
 		{
 			var sql = Build();
-			return _context.Query<T>(sql, _parameters);
+			return _context.Query<T>(sql, _parameters).ToList();
 		}
 
 		public async Task<List<T>> ToListAsync<T>()
 		{
 			var sql = Build();
 			var list = await _context.QueryAsync<T>(sql, _parameters);
-			return list;
+			return list.ToList();
 		}
 	}
 
