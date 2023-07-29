@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Dapper;
 
 namespace Soul.SqlBatis
 {
-    public static class IDbQueryableExtensions
+	public static class IDbQueryableExtensions
 	{
 		public static List<T> ToList<T>(this IDbQueryable<T> queryable)
 			where T : class
