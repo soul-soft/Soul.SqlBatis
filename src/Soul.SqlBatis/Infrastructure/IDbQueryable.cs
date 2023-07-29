@@ -19,6 +19,7 @@ namespace Soul.SqlBatis
         IDbQueryable<T> OrderBy(Expression<Func<T, bool>> expression, bool flag = true);
         IDbQueryable<T> OrderByDescending(Expression<Func<T, bool>> expression, bool flag = true);
         IDbQueryable<T> Take(int count, bool flag = true);
-        IDbQueryable<T> Skip(int count, bool flag = true);		
+        IDbQueryable<T> Skip(int count, bool flag = true);
+        IDbQueryable<T> Clone();
     }
 }

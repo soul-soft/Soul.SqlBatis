@@ -1,22 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using Soul.SqlBatis.Expressions;
+using Soul.SqlBatis.Linq;
 
 namespace Soul.SqlBatis
 {
-	public class DbQueryable<T> : DbQueryBuilder, IDbQueryable<T>
+	public class DbQueryable<T> : IDbQueryable<T>
 	{
 		private readonly DbContext _context;
 
 		public DbQueryable(DbContext context)
-			: base(context)
 		{
 			_context = context;
 		}
 
 		public DbQueryable(DbContext context, List<DbExpression> expressions)
-			: base(context, expressions)
 		{
 			_context = context;
 		}
@@ -157,6 +157,64 @@ namespace Soul.SqlBatis
 				AddExpression(DbExpression.Where(expression));
 			}
 			return this;
+		}
+
+		public List<DbExpression> Expressions { get; } = new List<DbExpression>();
+
+		private Dictionary<string, object> _parameters = new Dictionary<string, object>();
+
+		public DbContext DbContext { get; }
+
+		public DbQueryBuilder(DbContext context)
+		{
+			DbContext = context;
+		}
+
+		public DbQueryBuilder(DbContext context, List<DbExpression> expressions)
+		{
+			DbContext = context;
+			Expressions = expressions;
+		}
+
+		protected void AddParameter(object param)
+		{
+			if (param == null)
+			{
+				return;
+			}
+			if (param is Dictionary<string, object> values)
+			{
+				foreach (var item in values)
+				{
+					_parameters.Add(item.Key, item.Value);
+				}
+			}
+			var properties = param.GetType().GetProperties();
+			foreach (var property in properties)
+			{
+				var name = property.Name;
+				var value = property.GetValue(param);
+				_parameters.Add(name, value);
+			}
+		}
+
+		protected void AddExpression(DbExpression expression)
+		{
+			Expressions.Add(expression);
+		}
+
+		public DbCommand Build()
+		{
+			var engine = new DbExpressionEngine(DbContext.Model, _parameters);
+
+			var list = Expressions.Select(s => new
+			{
+				Type = s.ExpressionType,
+				Sql = engine.Build(s)
+			}).ToList();
+
+
+			return new DbCommand();
 		}
 	}
 }

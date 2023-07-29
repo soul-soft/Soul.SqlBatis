@@ -59,7 +59,7 @@ namespace Soul.SqlBatis.Expressions
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
-            var function = new FunctionDbExpression(Model, Parameters).Build(node);
+            var function = new FunctionDbExpressionVisitor(Model, Parameters).Build(node);
             Sql(function);
             return node;
         }

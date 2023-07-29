@@ -288,7 +288,7 @@ namespace Soul.SqlBatis.Expressions
 			{
 				throw new InvalidOperationException();
 			}
-			return result;
+			_buffer.Append(result);
 		}
 
 		public virtual string Build(Expression expression)
