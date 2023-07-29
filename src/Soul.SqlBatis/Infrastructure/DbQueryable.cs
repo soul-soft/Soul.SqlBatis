@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
 using Soul.SqlBatis.Expressions;
@@ -11,6 +12,10 @@ namespace Soul.SqlBatis
 	{
 		private readonly DbContext _context;
 
+		private readonly List<DbExpression> _expressions = new List<DbExpression>();
+
+		private readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
+
 		public DbQueryable(DbContext context)
 		{
 			_context = context;
@@ -19,32 +24,27 @@ namespace Soul.SqlBatis
 		public DbQueryable(DbContext context, List<DbExpression> expressions)
 		{
 			_context = context;
+			_expressions = expressions;
 		}
 
 		public IDbQueryable<T> FromSql(DbSql sql, bool flag = true)
 		{
 			if (flag)
-			{
-				AddExpression(DbExpression.From(sql));
-			}
+				AddExpression(DbExpression.FromDbSql(sql, DbExpressionType.From));
 			return this;
 		}
 
 		public IDbQueryable<T> GroupBy(DbSql sql, bool flag = true)
 		{
 			if (flag)
-			{
-				AddExpression(DbExpression.GroupBy(sql));
-			}
+				AddExpression(DbExpression.FromDbSql(sql, DbExpressionType.GroupBy));
 			return this;
 		}
 
 		public IDbQueryable<T> GroupBy(Expression<Func<T, bool>> expression, bool flag = true)
 		{
 			if (flag)
-			{
-				AddExpression(DbExpression.GroupBy(expression));
-			}
+				AddExpression(DbExpression.FromExpression(expression, DbExpressionType.GroupBy));
 			return this;
 		}
 
@@ -52,8 +52,8 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				AddParameter(param);
-				AddExpression(DbExpression.Having(sql));
+				AddParameters(param);
+				AddExpression(DbExpression.FromDbSql(sql, DbExpressionType.Having));
 			}
 			return this;
 		}
@@ -61,82 +61,56 @@ namespace Soul.SqlBatis
 		public IDbQueryable<T> Having(Expression<Func<T, bool>> expression, bool flag = true)
 		{
 			if (flag)
-			{
-				AddExpression(DbExpression.Having(expression));
-			}
+				AddExpression(DbExpression.FromExpression(expression, DbExpressionType.Having));
 			return this;
 		}
 
 		public IDbQueryable<T> OrderBy(DbSql sql, bool flag = true)
 		{
 			if (flag)
-			{
-				AddExpression(DbExpression.OrderBy(sql));
-			}
+				AddExpression(DbExpression.FromDbSql(sql, DbExpressionType.OrderBy));
 			return this;
 		}
 
 		public IDbQueryable<T> OrderBy(Expression<Func<T, bool>> expression, bool flag = true)
 		{
 			if (flag)
-			{
-				AddExpression(DbExpression.OrderBy(expression));
-			}
-			return this;
-		}
-
-		public IDbQueryable<T> OrderByDescending(DbSql sql, bool flag = true)
-		{
-			if (flag)
-			{
-				AddExpression(DbExpression.OrderBy(sql));
-			}
+				AddExpression(DbExpression.FromExpression(expression, DbExpressionType.OrderBy));
 			return this;
 		}
 
 		public IDbQueryable<T> OrderByDescending(Expression<Func<T, bool>> expression, bool flag = true)
 		{
 			if (flag)
-			{
-				AddExpression(DbExpression.OrderBy(expression));
-			}
+				AddExpression(DbExpression.FromExpression(expression, DbExpressionType.OrderByDescending));
 			return this;
 		}
 
 		public IDbQueryable<TResult> Select<TResult>(DbSql sql, bool flag = true)
 		{
 			if (flag)
-			{
-				AddExpression(DbExpression.Select(sql));
-			}
-			return new DbQueryable<TResult>(_context, Expressions);
+				AddExpression(DbExpression.FromDbSql(sql, DbExpressionType.Select));
+			return Clone<TResult>();
 		}
 
 		public IDbQueryable<TResult> Select<TResult>(Expression<Func<T, TResult>> expression, bool flag = true)
 		{
 			if (flag)
-			{
-				AddExpression(DbExpression.Select(expression));
-			}
-			return new DbQueryable<TResult>(_context, Expressions);
+				AddExpression(DbExpression.FromExpression(expression, DbExpressionType.Select));
+			return Clone<TResult>();
 		}
 
 		public IDbQueryable<T> Skip(int count, bool flag = true)
 		{
 			if (flag)
-			{
-				Expressions.Add(DbExpression.Skip(count));
-
-			}
+				AddExpression(DbExpression.FromDbSql(count.ToString(), DbExpressionType.Skip));
 			return this;
 		}
 
 		public IDbQueryable<T> Take(int count, bool flag = true)
 		{
 			if (flag)
-			{
-				Expressions.Add(DbExpression.Take(count));
-			}
+				AddExpression(DbExpression.FromDbSql(count.ToString(), DbExpressionType.Take));
 			return this;
 		}
 
@@ -144,8 +118,8 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				AddParameter(param);
-				AddExpression(DbExpression.Where(sql));
+				AddParameters(param);
+				AddExpression(DbExpression.FromDbSql(sql, DbExpressionType.Where));
 			}
 			return this;
 		}
@@ -154,29 +128,12 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				AddExpression(DbExpression.Where(expression));
+				AddExpression(DbExpression.FromExpression(expression, DbExpressionType.Where));
 			}
 			return this;
 		}
 
-		public List<DbExpression> Expressions { get; } = new List<DbExpression>();
-
-		private Dictionary<string, object> _parameters = new Dictionary<string, object>();
-
-		public DbContext DbContext { get; }
-
-		public DbQueryBuilder(DbContext context)
-		{
-			DbContext = context;
-		}
-
-		public DbQueryBuilder(DbContext context, List<DbExpression> expressions)
-		{
-			DbContext = context;
-			Expressions = expressions;
-		}
-
-		protected void AddParameter(object param)
+		private void AddParameters(object param)
 		{
 			if (param == null)
 			{
@@ -198,23 +155,32 @@ namespace Soul.SqlBatis
 			}
 		}
 
-		protected void AddExpression(DbExpression expression)
+		private void AddExpression(DbExpression expression)
 		{
-			Expressions.Add(expression);
+			_expressions.Add(expression);
 		}
 
 		public DbCommand Build()
 		{
-			var engine = new DbExpressionEngine(DbContext.Model, _parameters);
+			var engine = new DbExpressionEngine(_context.Model, _parameters);
 
-			var list = Expressions.Select(s => new
+			var list = _expressions.Select(s => new
 			{
 				Type = s.ExpressionType,
 				Sql = engine.Build(s)
 			}).ToList();
 
-
 			return new DbCommand();
+		}
+
+		public IDbQueryable<T> Clone()
+		{
+			return new DbQueryable<T>(_context, _expressions);
+		}
+
+		public IDbQueryable<TResult> Clone<TResult>()
+		{
+			return new DbQueryable<TResult>(_context, _expressions);
 		}
 	}
 }

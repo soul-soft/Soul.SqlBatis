@@ -5,9 +5,9 @@ using Soul.SqlBatis.Infrastructure;
 
 namespace Soul.SqlBatis.Expressions
 {
-    internal class FunctionDbExpression : DbExpressionVisitor
+    internal class FunctionDbExpressionVisitor : DbExpressionVisitor
     {
-        public FunctionDbExpression(Model model, Dictionary<string, object> parameters)
+        public FunctionDbExpressionVisitor(Model model, Dictionary<string, object> parameters)
             : base(model, parameters)
         {
 
