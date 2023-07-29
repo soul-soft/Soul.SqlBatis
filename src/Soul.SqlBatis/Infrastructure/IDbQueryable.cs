@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq.Expressions;
-using Soul.SqlBatis.Expressions;
 
 namespace Soul.SqlBatis
 {
@@ -8,7 +7,7 @@ namespace Soul.SqlBatis
     {
         IDbQueryable<T> FromSql(DbSql sql, bool flag = true);
         IDbQueryable<TResult> Select<TResult>(DbSql sql, bool flag = true);
-        IDbQueryable<T> Where(Func<DbExpression> func);
+        IDbQueryable<T> Where(DbSql sql, object param = null, bool flag = true);
         IDbQueryable<T> Having(DbSql sql, object param = null, bool flag = true);
         IDbQueryable<T> GroupBy(DbSql sql, bool flag = true);
         IDbQueryable<T> OrderBy(DbSql sql, bool flag = true);

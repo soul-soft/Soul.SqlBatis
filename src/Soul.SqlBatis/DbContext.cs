@@ -37,12 +37,7 @@ namespace Soul.SqlBatis
             return new DbSet<T>(this);
         }
 
-        public DbSet<T> FromSql<T>(DbSql sql)
-			where T : class
-		{
-            return new DbSet<T>(this);
-        }
-
+      
         public IDbConnection GetDbConnection()
         {
             return _connection;
