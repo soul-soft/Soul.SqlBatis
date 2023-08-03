@@ -6,12 +6,12 @@ namespace Soul.SqlBatis
 {
     public class DbContextTransaction : IDisposable
     {
-        private readonly DbContext _context;
+        private readonly Action _reset;
         private IDbTransaction _transaction;
 
-        public DbContextTransaction(DbContext context, IDbTransaction transaction)
+        internal DbContextTransaction(Action reset, IDbTransaction transaction)
         {
-            _context = context;
+            _reset = reset;
             _transaction = transaction;
         }
 
@@ -20,14 +20,14 @@ namespace Soul.SqlBatis
             RollbackTransaction();
             _transaction?.Dispose();
             _transaction = null;
-            _context.CurrentDbTransaction = null;
+            _reset();
         }
 
         public void RollbackTransaction()
         {
             _transaction?.Rollback();
             _transaction = null;
-            _context.CurrentDbTransaction = null;
+            _reset();
         }
 
         public Task RollbackTransactionAsync()
@@ -40,7 +40,7 @@ namespace Soul.SqlBatis
         {
             _transaction?.Commit();
             _transaction = null;
-            _context.CurrentDbTransaction = null;
+            _reset();
         }
 
         public Task CommitTransactionAsync()

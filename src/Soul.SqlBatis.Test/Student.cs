@@ -12,5 +12,7 @@ namespace Soul.SqlBatis.Test
 
         [NotMapped]
         public string FirstName { get; set; }
+
+        public DateTime CreationTime { get; set; }
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Soul.SqlBatis.Expressions;
 using Soul.SqlBatis.Infrastructure;
 
-namespace Soul.SqlBatis.Linq
+namespace Soul.SqlBatis
 {
     public class DbExpressionBuilder
     {

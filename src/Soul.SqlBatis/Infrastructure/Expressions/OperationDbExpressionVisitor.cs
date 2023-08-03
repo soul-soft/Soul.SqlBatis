@@ -30,7 +30,7 @@ namespace Soul.SqlBatis.Expressions
             {
                 Expression columnExpression = null;
                 Expression valueExpression = null;
-                if (IsParameterExpression(node.Arguments[0]))
+                if (IsParameterMemberExpression(node.Arguments[0]))
                 {
                     columnExpression = node.Arguments[0];
                     valueExpression = node.Arguments[1];
@@ -51,7 +51,7 @@ namespace Soul.SqlBatis.Expressions
             {
                 Expression columnExpression = null;
                 Expression valueExpression = null;
-                if (IsParameterExpression(node.Arguments[0]))
+                if (IsParameterMemberExpression(node.Arguments[0]))
                 {
                     columnExpression = node.Arguments[0];
                     valueExpression = node.Arguments[1];
@@ -72,7 +72,7 @@ namespace Soul.SqlBatis.Expressions
             {
                 Expression columnExpression = null;
                 Expression valueExpression = null;
-                if (IsParameterExpression(node.Arguments[0]))
+                if (IsParameterMemberExpression(node.Arguments[0]))
                 {
                     columnExpression = node.Arguments[0];
                     valueExpression = node.Arguments[1];
@@ -117,25 +117,11 @@ namespace Soul.SqlBatis.Expressions
                 SetBlank();
                 Visit(node.Arguments[1]);
                 SetBlank();
-                SetBinaryType(ExpressionType.And);
+                SetBinaryType(ExpressionType.AndAlso);
                 SetBlank();
                 Visit(node.Arguments[2]);
             }
             return node;
-        }
-
-        private bool IsParameterExpression(Expression expression)
-        {
-            if (!(expression is MemberExpression))
-            {
-                return false;
-            }
-            var member = expression as MemberExpression;
-            if (member.Expression != null && member.Expression.NodeType == ExpressionType.Parameter)
-            {
-                return true;
-            }
-            return false;
         }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Soul.SqlBatis
 {
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
+    [AttributeUsage(AttributeTargets.Method)]
     public class DbFunctionAttribute : Attribute
     {
         public string Name { get; set; }

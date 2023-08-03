@@ -4,11 +4,10 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Soul.SqlBatis.Expressions;
-using Soul.SqlBatis.Linq;
 
 namespace Soul.SqlBatis
 {
-	public abstract class DbQueryable
+    public abstract class DbQueryable
 	{
 		private readonly DbContext _context;
 
@@ -141,7 +140,8 @@ namespace Soul.SqlBatis
 			var list = await _context.QueryAsync<T>(sql, _parameters);
 			return list.ToList();
 		}
-	}
+
+    }
 
 	public class DbQueryable<T> : DbQueryable, IDbQueryable<T>
 	{

@@ -1,9 +1,10 @@
 ﻿namespace Soul.SqlBatis.Test
 {
-    [DbFunction]
-    public static class MysqlFunc
+   
+    public static class SqlFunctions
     {
-        public static int Count<T>(T column)
+        [DbFunction(Name = "NOW")]
+        public static DateTime Now()
         {
             throw new NotImplementedException();
         }

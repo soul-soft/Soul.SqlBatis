@@ -9,126 +9,171 @@ using Soul.SqlBatis.Infrastructure;
 
 namespace Soul.SqlBatis
 {
-	public abstract class DbContext : IDisposable
-	{
-		private Model _model;
+    public abstract class DbContext : IDisposable
+    {
+        private Model _model;
 
-		private IDbConnection _connection;
+        private IDbConnection _connection;
 
-		public DbContextTransaction CurrentDbTransaction { get; internal set; }
+        private DbContextTransaction _currentDbTransaction;
 
-		public Model Model => _model;
+        public DbContextTransaction CurrentDbTransaction => _currentDbTransaction;
 
-		public DbContext(DbContextOptions options)
-		{
-			var modelBuilder = CreateModelBuilder();
-			OnModelCreating(modelBuilder);
-			_model = modelBuilder.Build();
-			_connection = options.ConnecionProvider();
-		}
+        public Model Model => _model;
 
-		public DbSet<T> Set<T>()
-			where T : class
-		{
-			return new DbSet<T>(this);
-		}
+        public DbContext(DbContextOptions options)
+        {
+            var modelBuilder = CreateModelBuilder();
+            OnModelCreating(modelBuilder);
+            _model = modelBuilder.Build();
+            _connection = options.ConnecionProvider();
+        }
+
+        public DbSet<T> Set<T>()
+            where T : class
+        {
+            return new DbSet<T>(this);
+        }
 
 
-		public IDbConnection GetDbConnection()
-		{
-			return _connection;
-		}
+        public IDbConnection GetDbConnection()
+        {
+            return _connection;
+        }
 
-		public void OpenDbConnection()
-		{
-			if (_connection.State == ConnectionState.Closed)
-			{
-				_connection.Open();
-			}
-		}
+        public IDbTransaction GetDbTransaction()
+        {
+            return CurrentDbTransaction?.GetDbTransaction();
+        }
 
-		public async Task OpenDbConnectionAsync()
-		{
-			if (_connection.State == ConnectionState.Closed)
-			{
-				if (_connection is DbConnection connection)
-				{
-					await connection.OpenAsync();
-				}
-				else
-				{
-					_connection.Open();
-				}
-			}
-		}
+        public void OpenDbConnection()
+        {
+            if (_connection.State == ConnectionState.Closed)
+            {
+                _connection.Open();
+            }
+        }
 
-		public void ColseDbConnection()
-		{
-			if (_connection.State != ConnectionState.Closed)
-			{
-				_connection.Close();
-			}
-		}
+        public async Task OpenDbConnectionAsync()
+        {
+            if (_connection.State == ConnectionState.Closed)
+            {
+                if (_connection is DbConnection connection)
+                {
+                    await connection.OpenAsync();
+                }
+                else
+                {
+                    _connection.Open();
+                }
+            }
+        }
 
-		public Task ColseDbConnectionAsync()
-		{
-			ColseDbConnection();
-			return Task.CompletedTask;
-		}
+        public void ColseDbConnection()
+        {
+            if (_connection.State != ConnectionState.Closed)
+            {
+                _connection.Close();
+            }
+        }
 
-		public DbContextTransaction BeginTransaction()
-		{
-			var transaction = _connection.BeginTransaction();
-			CurrentDbTransaction = new DbContextTransaction(this, transaction);
-			return CurrentDbTransaction;
-		}
+        public Task ColseDbConnectionAsync()
+        {
+            ColseDbConnection();
+            return Task.CompletedTask;
+        }
 
-		public Task<DbContextTransaction> BeginTransactionAsync()
-		{
-			var transaction = _connection.BeginTransaction();
-			CurrentDbTransaction = new DbContextTransaction(this, transaction);
-			return Task.FromResult(CurrentDbTransaction);
-		}
+        public DbContextTransaction BeginTransaction()
+        {
+            var autoCloase = false;
+            var transaction = _connection.BeginTransaction();
+            if (_connection.State == ConnectionState.Closed)
+            {
+                OpenDbConnection();
+                autoCloase = true;
+            }
+            _currentDbTransaction = new DbContextTransaction(() => 
+            {
+                _currentDbTransaction = null;
+                if (autoCloase)
+                {
+                    ColseDbConnection();
+                }
+            }, transaction);
+            return CurrentDbTransaction;
+        }
 
-		protected virtual void OnModelCreating(ModelBuilder builder)
-		{
+        public async Task<DbContextTransaction> BeginTransactionAsync()
+        {
+            var autoCloase = false;
+            if (_connection.State == ConnectionState.Closed)
+            {
+                await OpenDbConnectionAsync();
+                autoCloase = true;
+            }
+            var transaction = _connection.BeginTransaction();
+            _currentDbTransaction = new DbContextTransaction(() =>
+            {
+                _currentDbTransaction = null;
+                if (autoCloase)
+                {
+                    ColseDbConnection();
+                }
+            }, transaction);
+            return CurrentDbTransaction;
+        }
 
-		}
+        protected virtual void OnModelCreating(ModelBuilder builder)
+        {
 
-		public virtual IEnumerable<T> Query<T>(string sql, object param = null)
-		{
-			return _connection.Query<T>(sql, param);
-		}
+        }
 
-		public virtual Task<IEnumerable<T>> QueryAsync<T>(string sql, object param = null)
-		{
-			return _connection.QueryAsync<T>(sql, param);
-		}
+        public virtual IEnumerable<T> Query<T>(string sql, object param = null)
+        {
+            return _connection.Query<T>(sql, param, GetDbTransaction(), false);
+        }
 
-		public void Dispose()
-		{
-			_connection?.Close();
-			_connection?.Dispose();
-			_connection = null;
-		}
+        public virtual Task<IEnumerable<T>> QueryAsync<T>(string sql, object param = null)
+        {
+            return _connection.QueryAsync<T>(sql, param, GetDbTransaction());
+        }
 
-		private ModelBuilder CreateModelBuilder()
-		{
-			var builder = new ModelBuilder();
-			var entities = GetCurrentEntityTypes();
-			foreach (var item in entities)
-			{
-				builder.Entity(item);
-			}
-			return builder;
-		}
+        public virtual int Execute<T>(string sql, object param = null)
+        {
+            return _connection.Execute(sql, param, GetDbTransaction());
+        }
 
-		private IEnumerable<Type> GetCurrentEntityTypes()
-		{
-			return GetType().GetProperties()
-			   .Where(a => a.PropertyType.IsGenericType)
-			   .Where(a => a.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
-			   .Select(s => s.PropertyType.GenericTypeArguments[0]);
-		}
-	}
+        public virtual Task<int> ExecuteAsync<T>(string sql, object param = null)
+        {
+            return _connection.ExecuteAsync(sql, param, GetDbTransaction());
+        }
+
+        public void Dispose()
+        {
+            _currentDbTransaction?.Dispose();
+            _currentDbTransaction = null;
+            _connection?.Close();
+            _connection?.Dispose();
+            _connection = null;
+        }
+
+        private ModelBuilder CreateModelBuilder()
+        {
+            var builder = new ModelBuilder();
+            var entities = GetCurrentEntityTypes();
+            foreach (var item in entities)
+            {
+                builder.Entity(item);
+            }
+            return builder;
+        }
+
+        private IEnumerable<Type> GetCurrentEntityTypes()
+        {
+            return GetType().GetProperties()
+               .Where(a => a.PropertyType.IsGenericType)
+               .Where(a => a.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
+               .Select(s => s.PropertyType.GenericTypeArguments[0]);
+        }
+    }
 }
