@@ -52,7 +52,7 @@ namespace Soul.SqlBatis.Expressions
 
 		private bool IsDbOperation(MethodCallExpression expression)
 		{
-			return expression.Method.DeclaringType == typeof(DbFunc);
+			return expression.Method.DeclaringType == typeof(DbFunctions);
 		}
 	}
 }

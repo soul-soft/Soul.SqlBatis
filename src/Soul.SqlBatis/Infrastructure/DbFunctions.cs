@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Soul.SqlBatis
 {
-	public static class DbFunc
+	public class DbFunctions
 	{
 		public static bool Contains(string column, string value)
 		{
