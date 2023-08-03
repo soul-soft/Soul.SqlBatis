@@ -86,12 +86,12 @@ namespace Soul.SqlBatis
         public DbContextTransaction BeginTransaction()
         {
             var autoCloase = false;
-            var transaction = _connection.BeginTransaction();
             if (_connection.State == ConnectionState.Closed)
             {
                 OpenDbConnection();
                 autoCloase = true;
             }
+            var transaction = _connection.BeginTransaction();
             _currentDbTransaction = new DbContextTransaction(() => 
             {
                 _currentDbTransaction = null;
