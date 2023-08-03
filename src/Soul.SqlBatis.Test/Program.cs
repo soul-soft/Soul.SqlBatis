@@ -15,6 +15,6 @@ var names = new string[]
 };
 var sql = context.Students
 	.FromSql("students")
-	.Where(a => Db.Functions.StartsWith(a.Name,"fa"))
+	.Where(a => DbOperations.StartsWith(a.Name,"fa"))
 	.ToList();
 Console.WriteLine();

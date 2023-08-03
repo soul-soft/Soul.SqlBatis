@@ -2,6 +2,6 @@
 {
     public static class Db
     {
-        public static DbFunctions Functions { get; } = new DbFunctions();
+        public static DbOperations Functions { get; } = new DbOperations();
     }
 }

@@ -14,11 +14,11 @@ namespace Soul.SqlBatis.Expressions
 
 		protected override Expression VisitMethodCall(MethodCallExpression node)
 		{
-			if (node.Method.Name == nameof(DbFunctions.Raw))
+			if (node.Method.Name == nameof(DbOperations.Raw))
 			{
 				Visit(node.Arguments[0]);
 			}
-			else if (node.Method.Name == nameof(DbFunctions.Contains))
+			else if (node.Method.Name == nameof(DbOperations.Contains))
 			{
 				if (!(node.Arguments[0] is MemberExpression))
 				{
@@ -29,7 +29,7 @@ namespace Soul.SqlBatis.Expressions
 				var value = GetParameter(node.Arguments[1]);
 				SetParameter(Expression.Constant($"%{value}%"));
 			}
-			else if (node.Method.Name == nameof(DbFunctions.StartsWith))
+			else if (node.Method.Name == nameof(DbOperations.StartsWith))
 			{
 				if (!(node.Arguments[0] is MemberExpression))
 				{
@@ -40,7 +40,7 @@ namespace Soul.SqlBatis.Expressions
 				var value = GetParameter(node.Arguments[1]);
 				SetParameter(Expression.Constant($"{value}%"));
 			}
-			else if (node.Method.Name == nameof(DbFunctions.StartsWith))
+			else if (node.Method.Name == nameof(DbOperations.StartsWith))
 			{
 				if (!(node.Arguments[0] is MemberExpression))
 				{
@@ -51,7 +51,7 @@ namespace Soul.SqlBatis.Expressions
 				var value = GetParameter(node.Arguments[1]);
 				SetParameter(Expression.Constant($"%{value}"));
 			}
-			else if (node.Method.Name == nameof(DbFunctions.In))
+			else if (node.Method.Name == nameof(DbOperations.In))
 			{
 				if (!(node.Arguments[0] is MemberExpression))
 				{
@@ -61,7 +61,7 @@ namespace Soul.SqlBatis.Expressions
 				SetSql(" IN ");
 				SetParameter(node.Arguments[1]);
 			}
-			else if (node.Method.Name == nameof(DbFunctions.IsNull))
+			else if (node.Method.Name == nameof(DbOperations.IsNull))
 			{
 				if (!(node.Arguments[0] is MemberExpression))
 				{
@@ -71,7 +71,7 @@ namespace Soul.SqlBatis.Expressions
 				SetBlankSpace();
 				SetIsNULL();
 			}
-			else if (node.Method.Name == nameof(DbFunctions.IsNotNull))
+			else if (node.Method.Name == nameof(DbOperations.IsNotNull))
 			{
 				if (!(node.Arguments[0] is MemberExpression))
 				{
