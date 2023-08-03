@@ -25,6 +25,11 @@ namespace Soul.SqlBatis
             throw new NotImplementedException();
         }
 
+        public static bool Like(string column, string value)
+        {
+            throw new NotImplementedException();
+        }
+
         public static bool In<T1, T2>(T1 column, IEnumerable<T2> values)
         {
             throw new NotImplementedException();

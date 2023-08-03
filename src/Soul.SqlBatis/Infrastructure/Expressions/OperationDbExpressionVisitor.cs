@@ -18,6 +18,14 @@ namespace Soul.SqlBatis.Expressions
             {
                 Visit(node.Arguments[0]);
             }
+            else if (node.Method.Name == nameof(DbOperations.Like))
+            {
+                Visit(node.Arguments[0]);
+                SetBlank();
+                SetLike();
+                SetBlank();
+                Visit(node.Arguments[1]);
+            }
             else if (node.Method.Name == nameof(DbOperations.Contains))
             {
                 Expression columnExpression = null;
@@ -33,7 +41,9 @@ namespace Soul.SqlBatis.Expressions
                     valueExpression = node.Arguments[0];
                 }
                 Visit(columnExpression);
-                SetSql(" LIKE ");
+                SetBlank();
+                SetLike();
+                SetBlank();
                 var value = GetParameter(valueExpression);
                 SetParameter(Expression.Constant($"%{value}%"));
             }
@@ -52,7 +62,9 @@ namespace Soul.SqlBatis.Expressions
                     valueExpression = node.Arguments[0];
                 }
                 Visit(columnExpression);
-                SetSql(" LIKE ");
+                SetBlank();
+                SetLike();
+                SetBlank();
                 var value = GetParameter(valueExpression);
                 SetParameter(Expression.Constant($"{value}%"));
             }
@@ -71,39 +83,43 @@ namespace Soul.SqlBatis.Expressions
                     valueExpression = node.Arguments[0];
                 }
                 Visit(columnExpression);
-                SetSql(" LIKE ");
+                SetBlank();
+                SetLike();
+                SetBlank();
                 var value = GetParameter(valueExpression);
                 SetParameter(Expression.Constant($"%{value}"));
             }
             else if (node.Method.Name == nameof(DbOperations.In))
             {
-                if (!(node.Arguments[0] is MemberExpression))
-                {
-                    throw new DbExpressionException("The first parameter must be a column");
-                }
                 Visit(node.Arguments[0]);
-                SetSql(" IN ");
+                SetBlank();
+                SetIn();
+                SetBlank();
                 SetParameter(node.Arguments[1]);
             }
             else if (node.Method.Name == nameof(DbOperations.IsNull))
             {
-                if (!(node.Arguments[0] is MemberExpression))
-                {
-                    throw new DbExpressionException("The first parameter must be a column");
-                }
                 Visit(node.Arguments[0]);
-                SetBlankSpace();
+                SetBlank();
                 SetIsNULL();
             }
             else if (node.Method.Name == nameof(DbOperations.IsNotNull))
             {
-                if (!(node.Arguments[0] is MemberExpression))
-                {
-                    throw new DbExpressionException("The first parameter must be a column");
-                }
                 Visit(node.Arguments[0]);
-                SetBlankSpace();
+                SetBlank();
                 SetIsNotNULL();
+            }
+            else if (node.Method.Name == nameof(DbOperations.Between))
+            {
+                Visit(node.Arguments[0]);
+                SetBlank();
+                SetBetween();
+                SetBlank();
+                Visit(node.Arguments[1]);
+                SetBlank();
+                SetBinaryType(ExpressionType.And);
+                SetBlank();
+                Visit(node.Arguments[2]);
             }
             return node;
         }

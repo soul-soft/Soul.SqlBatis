@@ -55,22 +55,22 @@ namespace Soul.SqlBatis.Expressions
 			{
 				var memberExpression = node.Left is MemberExpression ? node.Left : node.Right;
 				Visit(memberExpression);
-				SetBlankSpace();
+				SetBlank();
 				SetIsNULL();
 			}
 			else if (IsNotNullExpression(node))
 			{
 				var memberExpression = node.Left is MemberExpression ? node.Left : node.Right;
 				Visit(memberExpression);
-				SetBlankSpace();
+				SetBlank();
 				SetIsNotNULL();
 			}
 			else
 			{
 				Visit(node.Left);
-				SetBlankSpace();
+				SetBlank();
 				SetBinaryType(node.NodeType);
-				SetBlankSpace();
+				SetBlank();
 				Visit(node.Right);
 			}
 			return node;
@@ -110,28 +110,36 @@ namespace Soul.SqlBatis.Expressions
 		{
 			_buffer.Append(sql);
 		}
+        protected void SetIn()
+        {
+            _buffer.Append("LIKE");
+        }
 
-		protected void SetIsNULL()
+        protected void SetLike()
+		{
+			_buffer.Append("LIKE");
+		}
+        protected void SetBetween()
+        {
+            _buffer.Append("BETWEEN");
+        }
+        protected void SetIsNULL()
 		{
 			_buffer.Append("IS NULL");
 		}
-
 		protected void SetIsNotNULL()
 		{
 			_buffer.Append("IS NOT NULL");
 		}
-
-		protected void SetBlankSpace()
+		protected void SetBlank()
 		{
 			_buffer.Append(' ');
 		}
-
 		protected void SetColumn(MemberInfo member)
 		{
 			var column = GetColumn(member);
 			_buffer.Append(column);
 		}
-
 		protected string GetColumn(MemberInfo member)
 		{
 			var entity = Model.GetEntityType(member.DeclaringType);
@@ -142,7 +150,6 @@ namespace Soul.SqlBatis.Expressions
 			}
 			return property.ColumnName;
 		}
-
 		protected virtual void SetParameter(Expression expression)
 		{
 			var name = $"@P_{Parameters.Count}";
@@ -150,8 +157,11 @@ namespace Soul.SqlBatis.Expressions
 			var value = GetParameter(expression);
 			Parameters.Add(name, value);
 		}
-
-		protected object GetParameter(Expression expression)
+		public void SetBinaryType(ExpressionType expressionType)
+		{
+			_buffer.Append(expressionType);
+		}
+        protected object GetParameter(Expression expression)
 		{
 			object value = null;
 			if (expression is ConstantExpression constant)
@@ -182,8 +192,7 @@ namespace Soul.SqlBatis.Expressions
 
 			return value;
 		}
-
-		protected void SetBinaryType(ExpressionType expressionType)
+		protected string GetBinaryType(ExpressionType expressionType)
 		{
 			string result = string.Empty;
 			switch (expressionType)
@@ -388,9 +397,8 @@ namespace Soul.SqlBatis.Expressions
 			{
 				throw new InvalidOperationException();
 			}
-			_buffer.Append(result);
+			return result;
 		}
-
 		public virtual string Build(Expression expression)
 		{
 			if (expression is ConstantExpression constantExpression && constantExpression.Value is DbSql syntax)
@@ -403,7 +411,6 @@ namespace Soul.SqlBatis.Expressions
 			}
 			return _buffer.ToString();
 		}
-
 		protected string Build(string text)
 		{
 			_buffer.Append(text);
