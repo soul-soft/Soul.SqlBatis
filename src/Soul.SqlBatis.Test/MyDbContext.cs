@@ -10,5 +10,6 @@ namespace Soul.SqlBatis.Test
 		}
 
 		public DbSet<Student> Students => Set<Student>();
+
 	}
 }

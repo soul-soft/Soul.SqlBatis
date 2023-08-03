@@ -22,6 +22,11 @@ namespace Soul.SqlBatis.Infrastructure
             throw new NotImplementedException();
         }
 
+        public void ToTable(string name)
+        {
+            _entityType.TableName = name;
+        }
+
         public void Build(EntityType entityType)
         {
 

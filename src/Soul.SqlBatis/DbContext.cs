@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -15,6 +16,8 @@ namespace Soul.SqlBatis
 
         private IDbConnection _connection;
 
+        public DbContextOptions Options { get; }
+
         private DbContextTransaction _currentDbTransaction;
 
         public DbContextTransaction CurrentDbTransaction => _currentDbTransaction;
@@ -23,9 +26,8 @@ namespace Soul.SqlBatis
 
         public DbContext(DbContextOptions options)
         {
-            var modelBuilder = CreateModelBuilder();
-            OnModelCreating(modelBuilder);
-            _model = modelBuilder.Build();
+            Options = options;
+            _model = ModelBuilder.CreateModel(GetType(), OnModelCreating);
             _connection = options.ConnecionProvider();
         }
 
@@ -92,7 +94,7 @@ namespace Soul.SqlBatis
                 autoCloase = true;
             }
             var transaction = _connection.BeginTransaction();
-            _currentDbTransaction = new DbContextTransaction(() => 
+            _currentDbTransaction = new DbContextTransaction(() =>
             {
                 _currentDbTransaction = null;
                 if (autoCloase)
@@ -155,25 +157,6 @@ namespace Soul.SqlBatis
             _connection?.Close();
             _connection?.Dispose();
             _connection = null;
-        }
-
-        private ModelBuilder CreateModelBuilder()
-        {
-            var builder = new ModelBuilder();
-            var entities = GetCurrentEntityTypes();
-            foreach (var item in entities)
-            {
-                builder.Entity(item);
-            }
-            return builder;
-        }
-
-        private IEnumerable<Type> GetCurrentEntityTypes()
-        {
-            return GetType().GetProperties()
-               .Where(a => a.PropertyType.IsGenericType)
-               .Where(a => a.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
-               .Select(s => s.PropertyType.GenericTypeArguments[0]);
         }
     }
 }
