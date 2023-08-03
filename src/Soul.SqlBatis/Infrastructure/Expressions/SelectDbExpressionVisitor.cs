@@ -44,7 +44,7 @@ namespace Soul.SqlBatis.Expressions
 
         private void AddColumn(string column)
         {
-            var member = $"c{_columns.Count}";
+            var member = $"expr{_columns.Count}";
             _columns.Add($"{column} AS {member}");
         }
 

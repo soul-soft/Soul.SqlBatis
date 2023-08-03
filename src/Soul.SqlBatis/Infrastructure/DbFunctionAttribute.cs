@@ -6,6 +6,6 @@ namespace Soul.SqlBatis
     public class DbFunctionAttribute : Attribute
     {
         public string Name { get; set; }
-        public string 
+        public string Scheme { get; set; }
     }
 }

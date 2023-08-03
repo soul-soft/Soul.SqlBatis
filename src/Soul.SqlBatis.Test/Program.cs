@@ -15,6 +15,6 @@ var names = new string[]
 };
 var sql = context.Students
     .FromSql("students")
-    .Where(a => DbOperations.Between(a.Id, 1, 2))
+    .Where(a => DbOperations.Contains(a.Name,"a"))
     .ToList();
 Console.WriteLine();
