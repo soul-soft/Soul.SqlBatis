@@ -29,6 +29,12 @@ namespace Soul.SqlBatis.Infrastructure
             _entityType.Scheme = scheme;
         }
 
+        public void ToView(string name, string scheme = null)
+        {
+            _entityType.TableName = name;
+            _entityType.Scheme = scheme;
+        }
+
         public void Build(EntityType entityType)
         {
 
