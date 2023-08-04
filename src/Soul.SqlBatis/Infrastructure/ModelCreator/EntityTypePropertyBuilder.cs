@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace Soul.SqlBatis.Infrastructure
 {
@@ -17,9 +16,9 @@ namespace Soul.SqlBatis.Infrastructure
 
         }
 
-        public void HasKey<TProperty>(Expression<Func<T, TProperty>> expression)
-        {
-            throw new NotImplementedException();
+        public void HasColumnName(string name)
+        { 
+
         }
     }
 }

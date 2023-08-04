@@ -13,7 +13,14 @@ namespace Soul.SqlBatis.Infrastructure
             return new EntityTypeBuilder(GetEntityType(type));
         }
 
-        public EntityTypeBuilder Entity<T>()
+        public void Ignore<T>()
+            where T : class
+        { 
+
+        }
+
+        public EntityTypeBuilder<T> Entity<T>()
+            where T : class
         {
             return new EntityTypeBuilder<T>(GetEntityType(typeof(T)));
         }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace SqlBatis.Entityframework
 {
@@ -12,6 +7,7 @@ namespace SqlBatis.Entityframework
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Student>().ToTable(nameof(Student));
+            modelBuilder.Entity<Student>().Property(a => a.Id).i
         }
     }
 }

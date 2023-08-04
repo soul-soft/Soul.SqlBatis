@@ -11,6 +11,11 @@ namespace Soul.SqlBatis.Infrastructure
         {
             _entityType = entityType;
         }
+        public void Ignore<T>()
+          where T : class
+        {
+
+        }
 
         public EntityTypePropertyBuilder Property(string property)
         {
@@ -35,6 +40,11 @@ namespace Soul.SqlBatis.Infrastructure
     {
         public EntityTypeBuilder(EntityType entityType)
             : base(entityType)
+        {
+
+        }
+       
+        public void Ignore<TProperty>(Expression<Func<T, TProperty>> expression)
         {
 
         }
