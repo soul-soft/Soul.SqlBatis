@@ -2,14 +2,12 @@
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Xml.Linq;
-using Soul.SqlBatis.Infrastructure;
 
-namespace Soul.SqlBatis.Expressions
+namespace Soul.SqlBatis.Infrastructure
 {
     internal class FunctionDbExpressionVisitor : DbExpressionVisitor
     {
-        public FunctionDbExpressionVisitor(Model model, Dictionary<string, object> parameters)
+        public FunctionDbExpressionVisitor(EntityModel model, Dictionary<string, object> parameters)
             : base(model, parameters)
         {
 

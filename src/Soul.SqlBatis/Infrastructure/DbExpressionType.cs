@@ -1,4 +1,4 @@
-﻿namespace Soul.SqlBatis.Expressions
+﻿namespace Soul.SqlBatis.Infrastructure
 {
     public enum DbExpressionType
     {

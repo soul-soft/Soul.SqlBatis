@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Soul.SqlBatis.Expressions;
+using Soul.SqlBatis.Infrastructure;
 using Soul.SqlBatis.Infrastructure;
 
 namespace Soul.SqlBatis

@@ -12,7 +12,7 @@ namespace Soul.SqlBatis
 {
     public abstract class DbContext : IDisposable
     {
-        private Model _model;
+        private EntityModel _model;
 
         private IDbConnection _connection;
 
@@ -22,12 +22,12 @@ namespace Soul.SqlBatis
 
         public DbContextTransaction CurrentDbTransaction => _currentDbTransaction;
 
-        public Model Model => _model;
+        public EntityModel Model => _model;
 
         public DbContext(DbContextOptions options)
         {
             Options = options;
-            _model = ModelBuilder.CreateModel(GetType(), OnModelCreating);
+            _model = EntityModelBuilder.CreateModel(GetType(), OnModelCreating);
             _connection = options.ConnecionProvider();
         }
 
@@ -125,7 +125,7 @@ namespace Soul.SqlBatis
             return CurrentDbTransaction;
         }
 
-        protected virtual void OnModelCreating(ModelBuilder builder)
+        protected virtual void OnModelCreating(EntityModelBuilder builder)
         {
 
         }

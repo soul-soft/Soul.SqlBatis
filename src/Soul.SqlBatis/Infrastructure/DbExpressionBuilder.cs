@@ -1,17 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using Soul.SqlBatis.Expressions;
-using Soul.SqlBatis.Infrastructure;
+﻿using System.Collections.Generic;
 
-namespace Soul.SqlBatis
+namespace Soul.SqlBatis.Infrastructure
 {
     public class DbExpressionBuilder
     {
-        private readonly Model _model;
+        private readonly EntityModel _model;
        
         private readonly Dictionary<string, object> _parameters;
 
-        public DbExpressionBuilder(Model model, Dictionary<string, object> parametsers)
+        public DbExpressionBuilder(EntityModel model, Dictionary<string, object> parametsers)
         {
             _model = model;
             _parameters = parametsers;

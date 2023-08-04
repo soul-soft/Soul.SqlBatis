@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Soul.SqlBatis", "Soul.SqlBatis\Soul.SqlBatis.csproj", "{B6E2D198-BF5F-4A84-9B9A-C27594F34D73}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Soul.SqlBatis", "Soul.SqlBatis\Soul.SqlBatis.csproj", "{B6E2D198-BF5F-4A84-9B9A-C27594F34D73}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Soul.SqlBatis.Test", "Soul.SqlBatis.Test\Soul.SqlBatis.Test.csproj", "{8D950427-D8F6-4A05-A848-179406E1B534}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Soul.SqlBatis.Test", "Soul.SqlBatis.Test\Soul.SqlBatis.Test.csproj", "{8D950427-D8F6-4A05-A848-179406E1B534}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlBatis.Entityframework", "SqlBatis.Entityframework\SqlBatis.Entityframework.csproj", "{118A91F3-B19A-4947-BF7E-27F9E90743DF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,8 +23,15 @@ Global
 		{8D950427-D8F6-4A05-A848-179406E1B534}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8D950427-D8F6-4A05-A848-179406E1B534}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8D950427-D8F6-4A05-A848-179406E1B534}.Release|Any CPU.Build.0 = Release|Any CPU
+		{118A91F3-B19A-4947-BF7E-27F9E90743DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{118A91F3-B19A-4947-BF7E-27F9E90743DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{118A91F3-B19A-4947-BF7E-27F9E90743DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{118A91F3-B19A-4947-BF7E-27F9E90743DF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {70C587CA-A9F2-46E9-BFA4-A96EE86A5B0E}
 	EndGlobalSection
 EndGlobal

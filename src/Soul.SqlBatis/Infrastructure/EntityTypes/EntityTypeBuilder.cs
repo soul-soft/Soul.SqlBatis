@@ -12,19 +12,20 @@ namespace Soul.SqlBatis.Infrastructure
             _entityType = entityType;
         }
 
-        public void HasKey(string property)
+        public EntityTypePropertyBuilder Property(string property)
         {
-            throw new NotImplementedException();
+            return EntityTypePropertyBuilder();
         }
 
-        public PropertyBuilder Property(string property)
+        public EntityTypePropertyBuilder Property<T>(string property)
         {
-            throw new NotImplementedException();
+            return EntityTypePropertyBuilder<T>();
         }
 
-        public void ToTable(string name)
+        public void ToTable(string name, string scheme = null)
         {
             _entityType.TableName = name;
+            _entityType.Scheme = scheme;
         }
 
         public void Build(EntityType entityType)
@@ -46,7 +47,7 @@ namespace Soul.SqlBatis.Infrastructure
             throw new NotImplementedException();
         }
 
-        public PropertyBuilder Property<TProperty>(Expression<Func<T, TProperty>> expression)
+        public EntityTypePropertyBuilder Property<TProperty>(Expression<Func<T, TProperty>> expression)
         {
             throw new NotImplementedException();
         }

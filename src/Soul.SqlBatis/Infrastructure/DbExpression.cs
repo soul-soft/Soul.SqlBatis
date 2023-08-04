@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace Soul.SqlBatis.Expressions
+namespace Soul.SqlBatis.Infrastructure
 {
 	public class DbExpression
 	{

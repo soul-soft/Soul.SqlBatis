@@ -3,20 +3,18 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
-using System.Xml.Linq;
-using Soul.SqlBatis.Infrastructure;
 
-namespace Soul.SqlBatis.Expressions
+namespace Soul.SqlBatis.Infrastructure
 {
     public class DbExpressionVisitor : ExpressionVisitor
     {
-        protected Model Model { get; }
+        protected EntityModel Model { get; }
 
         protected Dictionary<string, object> Parameters { get; } = new Dictionary<string, object>();
 
         private readonly StringBuilder _buffer = new StringBuilder();
 
-        public DbExpressionVisitor(Model model, Dictionary<string, object> parameters)
+        public DbExpressionVisitor(EntityModel model, Dictionary<string, object> parameters)
         {
             Model = model;
             Parameters = parameters;
@@ -157,7 +155,7 @@ namespace Soul.SqlBatis.Expressions
             var property = entity.GetProperty(member);
             if (property == null)
             {
-                throw new ModelException(string.Format("'{0}.{1}' is not mapped", member.DeclaringType.Name, member.Name));
+                throw new EntityModelException(string.Format("'{0}.{1}' is not mapped", member.DeclaringType.Name, member.Name));
             }
             return property.ColumnName;
         }

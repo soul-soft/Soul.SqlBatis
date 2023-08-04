@@ -1,14 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Linq.Expressions;
-using Soul.SqlBatis.Infrastructure;
 
-namespace Soul.SqlBatis.Expressions
+namespace Soul.SqlBatis.Infrastructure
 {
     internal class SelectDbExpressionVisitor : DbExpressionVisitor
     {
         private readonly List<string> _columns = new List<string>();
 
-        public SelectDbExpressionVisitor(Model model, Dictionary<string, object> parameters)
+        public SelectDbExpressionVisitor(EntityModel model, Dictionary<string, object> parameters)
             : base(model, parameters)
         {
         }

@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-    public class ModelBuilder
+    public class EntityModelBuilder
     {
 
         private readonly ConcurrentDictionary<Type, EntityType> _entityTypes = new ConcurrentDictionary<Type, EntityType>();
@@ -19,9 +19,9 @@ namespace Soul.SqlBatis.Infrastructure
             return new EntityTypeBuilder<T>(GetEntityType(typeof(T)));
         }
 
-        public Model Build()
+        public EntityModel Build()
         {
-            return new Model(_entityTypes.Values);
+            return new EntityModel(_entityTypes.Values);
         }
 
         private EntityType GetEntityType(Type type)
@@ -32,13 +32,13 @@ namespace Soul.SqlBatis.Infrastructure
             });
         }
 
-        private static ConcurrentDictionary<Type, Model> _modelCache = new ConcurrentDictionary<Type, Model>();
+        private static ConcurrentDictionary<Type, EntityModel> _modelCache = new ConcurrentDictionary<Type, EntityModel>();
 
-        public static Model CreateModel(Type type, Action<ModelBuilder> configure)
+        public static EntityModel CreateModel(Type type, Action<EntityModelBuilder> configure)
         {
             return _modelCache.GetOrAdd(type, key =>
             {
-                var modelBuilder = new ModelBuilder();
+                var modelBuilder = new EntityModelBuilder();
                 var entityTypes = key.GetProperties()
                    .Where(a => a.PropertyType.IsGenericType)
                    .Where(a => a.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>));

@@ -1,4 +1,6 @@
 ﻿
+using Soul.SqlBatis.Infrastructure;
+
 namespace Soul.SqlBatis.Test
 {
 	public class MyDbContext : DbContext
@@ -11,5 +13,9 @@ namespace Soul.SqlBatis.Test
 
 		public DbSet<Student> Students => Set<Student>();
 
-	}
+        protected override void OnModelCreating(EntityModelBuilder builder)
+        {
+            builder.Entity<Student>().ToTable(nameof(Student));
+        }
+    }
 }
