@@ -16,7 +16,7 @@ namespace Soul.SqlBatis.Test
         {
             builder.Ignore<Student>();
             builder.Entity(typeof(Student)).ToTable("student");
-            builder.Entity(typeof(Student)).Ignore();
+            builder.Entity(typeof(Student)).Ignore("FirstName");
             builder.Entity(typeof(Student)).ToView("student");
             builder.Entity<Student>().ToTable(nameof(Student));
             builder.Entity<Student>().ToView(nameof(Student));
