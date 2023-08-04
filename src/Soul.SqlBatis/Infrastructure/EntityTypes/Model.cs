@@ -4,16 +4,16 @@ using System.Linq;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-    public class EntityModel
+    public class Model
     {
         private readonly List<EntityType> _entities;
 
-        internal EntityModel()
+        internal Model()
         {
 
         }
 
-        public EntityModel(IEnumerable<EntityType> entities)
+        public Model(IEnumerable<EntityType> entities)
         {
             _entities = entities.ToList();
         }

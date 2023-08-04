@@ -7,7 +7,7 @@ namespace Soul.SqlBatis.Infrastructure
     {
         private readonly List<string> _columns = new List<string>();
 
-        public SelectDbExpressionVisitor(EntityModel model, Dictionary<string, object> parameters)
+        public SelectDbExpressionVisitor(Model model, Dictionary<string, object> parameters)
             : base(model, parameters)
         {
         }

@@ -13,7 +13,7 @@ namespace Soul.SqlBatis.Test
 
 		public DbSet<Student> Students => Set<Student>();
 
-        protected override void OnModelCreating(EntityModelBuilder builder)
+        protected override void OnModelCreating(ModelBuilder builder)
         {
             builder.Entity<Student>().ToTable(nameof(Student));
         }

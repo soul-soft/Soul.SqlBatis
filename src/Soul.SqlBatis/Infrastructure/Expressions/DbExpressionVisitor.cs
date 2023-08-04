@@ -8,13 +8,13 @@ namespace Soul.SqlBatis.Infrastructure
 {
     public class DbExpressionVisitor : ExpressionVisitor
     {
-        protected EntityModel Model { get; }
+        protected Model Model { get; }
 
         protected Dictionary<string, object> Parameters { get; } = new Dictionary<string, object>();
 
         private readonly StringBuilder _buffer = new StringBuilder();
 
-        public DbExpressionVisitor(EntityModel model, Dictionary<string, object> parameters)
+        public DbExpressionVisitor(Model model, Dictionary<string, object> parameters)
         {
             Model = model;
             Parameters = parameters;

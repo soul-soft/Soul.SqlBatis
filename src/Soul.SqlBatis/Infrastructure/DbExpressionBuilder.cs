@@ -4,11 +4,11 @@ namespace Soul.SqlBatis.Infrastructure
 {
     public class DbExpressionBuilder
     {
-        private readonly EntityModel _model;
+        private readonly Model _model;
        
         private readonly Dictionary<string, object> _parameters;
 
-        public DbExpressionBuilder(EntityModel model, Dictionary<string, object> parametsers)
+        public DbExpressionBuilder(Model model, Dictionary<string, object> parametsers)
         {
             _model = model;
             _parameters = parametsers;
