@@ -14,13 +14,9 @@ namespace Soul.SqlBatis.Infrastructure
 
         public EntityTypePropertyBuilder Property(string property)
         {
-            return EntityTypePropertyBuilder();
+            return new EntityTypePropertyBuilder();
         }
 
-        public EntityTypePropertyBuilder Property<T>(string property)
-        {
-            return EntityTypePropertyBuilder<T>();
-        }
 
         public void ToTable(string name, string scheme = null)
         {
@@ -35,6 +31,7 @@ namespace Soul.SqlBatis.Infrastructure
     }
 
     public class EntityTypeBuilder<T> : EntityTypeBuilder
+        where T : class
     {
         public EntityTypeBuilder(EntityType entityType)
             : base(entityType)
@@ -47,9 +44,9 @@ namespace Soul.SqlBatis.Infrastructure
             throw new NotImplementedException();
         }
 
-        public EntityTypePropertyBuilder Property<TProperty>(Expression<Func<T, TProperty>> expression)
+        public EntityTypePropertyBuilder<T> Property<TProperty>(Expression<Func<T, TProperty>> expression)
         {
-            throw new NotImplementedException();
+            return new EntityTypePropertyBuilder<T>(expression.Body);
         }
     }
 }

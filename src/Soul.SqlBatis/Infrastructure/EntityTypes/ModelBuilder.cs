@@ -6,7 +6,6 @@ namespace Soul.SqlBatis.Infrastructure
 {
     public class ModelBuilder
     {
-
         private readonly ConcurrentDictionary<Type, EntityType> _entityTypes = new ConcurrentDictionary<Type, EntityType>();
 
         public EntityTypeBuilder Entity(Type type)

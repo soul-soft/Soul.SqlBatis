@@ -12,9 +12,9 @@ namespace Soul.SqlBatis.Infrastructure
     public class EntityTypePropertyBuilder<T>
         where T : class
     {
-        public EntityTypePropertyBuilder(MemberInfo member)
+        public EntityTypePropertyBuilder(Expression expression)
         {
-                
+
         }
 
         public void HasKey<TProperty>(Expression<Func<T, TProperty>> expression)
