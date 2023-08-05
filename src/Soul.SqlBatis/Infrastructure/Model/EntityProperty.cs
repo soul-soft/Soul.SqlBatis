@@ -21,7 +21,7 @@ namespace Soul.SqlBatis.Infrastructure
 				return Member.Name;
 			}
 		}
-		
+
 		public EntityProperty(MemberInfo member)
 		{
 			Member = member;
