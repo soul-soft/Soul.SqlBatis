@@ -2,9 +2,9 @@
 
 namespace Soul.SqlBatis.Infrastructure
 {
-	public class EntityModelException : Exception
+	public class ModelException : Exception
 	{
-		public EntityModelException(string message)
+		public ModelException(string message)
 			: base(message)
 		{
 

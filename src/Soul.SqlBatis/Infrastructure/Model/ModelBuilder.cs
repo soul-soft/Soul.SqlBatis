@@ -6,11 +6,11 @@ namespace Soul.SqlBatis.Infrastructure
 {
     public class ModelBuilder
     {
-        private readonly ConcurrentDictionary<Type, EntityType> _entityTypes = new ConcurrentDictionary<Type, EntityType>();
+        private readonly ConcurrentDictionary<Type, EntityTypeBuilder> _entityTypeBuilders = new ConcurrentDictionary<Type, EntityTypeBuilder>();
 
         public EntityTypeBuilder Entity(Type type)
         {
-            return new EntityTypeBuilder(GetEntityType(type));
+            return BuilderEntityType(type);
         }
 
         public void Ignore<T>()
@@ -22,19 +22,20 @@ namespace Soul.SqlBatis.Infrastructure
         public EntityTypeBuilder<T> Entity<T>()
             where T : class
         {
-            return new EntityTypeBuilder<T>(GetEntityType(typeof(T)));
+            var target = BuilderEntityType(typeof(T));
+			return new EntityTypeBuilder<T>(target);
         }
 
         public Model Build()
         {
-            return new Model(_entityTypes.Values);
+            return new Model();
         }
 
-        private EntityType GetEntityType(Type type)
+        private EntityTypeBuilder BuilderEntityType(Type type)
         {
-            return _entityTypes.GetOrAdd(type, key =>
+            return _entityTypeBuilders.GetOrAdd(type, key =>
             {
-                return new EntityType(type);
+                return new EntityTypeBuilder(type);
             });
         }
 

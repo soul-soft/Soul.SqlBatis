@@ -1,17 +1,14 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Soul.SqlBatis
 {
-    [AttributeUsage(AttributeTargets.Class)]
-    public class ViewAttribute : Attribute
-    {
-        public string Name { get; }
-        public string Scheme { get; }
+	[AttributeUsage(AttributeTargets.Class)]
+	public class ViewAttribute : TableAttribute
+	{
+		public ViewAttribute(string name) : base(name)
+		{
 
-        public ViewAttribute(string name, string scheme = null)
-        {
-            Name = name;
-            Scheme = scheme;
-        }
-    }
+		}
+	}
 }

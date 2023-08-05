@@ -155,7 +155,7 @@ namespace Soul.SqlBatis.Infrastructure
             var property = entity.GetProperty(member);
             if (property == null)
             {
-                throw new EntityModelException(string.Format("'{0}.{1}' is not mapped", member.DeclaringType.Name, member.Name));
+                throw new ModelException(string.Format("'{0}.{1}' is not mapped", member.DeclaringType.Name, member.Name));
             }
             return property.ColumnName;
         }

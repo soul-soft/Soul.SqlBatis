@@ -7,7 +7,6 @@ namespace SqlBatis.Entityframework
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Student>().ToTable(nameof(Student));
-            modelBuilder.Entity<Student>().Property(a => a.Id);
         }
     }
 }
