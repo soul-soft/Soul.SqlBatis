@@ -24,7 +24,7 @@ namespace Soul.SqlBatis.Infrastructure
 
 		public void Ignore(string propertyName)
 		{
-			HasAnnotation(new NotMappedAttribute());
+			Property(GetMember(propertyName)).HasAnnotation(new NotMappedAttribute());
 		}
 
 		public EntityPropertyBuilder Property(string property)
@@ -114,7 +114,7 @@ namespace Soul.SqlBatis.Infrastructure
 
 		public EntityPropertyBuilder<T> Property<TProperty>(Expression<Func<T, TProperty>> expression)
 		{
-			return new EntityPropertyBuilder<T>(_target, GetMember(expression));
+			return new EntityPropertyBuilder<T>(Property(GetMember(expression)));
 		}
 	}
 }
