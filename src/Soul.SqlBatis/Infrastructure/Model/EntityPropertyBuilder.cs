@@ -14,6 +14,11 @@ namespace Soul.SqlBatis.Infrastructure
 			Member = member;
 		}
 
+		public void Ignore()
+		{
+			HasAnnotation(new NotMappedAttribute());
+		}
+
 		public void HasColumnName(string name)
 		{
 			Annotations.Set(new ColumnAttribute(name));

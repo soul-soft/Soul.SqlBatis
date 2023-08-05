@@ -10,19 +10,13 @@ namespace Soul.SqlBatis.Infrastructure
 
         public EntityTypeBuilder Entity(Type type)
         {
-            return BuilderEntityType(type);
-        }
-
-        public void Ignore<T>()
-            where T : class
-        { 
-
+            return GetEntityTypeBuilder(type);
         }
 
         public EntityTypeBuilder<T> Entity<T>()
             where T : class
         {
-            var target = BuilderEntityType(typeof(T));
+            var target = GetEntityTypeBuilder(typeof(T));
 			return new EntityTypeBuilder<T>(target);
         }
 
@@ -31,7 +25,7 @@ namespace Soul.SqlBatis.Infrastructure
             return new Model();
         }
 
-        private EntityTypeBuilder BuilderEntityType(Type type)
+        private EntityTypeBuilder GetEntityTypeBuilder(Type type)
         {
             return _entityTypeBuilders.GetOrAdd(type, key =>
             {

@@ -22,20 +22,19 @@ namespace Soul.SqlBatis.Infrastructure
 			PropertyBuilders = new ConcurrentDictionary<MemberInfo, EntityPropertyBuilder>();
 		}
 
-		public void Ignore(string propertyName)
+		public void Ignore()
 		{
-			Property(GetMember(propertyName))
-				.HasAnnotation(new NotMappedAttribute());
+			HasAnnotation(new NotMappedAttribute());
 		}
 
 		public EntityPropertyBuilder Property(string property)
 		{
-			return BuilderEntityProperty(GetMember(property));
+			return GetEntityPropertyBuilder(GetMember(property));
 		}
 
 		public EntityPropertyBuilder Property(MemberInfo member)
 		{
-			return BuilderEntityProperty(member);
+			return GetEntityPropertyBuilder(member);
 		}
 
 		public void ToTable(string name, string scheme = null)
@@ -84,12 +83,27 @@ namespace Soul.SqlBatis.Infrastructure
 			return member;
 		}
 
-		private EntityPropertyBuilder BuilderEntityProperty(MemberInfo member)
+		private EntityPropertyBuilder GetEntityPropertyBuilder(MemberInfo member)
 		{
 			return PropertyBuilders.GetOrAdd(member, key =>
 			{
 				return new EntityPropertyBuilder(key);
 			});
+		}
+
+		public EntityType Build()
+		{
+			var properties = PropertyBuilders.Values
+				.Select(s => s.Build())
+				.ToList();
+			foreach (var item in Type.GetProperties())
+			{
+				if (!properties.Any(a => a.Member == item))
+				{
+					properties.Add(new EntityProperty(item));
+				}
+			}
+			return new EntityType(Type, Annotations, properties);
 		}
 	}
 
@@ -111,12 +125,12 @@ namespace Soul.SqlBatis.Infrastructure
 
 		public void HasKey<TProperty>(Expression<Func<T, TProperty>> expression)
 		{
-			throw new NotImplementedException();
+			_target.HasAnnotation(new NotMappedAttribute());
 		}
 
 		public EntityPropertyBuilder<T> Property<TProperty>(Expression<Func<T, TProperty>> expression)
 		{
-			return new EntityPropertyBuilder<T>(Property(GetMember(expression)));
+			return new EntityPropertyBuilder<T>(_target.Property(GetMember(expression)));
 		}
 	}
 }

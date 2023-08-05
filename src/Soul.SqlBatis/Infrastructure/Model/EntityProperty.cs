@@ -21,7 +21,12 @@ namespace Soul.SqlBatis.Infrastructure
 				_columnName = value;
 			}
 		}
-
+		
+		public EntityProperty(MemberInfo member)
+		{
+			Member = member;
+		}
+		
 		public EntityProperty(MemberInfo member, IAnnotationCollection annotations)
 		{
 			Member = member;

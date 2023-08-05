@@ -38,7 +38,7 @@ namespace Soul.SqlBatis.Infrastructure
 
 		}
 
-		public EntityType(Type type, IAnnotationCollection annotations, IReadOnlyCollection<EntityProperty> properties)
+		public EntityType(Type type, IAnnotationCollection annotations, List<EntityProperty> properties)
 		{
 			Type = type;
 			Annotations = annotations;
