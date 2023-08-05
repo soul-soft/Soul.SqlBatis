@@ -105,7 +105,8 @@ namespace Soul.SqlBatis.Infrastructure
 
 		public void Ignore<TProperty>(Expression<Func<T, TProperty>> expression)
 		{
-			_target.Property(GetMember(expression)).HasAnnotation(new NotMappedAttribute());
+			_target.Property(GetMember(expression))
+				.HasAnnotation(new NotMappedAttribute());
 		}
 
 		public void HasKey<TProperty>(Expression<Func<T, TProperty>> expression)
