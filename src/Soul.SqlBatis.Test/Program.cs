@@ -6,6 +6,10 @@ var context = new MyDbContext(new DbContextOptions
 {
     ConnecionProvider = () => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test")
 });
+var context1 = new MyDbContext(new DbContextOptions
+{
+	ConnecionProvider = () => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test")
+});
 
 var list = new int[] { };
 var req = new { Age = 50 };
