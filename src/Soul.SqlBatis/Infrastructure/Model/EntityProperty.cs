@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 using System.Reflection;
 
 namespace Soul.SqlBatis.Infrastructure
@@ -6,6 +8,14 @@ namespace Soul.SqlBatis.Infrastructure
 	public class EntityProperty
 	{
 		public MemberInfo Member { get; }
+
+		public bool IsKey 
+		{
+			get 
+			{
+				return Attributes.Any(a => a is KeyAttribute);
+			}
+		}
 
 		public IAttributeCollection Attributes { get; } = new AttributeCollection();
 

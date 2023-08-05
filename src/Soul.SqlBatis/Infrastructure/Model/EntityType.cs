@@ -12,10 +12,11 @@ namespace Soul.SqlBatis.Infrastructure
 
 		public IAttributeCollection Attributes { get; } = new AttributeCollection();
 
-		public virtual IReadOnlyCollection<EntityProperty> Properties { get; }
+		public IReadOnlyCollection<EntityProperty> Properties { get; }
 
+		public IReadOnlyCollection<EntityProperty> KeyProperties => Properties.Where(a => a.IsKey).ToList();
 
-		public string Scheme
+		public string Schema
 		{
 			get
 			{

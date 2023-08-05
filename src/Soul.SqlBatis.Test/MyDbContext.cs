@@ -14,7 +14,7 @@ namespace Soul.SqlBatis.Test
 
 		protected override void OnModelCreating(ModelBuilder builder)
 		{
-			builder.Entity<Student>().Property(a => a.Id).HasColumnName("idd");
+			builder.Entity<Student>().HasKey(a => new { a.Id,a.Name});
 		}
 	}
 }
