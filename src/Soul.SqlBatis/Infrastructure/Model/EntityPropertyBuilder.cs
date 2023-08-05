@@ -7,11 +7,12 @@ namespace Soul.SqlBatis.Infrastructure
 	{
 		private MemberInfo _member;
 
-		public IAnnotationCollection _annotations;
+		public IAttributeCollection _annotations;
 
 		public EntityPropertyBuilder(MemberInfo member)
 		{
 			_member = member;
+			_annotations = new AttributeCollection();
 		}
 
 		public EntityPropertyBuilder(EntityPropertyBuilder target)

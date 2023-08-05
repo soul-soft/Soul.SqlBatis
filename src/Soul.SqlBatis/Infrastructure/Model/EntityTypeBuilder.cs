@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
@@ -12,21 +13,21 @@ namespace Soul.SqlBatis.Infrastructure
 	{
 		private Type _type;
 
-		private IAnnotationCollection _annotations;
+		private IAttributeCollection _attributes;
 
 		private ConcurrentDictionary<MemberInfo, EntityPropertyBuilder> _propertyBuilders;
 
 		public EntityTypeBuilder(Type type)
 		{
 			_type = type;
-			_annotations = new AnnotationCollection();
+			_attributes = new AttributeCollection();
 			_propertyBuilders = new ConcurrentDictionary<MemberInfo, EntityPropertyBuilder>();
 		}
 
 		public EntityTypeBuilder(EntityTypeBuilder target)
 		{
 			_type = target._type;
-			_annotations = target._annotations;
+			_attributes = target._attributes;
 			_propertyBuilders = target._propertyBuilders;
 		}
 
@@ -102,7 +103,7 @@ namespace Soul.SqlBatis.Infrastructure
 
 		public void HasAnnotation(object annotation)
 		{
-			_annotations.Set(annotation);
+			_attributes.Set(annotation);
 		}
 
 		protected MemberInfo GetMember(Expression expression)
@@ -126,7 +127,10 @@ namespace Soul.SqlBatis.Infrastructure
 			}
 			if (expression is NewExpression newExpression)
 			{
-				return newExpression.Members.ToArray();
+				return newExpression.Arguments
+					.OfType<MemberExpression>()
+					.Select(s => s.Member)
+					.ToArray();
 			}
 			if (expression is MemberExpression memberExpression)
 			{
@@ -160,17 +164,33 @@ namespace Soul.SqlBatis.Infrastructure
 
 		public EntityType Build()
 		{
-			var properties = _propertyBuilders.Values
+			var builderProperties = _propertyBuilders.Values
 				.Select(s => s.Build())
 				.ToList();
+			var properties = new List<EntityProperty>();
 			foreach (var item in _type.GetProperties())
 			{
-				if (!properties.Any(a => a.Member == item))
+				var property = new EntityProperty(item);
+				foreach (var attribute in item.GetCustomAttributes())
 				{
-					properties.Add(new EntityProperty(item));
+					property.Attributes.Set(attribute);
 				}
+				foreach (var attribute in builderProperties.Where(a => a.Member == item).SelectMany(s => s.Attributes))
+				{
+					property.Attributes.Set(attribute);
+				}
+				properties.Add(property);
 			}
-			return new EntityType(_type, _annotations, properties);
+			var attributes = new AttributeCollection();
+			foreach (var item in _type.GetCustomAttributes())
+			{
+				attributes.Set(item);
+			}
+			foreach (var item in _attributes)
+			{
+				attributes.Set(item);
+			}
+			return new EntityType(_type, attributes, properties);
 		}
 	}
 

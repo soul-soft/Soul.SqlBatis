@@ -10,7 +10,7 @@ namespace Soul.SqlBatis.Infrastructure
 	{
 		public Type Type { get; }
 
-		public IAnnotationCollection Annotations { get; } = new AnnotationCollection();
+		public IAttributeCollection Attributes { get; } = new AttributeCollection();
 
 		public virtual IReadOnlyCollection<EntityProperty> Properties { get; }
 
@@ -19,7 +19,7 @@ namespace Soul.SqlBatis.Infrastructure
 		{
 			get
 			{
-				var name = Annotations.Get<TableAttribute>()?.Schema;
+				var name = Attributes.Get<TableAttribute>()?.Schema;
 				return name ?? string.Empty;
 			}
 		}
@@ -28,7 +28,7 @@ namespace Soul.SqlBatis.Infrastructure
 		{
 			get
 			{
-				var name = Annotations.Get<TableAttribute>()?.Name;
+				var name = Attributes.Get<TableAttribute>()?.Name;
 				if (!string.IsNullOrEmpty(name))
 				{
 					return name;
@@ -38,10 +38,10 @@ namespace Soul.SqlBatis.Infrastructure
 
 		}
 
-		public EntityType(Type type, IAnnotationCollection annotations, List<EntityProperty> properties)
+		public EntityType(Type type, IAttributeCollection attributes, List<EntityProperty> properties)
 		{
 			Type = type;
-			Annotations = annotations;
+			Attributes = attributes;
 			Properties = properties;
 		}
 

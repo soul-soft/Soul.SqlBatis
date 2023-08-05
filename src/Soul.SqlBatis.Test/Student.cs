@@ -5,12 +5,11 @@ namespace Soul.SqlBatis.Test
 {
     public class Student
     {
-        [Key]
+        [Column("id")]
         public int? Id { get; set; }
 
         public string Name { get; set; }
 
-        [NotMapped]
         public string FirstName { get; set; }
 
         public DateTime CreationTime { get; set; }

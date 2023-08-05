@@ -1,15 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-	public interface IAnnotationCollection
+	public interface IAttributeCollection : IEnumerable<object>
 	{
 		T Get<T>();
 		void Set(object value);
 	}
 
-	public class AnnotationCollection : IAnnotationCollection
+	public class AttributeCollection : IAttributeCollection
 	{
 		private readonly List<object> _annotations = new List<object>();
 
@@ -18,6 +19,10 @@ namespace Soul.SqlBatis.Infrastructure
 			return _annotations.OfType<T>().FirstOrDefault();
 		}
 
+		public IEnumerator<object> GetEnumerator()
+		{
+			return _annotations.GetEnumerator();
+		}
 
 		public void Set(object value)
 		{
@@ -28,6 +33,11 @@ namespace Soul.SqlBatis.Infrastructure
 				_annotations.Remove(old);
 			}
 			_annotations.Add(value);
+		}
+
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return GetEnumerator();
 		}
 	}
 }

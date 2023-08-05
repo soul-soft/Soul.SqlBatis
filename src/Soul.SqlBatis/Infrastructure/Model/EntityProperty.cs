@@ -7,13 +7,13 @@ namespace Soul.SqlBatis.Infrastructure
 	{
 		public MemberInfo Member { get; }
 
-		public IAnnotationCollection Annotations { get; } = new AnnotationCollection();
+		public IAttributeCollection Attributes { get; } = new AttributeCollection();
 
 		public string ColumnName
 		{
 			get
 			{
-				var columnName = Annotations.Get<ColumnAttribute>()?.Name;
+				var columnName = Attributes.Get<ColumnAttribute>()?.Name;
 				if (!string.IsNullOrEmpty(columnName))
 				{
 					return columnName;
@@ -27,10 +27,10 @@ namespace Soul.SqlBatis.Infrastructure
 			Member = member;
 		}
 		
-		public EntityProperty(MemberInfo member, IAnnotationCollection annotations)
+		public EntityProperty(MemberInfo member, IAttributeCollection annotations)
 		{
 			Member = member;
-			Annotations = annotations;
+			Attributes = annotations;
 		}
 	}
 }
