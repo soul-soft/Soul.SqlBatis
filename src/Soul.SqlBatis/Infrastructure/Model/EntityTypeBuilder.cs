@@ -195,7 +195,6 @@ namespace Soul.SqlBatis.Infrastructure
 			return new EntityPropertyBuilder<T>(_target.Property(member));
 		}
 
-
 		public void Igonre<TProperty>(Expression<Func<T, TProperty>> expression)
 		{
 			var members = GetMembers(expression);
