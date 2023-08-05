@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Linq.Expressions;
@@ -9,17 +10,24 @@ namespace Soul.SqlBatis.Infrastructure
 {
 	public class EntityTypeBuilder
 	{
-		public Type Type { get; }
+		private Type _type;
 
-		public virtual IAnnotationCollection Annotations { get; }
+		private IAnnotationCollection _annotations;
 
-		public ConcurrentDictionary<MemberInfo, EntityPropertyBuilder> PropertyBuilders { get; }
+		private ConcurrentDictionary<MemberInfo, EntityPropertyBuilder> _propertyBuilders;
 
 		public EntityTypeBuilder(Type type)
 		{
-			Type = type;
-			Annotations = new AnnotationCollection();
-			PropertyBuilders = new ConcurrentDictionary<MemberInfo, EntityPropertyBuilder>();
+			_type = type;
+			_annotations = new AnnotationCollection();
+			_propertyBuilders = new ConcurrentDictionary<MemberInfo, EntityPropertyBuilder>();
+		}
+
+		public EntityTypeBuilder(EntityTypeBuilder target)
+		{
+			_type = target._type;
+			_annotations = target._annotations;
+			_propertyBuilders = target._propertyBuilders;
 		}
 
 		public void Ignore()
@@ -37,11 +45,27 @@ namespace Soul.SqlBatis.Infrastructure
 			return GetEntityPropertyBuilder(member);
 		}
 
+		public void HasKey(params string[] propertyNames)
+		{
+			var members = _type.GetProperties()
+				.Where(a => propertyNames.Contains(a.Name))
+				.ToArray();
+			HasKey(members);
+		}
+
+		public void HasKey(params MemberInfo[] members)
+		{
+			foreach (var item in members)
+			{
+				Property(item).HasAnnotation(new KeyAttribute());
+			}
+		}
+
 		public void ToTable(string name, string schema = null)
 		{
 			if (!string.IsNullOrEmpty(schema))
 			{
-				HasAnnotation(new TableAttribute(name) 
+				HasAnnotation(new TableAttribute(name)
 				{
 					Schema = schema
 				});
@@ -62,7 +86,7 @@ namespace Soul.SqlBatis.Infrastructure
 
 		public void HasAnnotation(object annotation)
 		{
-			Annotations.Set(annotation);
+			_annotations.Set(annotation);
 		}
 
 		protected MemberInfo GetMember(Expression expression)
@@ -78,21 +102,41 @@ namespace Soul.SqlBatis.Infrastructure
 			throw new NotImplementedException();
 		}
 
+		protected MemberInfo[] GetMembers(Expression expression)
+		{
+			if (expression is LambdaExpression lambdaExpression)
+			{
+				return GetMembers(lambdaExpression.Body);
+			}
+			if (expression is NewExpression newExpression)
+			{
+				return newExpression.Members.ToArray();
+			}
+			if (expression is MemberExpression memberExpression)
+			{
+				return new MemberInfo[]
+				{
+					memberExpression.Member
+				};
+			}
+			throw new NotImplementedException();
+		}
+
 		protected MemberInfo GetMember(string propertyName)
 		{
-			var member = Type.GetProperties()
+			var member = _type.GetProperties()
 				.Where(a => a.Name == propertyName)
 				.FirstOrDefault();
 			if (member == null)
 			{
-				throw new ModelException(string.Format("Unable to find member in {0}", Type.Name));
+				throw new ModelException(string.Format("Unable to find member in {0}", _type.Name));
 			}
 			return member;
 		}
 
 		private EntityPropertyBuilder GetEntityPropertyBuilder(MemberInfo member)
 		{
-			return PropertyBuilders.GetOrAdd(member, key =>
+			return _propertyBuilders.GetOrAdd(member, key =>
 			{
 				return new EntityPropertyBuilder(key);
 			});
@@ -100,17 +144,17 @@ namespace Soul.SqlBatis.Infrastructure
 
 		public EntityType Build()
 		{
-			var properties = PropertyBuilders.Values
+			var properties = _propertyBuilders.Values
 				.Select(s => s.Build())
 				.ToList();
-			foreach (var item in Type.GetProperties())
+			foreach (var item in _type.GetProperties())
 			{
 				if (!properties.Any(a => a.Member == item))
 				{
 					properties.Add(new EntityProperty(item));
 				}
 			}
-			return new EntityType(Type, Annotations, properties);
+			return new EntityType(_type, _annotations, properties);
 		}
 	}
 
@@ -119,22 +163,14 @@ namespace Soul.SqlBatis.Infrastructure
 	{
 		private EntityTypeBuilder _target;
 
-		public override IAnnotationCollection Annotations => _target.Annotations;
-
-		public EntityTypeBuilder(EntityTypeBuilder target) : base(typeof(T))
+		public EntityTypeBuilder(EntityTypeBuilder target) : base(target)
 		{
 			_target = target;
 		}
 
-		public void Ignore<TProperty>(Expression<Func<T, TProperty>> expression)
-		{
-			_target.Property(GetMember(expression))
-				.HasAnnotation(new NotMappedAttribute());
-		}
-
 		public void HasKey<TProperty>(Expression<Func<T, TProperty>> expression)
 		{
-			_target.HasAnnotation(new NotMappedAttribute());
+			_target.HasKey(GetMembers(expression));
 		}
 
 		public EntityPropertyBuilder<T> Property<TProperty>(Expression<Func<T, TProperty>> expression)
