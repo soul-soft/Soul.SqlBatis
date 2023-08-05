@@ -27,9 +27,11 @@ namespace Soul.SqlBatis.Infrastructure
 		public void Set(object value)
 		{
 			var type = value.GetType();
-			if (_annotations.Any(a => a.GetType() == type))
+			var old = _annotations
+				.Where(a => a.GetType() == type)
+				.FirstOrDefault();
+			if (old != null)
 			{
-				var old = _annotations.Where(a => a.GetType() == type).First();
 				_annotations.Remove(old);
 			}
 			_annotations.Add(value);
