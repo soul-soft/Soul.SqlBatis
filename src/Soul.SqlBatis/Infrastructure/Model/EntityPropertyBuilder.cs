@@ -20,11 +20,6 @@ namespace Soul.SqlBatis.Infrastructure
 			_annotations = target._annotations;
 		}
 
-		public void Ignore()
-		{
-			HasAnnotation(new NotMappedAttribute());
-		}
-
 		public void HasColumnName(string name)
 		{
 			_annotations.Set(new ColumnAttribute(name));

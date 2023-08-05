@@ -35,9 +35,25 @@ namespace Soul.SqlBatis.Infrastructure
 			HasAnnotation(new NotMappedAttribute());
 		}
 
-		public EntityPropertyBuilder Property(string property)
+		public void Igonre(params string[] propertyNames)
 		{
-			return GetEntityPropertyBuilder(GetMember(property));
+			foreach (var item in propertyNames)
+			{
+				Property(item).HasAnnotation(new NotMappedAttribute());
+			}
+		}
+
+		public void Igonre(params MemberInfo[] members)
+		{
+			foreach (var item in members)
+			{
+				Property(item).HasAnnotation(new NotMappedAttribute());
+			}
+		}
+
+		public EntityPropertyBuilder Property(string propertyName)
+		{
+			return GetEntityPropertyBuilder(GetMember(propertyName));
 		}
 
 		public EntityPropertyBuilder Property(MemberInfo member)
@@ -177,6 +193,13 @@ namespace Soul.SqlBatis.Infrastructure
 		{
 			var member = GetMember(expression);
 			return new EntityPropertyBuilder<T>(_target.Property(member));
+		}
+
+
+		public void Igonre<TProperty>(Expression<Func<T, TProperty>> expression)
+		{
+			var members = GetMembers(expression);
+			_target.Igonre(members);
 		}
 	}
 }
