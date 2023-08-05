@@ -8,11 +8,6 @@ namespace Soul.SqlBatis.Infrastructure
     {
         private readonly List<EntityType> _entities;
 
-        internal Model()
-        {
-
-        }
-
         public Model(IEnumerable<EntityType> entities)
         {
             _entities = entities.ToList();
@@ -20,7 +15,8 @@ namespace Soul.SqlBatis.Infrastructure
 
         public virtual EntityType GetEntityType(Type type)
         {
-            return _entities.Where(a => a.Type == type).FirstOrDefault();
+            return _entities.Where(a => a.Type == type)
+                .FirstOrDefault();
         }
 
         public virtual bool IsEntity(Type type)

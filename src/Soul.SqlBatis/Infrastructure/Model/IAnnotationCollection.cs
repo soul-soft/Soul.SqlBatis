@@ -11,23 +11,23 @@ namespace Soul.SqlBatis.Infrastructure
 
 	public class AnnotationCollection : IAnnotationCollection
 	{
-		private readonly List<object> _metadata = new List<object>();
+		private readonly List<object> _annotations = new List<object>();
 
 		public T Get<T>()
 		{
-			return _metadata.Cast<T>().FirstOrDefault();
+			return _annotations.OfType<T>().FirstOrDefault();
 		}
 
 
 		public void Set(object value)
 		{
 			var type = value.GetType();
-			if (_metadata.Any(a => a.GetType() == type))
+			if (_annotations.Any(a => a.GetType() == type))
 			{
-				var old = _metadata.Where(a => a.GetType() == type).First();
-				_metadata.Remove(old);
+				var old = _annotations.Where(a => a.GetType() == type).First();
+				_annotations.Remove(old);
 			}
-			_metadata.Add(value);
+			_annotations.Add(value);
 		}
 	}
 }

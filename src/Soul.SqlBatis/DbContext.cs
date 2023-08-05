@@ -25,7 +25,7 @@ namespace Soul.SqlBatis
         public DbContext(DbContextOptions options)
         {
             Options = options;
-            _model = ModelBuilder.CreateModel(GetType(), OnModelCreating);
+            _model = ModelCreating();
             _connection = options.ConnecionProvider();
         }
 
@@ -123,7 +123,12 @@ namespace Soul.SqlBatis
             return CurrentDbTransaction;
         }
 
-        protected virtual void OnModelCreating(ModelBuilder builder)
+        private Model ModelCreating()
+        {
+			return ModelBuilder.CreateModel(GetType(), OnModelCreating);
+		}
+
+		protected virtual void OnModelCreating(ModelBuilder builder)
         {
 
         }

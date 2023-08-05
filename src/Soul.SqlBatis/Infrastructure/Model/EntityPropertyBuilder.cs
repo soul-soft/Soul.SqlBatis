@@ -1,13 +1,15 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 
 namespace Soul.SqlBatis.Infrastructure
 {
 	public class EntityPropertyBuilder
 	{
+		public string GuidS => Guid.NewGuid().ToString();
 		public MemberInfo Member { get; }
 
-		public IAnnotationCollection Annotations { get; } = new AnnotationCollection();
+		public virtual IAnnotationCollection Annotations { get; } = new AnnotationCollection();
 
 		public EntityPropertyBuilder(MemberInfo member)
 		{
@@ -40,6 +42,8 @@ namespace Soul.SqlBatis.Infrastructure
 		where T : class
 	{
 		private readonly EntityPropertyBuilder _target;
+
+		public override IAnnotationCollection Annotations => _target.Annotations;
 
 		public EntityPropertyBuilder(EntityPropertyBuilder target)
 			: base(target.Member)

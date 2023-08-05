@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Reflection;
 
 namespace Soul.SqlBatis.Infrastructure
 {
@@ -8,17 +9,16 @@ namespace Soul.SqlBatis.Infrastructure
 
 		public IAnnotationCollection Annotations { get; } = new AnnotationCollection();
 
-		private string _columnName;
-
 		public string ColumnName
 		{
 			get
 			{
-				return _columnName;
-			}
-			set
-			{
-				_columnName = value;
+				var columnName = Annotations.Get<ColumnAttribute>()?.Name;
+				if (!string.IsNullOrEmpty(columnName))
+				{
+					return columnName;
+				}
+				return Member.Name;
 			}
 		}
 		

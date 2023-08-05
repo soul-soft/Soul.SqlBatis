@@ -14,11 +14,8 @@ namespace Soul.SqlBatis.Test
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
-            builder.Entity<Student>().Ignore();
             builder.Entity<Student>().Property(a => a.Id).Ignore();
-
-			builder.Entity<Student>().Property(a => a.FirstName).HasColumnName("faf");
-			builder.Entity<Student>().Property("FirstName").HasColumnName("faf");
+			builder.Entity<Student>().Property(a => a.Id).HasColumnName("faf");
 		}
     }
 }

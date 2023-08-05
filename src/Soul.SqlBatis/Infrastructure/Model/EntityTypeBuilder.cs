@@ -11,7 +11,7 @@ namespace Soul.SqlBatis.Infrastructure
 	{
 		public Type Type { get; }
 
-		public IAnnotationCollection Annotations { get; }
+		public virtual IAnnotationCollection Annotations { get; }
 
 		public ConcurrentDictionary<MemberInfo, EntityPropertyBuilder> PropertyBuilders { get; }
 
@@ -37,12 +37,19 @@ namespace Soul.SqlBatis.Infrastructure
 			return GetEntityPropertyBuilder(member);
 		}
 
-		public void ToTable(string name, string scheme = null)
+		public void ToTable(string name, string schema = null)
 		{
-			HasAnnotation(new TableAttribute(name)
+			if (!string.IsNullOrEmpty(schema))
 			{
-				Schema = scheme
-			});
+				HasAnnotation(new TableAttribute(name) 
+				{
+					Schema = schema
+				});
+			}
+			else
+			{
+				HasAnnotation(new TableAttribute(name));
+			}
 		}
 
 		public void ToView(string name, string scheme = null)
@@ -62,7 +69,7 @@ namespace Soul.SqlBatis.Infrastructure
 		{
 			if (expression is LambdaExpression lambdaExpression)
 			{
-				GetMember(lambdaExpression.Body);
+				return GetMember(lambdaExpression.Body);
 			}
 			if (expression is MemberExpression memberExpression)
 			{
@@ -112,6 +119,8 @@ namespace Soul.SqlBatis.Infrastructure
 	{
 		private EntityTypeBuilder _target;
 
+		public override IAnnotationCollection Annotations => _target.Annotations;
+
 		public EntityTypeBuilder(EntityTypeBuilder target) : base(typeof(T))
 		{
 			_target = target;
@@ -130,7 +139,8 @@ namespace Soul.SqlBatis.Infrastructure
 
 		public EntityPropertyBuilder<T> Property<TProperty>(Expression<Func<T, TProperty>> expression)
 		{
-			return new EntityPropertyBuilder<T>(_target.Property(GetMember(expression)));
+			var member = GetMember(expression);
+			return new EntityPropertyBuilder<T>(_target.Property(member));
 		}
 	}
 }
