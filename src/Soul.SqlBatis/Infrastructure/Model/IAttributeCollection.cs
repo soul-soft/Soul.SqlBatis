@@ -12,29 +12,37 @@ namespace Soul.SqlBatis.Infrastructure
 
 	public class AttributeCollection : IAttributeCollection
 	{
-		private readonly List<object> _annotations = new List<object>();
+		private readonly List<object> _attributes = new List<object>();
+
+		public AttributeCollection(IEnumerable<object> attributes)
+		{
+			foreach (var item in attributes)
+			{
+				Set(item);
+			}
+		}
 
 		public T Get<T>()
 		{
-			return _annotations.OfType<T>().FirstOrDefault();
+			return _attributes.OfType<T>().FirstOrDefault();
 		}
 
 		public IEnumerator<object> GetEnumerator()
 		{
-			return _annotations.GetEnumerator();
+			return _attributes.GetEnumerator();
 		}
 
 		public void Set(object value)
 		{
 			var type = value.GetType();
-			var old = _annotations
+			var old = _attributes
 				.Where(a => a.GetType() == type)
 				.FirstOrDefault();
 			if (old != null)
 			{
-				_annotations.Remove(old);
+				_attributes.Remove(old);
 			}
-			_annotations.Add(value);
+			_attributes.Add(value);
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()

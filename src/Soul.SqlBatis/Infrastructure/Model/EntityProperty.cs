@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Reflection;
@@ -9,15 +10,15 @@ namespace Soul.SqlBatis.Infrastructure
 	{
 		public MemberInfo Member { get; }
 
-		public bool IsKey 
+		public bool IsKey
 		{
-			get 
+			get
 			{
 				return Attributes.Any(a => a is KeyAttribute);
 			}
 		}
 
-		public IAttributeCollection Attributes { get; } = new AttributeCollection();
+		public IAttributeCollection Attributes { get; }
 
 		public string ColumnName
 		{
@@ -35,12 +36,12 @@ namespace Soul.SqlBatis.Infrastructure
 		public EntityProperty(MemberInfo member)
 		{
 			Member = member;
+			Attributes = new AttributeCollection(member.GetCustomAttributes());
 		}
-		
-		public EntityProperty(MemberInfo member, IAttributeCollection annotations)
+
+		public void HasAnnotation(object value)
 		{
-			Member = member;
-			Attributes = annotations;
+			Attributes.Set(value);
 		}
 	}
 }
