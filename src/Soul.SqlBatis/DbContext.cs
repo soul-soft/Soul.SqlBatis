@@ -35,7 +35,6 @@ namespace Soul.SqlBatis
             return new DbSet<T>(this);
         }
 
-
         public IDbConnection GetDbConnection()
         {
             return _connection;
