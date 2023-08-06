@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 
 namespace Soul.SqlBatis.Infrastructure
 {
@@ -15,7 +13,6 @@ namespace Soul.SqlBatis.Infrastructure
 			foreach (var item in entities)
 			{
 				_entities.TryAdd(item.Type, item);
-
 			}
 		}
 

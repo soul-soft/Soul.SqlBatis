@@ -40,14 +40,6 @@ namespace Soul.SqlBatis.Infrastructure
 			return _modelCache.GetOrAdd(type, key =>
 			{
 				var modelBuilder = new ModelBuilder();
-				var entityTypes = key.GetProperties()
-				   .Where(a => a.PropertyType.IsGenericType)
-				   .Where(a => a.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>));
-				foreach (var item in entityTypes)
-				{
-					var entityType = item.PropertyType.GenericTypeArguments[0];
-					modelBuilder.Entity(entityType).ToTable(item.Name);
-				}
 				configure(modelBuilder);
 				return modelBuilder.Build();
 			});
