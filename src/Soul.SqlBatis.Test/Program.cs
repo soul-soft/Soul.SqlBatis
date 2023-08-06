@@ -9,6 +9,5 @@ var context = new MyDbContext(new DbContextOptions
 
 var students = context.Students
 	.Where(a => a.Id != null)
-	.OrderByDescending(a => a.Id)
-	.ToList();
+	.Sum(a => a.Id);
 Console.WriteLine();

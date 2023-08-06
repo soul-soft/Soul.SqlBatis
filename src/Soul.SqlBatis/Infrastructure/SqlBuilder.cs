@@ -9,11 +9,22 @@ namespace Soul.SqlBatis
 	{
 		private List<Token> _tokens = new List<Token>();
 
+		public SqlBuilder()
+		{
+
+		}
+
+		internal SqlBuilder(List<Token> tokens)
+		{
+			_tokens = tokens;
+		}
+
 		public SqlBuilder From(string sql)
 		{
 			_tokens.Add(new Token(TokenType.From, sql));
 			return this;
 		}
+		
 		public SqlBuilder Set(string sql, bool flag = true)
 		{
 			if (flag)
@@ -111,7 +122,7 @@ namespace Soul.SqlBatis
 			return string.Join(" ", $"DELETE FROM {View}", Build(tokens));
 		}
 
-		public string Count()
+		public string Count(string column = "*")
 		{
 			var tokens = _tokens
 				.Where(a => a.Type != TokenType.Set)
@@ -120,9 +131,65 @@ namespace Soul.SqlBatis
 			if (_tokens.Any(a => a.Type == TokenType.GroupBy))
 			{
 				var sql = string.Join(" ", $"SELECT * FROM {View}", Build(tokens));
-				return $"SELECT COUNT(*) FROM ({sql}) AS t";
+				return $"SELECT COUNT({column}) FROM ({sql}) AS t";
 			}
-			return string.Join(" ", $"SELECT COUNT(*) FROM {View}", Build(tokens)); ;
+			return string.Join(" ", $"SELECT COUNT({column}) FROM {View}", Build(tokens)); ;
+		}
+
+		public string Sum(string column)
+		{
+			var tokens = _tokens
+				.Where(a => a.Type != TokenType.Set)
+				.Where(a => a.Type != TokenType.OrderBy)
+				.Where(a => a.Type != TokenType.Limit);
+			if (_tokens.Any(a => a.Type == TokenType.GroupBy))
+			{
+				var sql = string.Join(" ", $"SELECT * FROM {View}", Build(tokens));
+				return $"SELECT SUM({column}) FROM ({sql}) AS t";
+			}
+			return string.Join(" ", $"SELECT SUM({column}) FROM {View}", Build(tokens)); ;
+		}
+
+		public string Min(string column)
+		{
+			var tokens = _tokens
+				.Where(a => a.Type != TokenType.Set)
+				.Where(a => a.Type != TokenType.OrderBy)
+				.Where(a => a.Type != TokenType.Limit);
+			if (_tokens.Any(a => a.Type == TokenType.GroupBy))
+			{
+				var sql = string.Join(" ", $"SELECT * FROM {View}", Build(tokens));
+				return $"SELECT MIN({column}) FROM ({sql}) AS t";
+			}
+			return string.Join(" ", $"SELECT MIN({column}) FROM {View}", Build(tokens)); ;
+		}
+
+		public string Max(string column)
+		{
+			var tokens = _tokens
+				.Where(a => a.Type != TokenType.Set)
+				.Where(a => a.Type != TokenType.OrderBy)
+				.Where(a => a.Type != TokenType.Limit);
+			if (_tokens.Any(a => a.Type == TokenType.GroupBy))
+			{
+				var sql = string.Join(" ", $"SELECT * FROM {View}", Build(tokens));
+				return $"SELECT MAX({column}) FROM ({sql}) AS t";
+			}
+			return string.Join(" ", $"SELECT MAX({column}) FROM {View}", Build(tokens)); ;
+		}
+
+		public string Avg(string column)
+		{
+			var tokens = _tokens
+				.Where(a => a.Type != TokenType.Set)
+				.Where(a => a.Type != TokenType.OrderBy)
+				.Where(a => a.Type != TokenType.Limit);
+			if (_tokens.Any(a => a.Type == TokenType.GroupBy))
+			{
+				var sql = string.Join(" ", $"SELECT * FROM {View}", Build(tokens));
+				return $"SELECT AVG({column}) FROM ({sql}) AS t";
+			}
+			return string.Join(" ", $"SELECT AVG({column}) FROM {View}", Build(tokens)); ;
 		}
 
 		public string Build(string format)
@@ -230,7 +297,7 @@ namespace Soul.SqlBatis
 			return null;
 		}
 
-		class Token
+		internal class Token
 		{
 			public TokenType Type { get; }
 
@@ -243,7 +310,7 @@ namespace Soul.SqlBatis
 			}
 		}
 
-		enum TokenType
+		internal enum TokenType
 		{
 			From,
 			Set,

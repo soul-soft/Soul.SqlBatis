@@ -152,7 +152,17 @@ namespace Soul.SqlBatis
             return _connection.ExecuteAsync(sql, param, GetDbTransaction());
         }
 
-        public void Dispose()
+		public virtual T ExecuteScalar<T>(string sql, object param = null)
+		{
+			return _connection.ExecuteScalar<T>(sql, param, GetDbTransaction());
+		}
+
+		public virtual Task<T> ExecuteScalarAsync<T>(string sql, object param = null)
+		{
+			return _connection.ExecuteScalarAsync<T>(sql, param, GetDbTransaction());
+		}
+
+		public void Dispose()
         {
             _currentDbTransaction?.Dispose();
             _currentDbTransaction = null;
