@@ -14,9 +14,9 @@ namespace Soul.SqlBatis
 		IDbQueryable<TResult> Select<TResult>(Expression<Func<T, TResult>> expression, bool flag = true);
 		IDbQueryable<T> Where(Expression<Func<T, bool>> expression, bool flag = true);
 		IDbQueryable<T> Having(Expression<Func<T, bool>> expression, bool flag = true);
-		IDbQueryable<T> GroupBy(Expression<Func<T, bool>> expression, bool flag = true);
-		IDbQueryable<T> OrderBy(Expression<Func<T, bool>> expression, bool flag = true);
-		IDbQueryable<T> OrderByDescending(Expression<Func<T, bool>> expression, bool flag = true);
+		IDbQueryable<T> GroupBy<TResult>(Expression<Func<T, TResult>> expression, bool flag = true);
+		IDbQueryable<T> OrderBy<TResult>(Expression<Func<T, TResult>> expression, bool flag = true);
+		IDbQueryable<T> OrderByDescending<TResult>(Expression<Func<T, TResult>> expression, bool flag = true);
 		IDbQueryable<T> Take(int count, bool flag = true);
 		IDbQueryable<T> Skip(int count, bool flag = true);
 	}

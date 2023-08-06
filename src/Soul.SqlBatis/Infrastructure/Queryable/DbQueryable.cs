@@ -4,7 +4,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Soul.SqlBatis.Infrastructure;
-using Soul.SqlBatis.Infrastructure;
 
 namespace Soul.SqlBatis
 {
@@ -61,51 +60,38 @@ namespace Soul.SqlBatis
 
         private string BuildSelect(Type type)
         {
-            var builder = new DbExpressionBuilder(_context.Model, _parameters);
-
-            var tokens = _expressions.Select(s => new
-            {
-                s.ExpressionType,
-                Expression = builder.Build(s)
-            }).ToList();
+            var tokens = new DbExpressionBuilder(_context.Model, _parameters,_expressions)
+                .Build();
 
             var sb = new SqlBuilder();
             var entityType = _context.Model.GetEntityType(type);
-            if (tokens.Any(a => a.ExpressionType == DbExpressionType.Where))
+            if (tokens.ContainsKey(DbExpressionType.Where))
             {
-                var wheres = tokens.Where(a => a.ExpressionType == DbExpressionType.Where);
+                var wheres = tokens[DbExpressionType.Where];
                 foreach (var item in wheres)
                 {
-                    sb.Where(item.Expression);
+                    sb.Where(item);
                 }
             }
-            if (tokens.Any(a => a.ExpressionType == DbExpressionType.Having))
+			if (tokens.ContainsKey(DbExpressionType.GroupBy))
+			{
+				var groups = tokens[DbExpressionType.GroupBy];
+				foreach (var item in groups)
+				{
+					sb.GroupBy(item);
+				}
+			}
+			if (tokens.ContainsKey(DbExpressionType.OrderBy))
+			{
+				var orders = tokens[DbExpressionType.OrderBy];
+				foreach (var item in orders)
+				{
+					sb.OrderBy(item);
+				}
+			}
+			if (tokens.ContainsKey(DbExpressionType.From))
             {
-                var havings = tokens.Where(a => a.ExpressionType == DbExpressionType.Having);
-                foreach (var item in havings)
-                {
-                    sb.Where(item.Expression);
-                }
-            }
-            if (tokens.Any(a => a.ExpressionType == DbExpressionType.GroupBy))
-            {
-                var groups = tokens.Where(a => a.ExpressionType == DbExpressionType.GroupBy);
-                foreach (var item in groups)
-                {
-                    sb.Where(item.Expression);
-                }
-            }
-            if (tokens.Any(a => a.ExpressionType == DbExpressionType.OrderBy))
-            {
-                var orders = tokens.Where(a => a.ExpressionType == DbExpressionType.OrderBy);
-                foreach (var item in orders)
-                {
-                    sb.Where(item.Expression);
-                }
-            }
-            if (tokens.Any(a => a.ExpressionType == DbExpressionType.From))
-            {
-                var view = tokens.Where(a => a.ExpressionType == DbExpressionType.From).First().Expression;
+                var view = tokens[DbExpressionType.From].First();
                 sb.From(view);
             }
             else
@@ -113,9 +99,9 @@ namespace Soul.SqlBatis
                 var view = entityType.TableName;
                 sb.From(view);
             }
-            if (tokens.Any(a => a.ExpressionType == DbExpressionType.Select))
+            if (tokens.ContainsKey(DbExpressionType.Select))
             {
-                var columns = tokens.Where(a => a.ExpressionType == DbExpressionType.Select).First().Expression;
+                var columns = tokens[DbExpressionType.Select].First();
                 return sb.Select(columns);
             }
             else
@@ -181,7 +167,7 @@ namespace Soul.SqlBatis
             return this;
         }
 
-        public IDbQueryable<T> GroupBy(Expression<Func<T, bool>> expression, bool flag = true)
+        public IDbQueryable<T> GroupBy<TResult>(Expression<Func<T, TResult>> expression, bool flag = true)
         {
             if (flag)
                 AddExpression(DbExpression.FromExpression(expression, DbExpressionType.GroupBy));
@@ -212,14 +198,14 @@ namespace Soul.SqlBatis
             return this;
         }
 
-        public IDbQueryable<T> OrderBy(Expression<Func<T, bool>> expression, bool flag = true)
+        public IDbQueryable<T> OrderBy<TResult>(Expression<Func<T, TResult>> expression, bool flag = true)
         {
             if (flag)
                 AddExpression(DbExpression.FromExpression(expression, DbExpressionType.OrderBy));
             return this;
         }
 
-        public IDbQueryable<T> OrderByDescending(Expression<Func<T, bool>> expression, bool flag = true)
+        public IDbQueryable<T> OrderByDescending<TResult>(Expression<Func<T, TResult>> expression, bool flag = true)
         {
             if (flag)
                 AddExpression(DbExpression.FromExpression(expression, DbExpressionType.OrderByDescending));

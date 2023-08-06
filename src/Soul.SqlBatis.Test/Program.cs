@@ -9,4 +9,6 @@ var context = new MyDbContext(new DbContextOptions
 
 var students = context.Students
 	.Where(a => a.Id != null)
+	.OrderByDescending(a => a.Id)
 	.ToList();
+Console.WriteLine();
