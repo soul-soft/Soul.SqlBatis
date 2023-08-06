@@ -31,7 +31,7 @@ namespace Soul.SqlBatis.Infrastructure
                 var functionAttribute = node.Method.GetCustomAttribute<DbFunctionAttribute>();
                 var functionName = !string.IsNullOrEmpty(functionAttribute.Name) ? functionAttribute.Name : node.Method.Name;
                 SetSql(functionName);
-                SetSql("(");
+                SetLeftInclude();
                 foreach (var item in node.Arguments)
                 {
                     Visit(item);
@@ -40,7 +40,7 @@ namespace Soul.SqlBatis.Infrastructure
                         SetSql(", ");
                     }
                 }
-                SetSql(")");
+                SetRightInclude();
             }
             else
             {

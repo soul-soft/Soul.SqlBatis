@@ -11,10 +11,5 @@ namespace Soul.SqlBatis.Test
 		}
 
 		public DbSet<Student> Students => Set<Student>();
-
-		protected override void OnModelCreating(ModelBuilder builder)
-		{
-			builder.Entity<Student>().Property(a => a.Id).HasColumnName("id2");
-		}
 	}
 }

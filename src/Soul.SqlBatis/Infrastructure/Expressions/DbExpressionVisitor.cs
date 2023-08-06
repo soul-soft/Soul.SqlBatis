@@ -40,7 +40,15 @@ namespace Soul.SqlBatis.Infrastructure
 
         protected override Expression VisitUnary(UnaryExpression node)
         {
-            if (node.NodeType == ExpressionType.Convert)
+            if(node.NodeType == ExpressionType.Not)
+            {
+                SetNot();
+                SetBlank();
+                SetLeftInclude();
+                Visit(node.Operand);
+                SetRightInclude();
+            }
+            else
             {
                 Visit(node.Operand);
             }
@@ -49,16 +57,17 @@ namespace Soul.SqlBatis.Infrastructure
 
         protected override Expression VisitBinary(BinaryExpression node)
         {
-            if (IsNullExpression(node))
+			SetLeftInclude();
+			if (IsNullExpression(node))
             {
-                var memberExpression = node.Left is MemberExpression ? node.Left : node.Right;
+                var memberExpression = IsParameterMemberExpression(node.Left) ? node.Left : node.Right;
                 Visit(memberExpression);
                 SetBlank();
                 SetIsNULL();
             }
             else if (IsNotNullExpression(node))
             {
-                var memberExpression = node.Left is MemberExpression ? node.Left : node.Right;
+                var memberExpression = IsParameterMemberExpression(node.Left) ? node.Left : node.Right;
                 Visit(memberExpression);
                 SetBlank();
                 SetIsNotNULL();
@@ -71,6 +80,7 @@ namespace Soul.SqlBatis.Infrastructure
                 SetBlank();
                 Visit(node.Right);
             }
+            SetRightInclude();
             return node;
         }
 
@@ -93,12 +103,10 @@ namespace Soul.SqlBatis.Infrastructure
             SetSql(function);
             return node;
         }
-
         protected bool IsNullExpression(BinaryExpression expression)
         {
             return (expression.NodeType == ExpressionType.Equal) && ((expression.Left is ConstantExpression leftExpression && leftExpression.Value == null) || (expression.Right is ConstantExpression rightExpression && rightExpression.Value == null));
         }
-
         protected bool IsNotNullExpression(BinaryExpression expression)
         {
             return (expression.NodeType == ExpressionType.NotEqual) && ((expression.Left is ConstantExpression leftExpression && leftExpression.Value == null) || (expression.Right is ConstantExpression rightExpression && rightExpression.Value == null));
@@ -116,15 +124,27 @@ namespace Soul.SqlBatis.Infrastructure
             }
             return false;
         }
-        protected void SetSql(string sql)
+        protected void SetLeftInclude()
+        {
+            _buffer.Append('(');
+        }
+		protected void SetRightInclude()
+		{
+			_buffer.Append(')');
+		}
+		protected void SetSql(string sql)
         {
             _buffer.Append(sql);
         }
         protected void SetIn()
         {
-            _buffer.Append("LIKE");
+            _buffer.Append("IN");
         }
-        protected void SetLike()
+		protected void SetNot()
+		{
+			_buffer.Append("NOT");
+		}
+		protected void SetLike()
         {
             _buffer.Append("LIKE");
         }

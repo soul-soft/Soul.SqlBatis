@@ -59,7 +59,7 @@ namespace Soul.SqlBatis
             _expressions.Add(expression);
         }
 
-        private string Build(Type type)
+        private string BuildSelect(Type type)
         {
             var builder = new DbExpressionBuilder(_context.Model, _parameters);
 
@@ -134,17 +134,21 @@ namespace Soul.SqlBatis
 
         public List<T> ToList<T>()
         {
-            var sql = Build(_type);
+            var sql = BuildSelect(_type);
             return _context.Query<T>(sql, _parameters).ToList();
         }
 
         public async Task<List<T>> ToListAsync<T>()
         {
-            var sql = Build(_type);
+            var sql = BuildSelect(_type);
             var list = await _context.QueryAsync<T>(sql, _parameters);
             return list.ToList();
         }
 
+        public int Count()
+        {
+            return 0;
+        }
     }
 
     public class DbQueryable<T> : DbQueryable, IDbQueryable<T>

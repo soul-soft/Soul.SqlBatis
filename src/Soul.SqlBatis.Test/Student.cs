@@ -1,11 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Soul.SqlBatis.Test
 {
+    [Table("students")]
     public class Student
     {
-        [Column("id1")]
         public int? Id { get; set; }
 
         public string Name { get; set; }
