@@ -25,7 +25,7 @@ namespace Soul.SqlBatis
         public DbContext(DbContextOptions options)
         {
             Options = options;
-            _model = ModelCreating();
+            _model = ModelCreating();   
             _connection = options.ConnecionProvider();
         }
 
