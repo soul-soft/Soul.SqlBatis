@@ -125,7 +125,7 @@ namespace Soul.SqlBatis
 
         private Model ModelCreating()
         {
-			return ModelBuilder.CreateModel(GetType(), OnModelCreating);
+			return ModelBuilder.CreateDbContextModel(GetType(), OnModelCreating);
 		}
 
 		protected virtual void OnModelCreating(ModelBuilder builder)

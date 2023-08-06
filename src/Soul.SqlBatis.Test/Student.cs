@@ -5,7 +5,7 @@ namespace Soul.SqlBatis.Test
 {
     public class Student
     {
-        [Column("id")]
+        [Column("id1")]
         public int? Id { get; set; }
 
         public string Name { get; set; }
