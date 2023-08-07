@@ -16,8 +16,8 @@ var student = new Student()
 context.OpenDbConnection();
 context.Delete(new Student 
 {
-	Id = 10,
+	Id = 11,
 	Name= "霄雲",
 });
-context.SaveChanges();
+await context.SaveChangesAsync();
 Console.WriteLine();

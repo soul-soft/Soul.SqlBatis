@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Soul.SqlBatis.Infrastructure
 {
@@ -33,6 +35,33 @@ namespace Soul.SqlBatis.Infrastructure
 					var sql = DeleteSql(_context, entry);
 					var values = entry.Properties.ToDictionary(s => s.Member.Name, s => s.CurrentValue);
 					row += _context.Execute(sql, values);
+				}
+			}
+			return row;
+		}
+
+		public async Task<int> SaveChangesAsync()
+		{
+			var row = 0;
+			foreach (var entry in _context.ChangeTracker.Entries())
+			{
+				if (entry.State == EntityState.Added)
+				{
+					var sql = InsertSql(_context, entry);
+					var values = entry.Properties.ToDictionary(s => s.Member.Name, s => s.CurrentValue);
+					row += await _context.ExecuteAsync(sql, values);
+				}
+				else if (entry.State == EntityState.Modified)
+				{
+					var sql = UpdateSql(_context, entry);
+					var values = entry.Properties.ToDictionary(s => s.Member.Name, s => s.CurrentValue);
+					row += await _context.ExecuteAsync(sql, values);
+				}
+				else if (entry.State == EntityState.Deleted)
+				{
+					var sql = DeleteSql(_context, entry);
+					var values = entry.Properties.ToDictionary(s => s.Member.Name, s => s.CurrentValue);
+					row += await _context.ExecuteAsync(sql, values);
 				}
 			}
 			return row;
