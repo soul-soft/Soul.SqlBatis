@@ -23,7 +23,7 @@ namespace Soul.SqlBatis
 
         public Model Model => _model;
 
-        private ChangeTracker _changeTracker;
+        private ChangeTracker _changeTracker = new ChangeTracker();
 
         public ChangeTracker ChangeTracker => _changeTracker;
 
@@ -40,11 +40,11 @@ namespace Soul.SqlBatis
             return new DbSet<T>(this);
         }
 
-        public EntityEntry<T> Entry<T>(T entry)
+        public EntityEntry<T> Entry<T>(T entity)
             where T : class
         {
-            return new EntityEntry<T>(entry);
-        }
+			return _changeTracker.TrackGraph(entity);
+		}
 
         public void Add<T>(T entity)
             where T : class
@@ -64,7 +64,7 @@ namespace Soul.SqlBatis
         public void Update<T>(T entity)
             where T : class
         {
-            Entry(entity).State = EntityState.Unchanged;
+            Entry(entity).State = EntityState.Modified;
         }
 
         public void UpdateRange<T>(IEnumerable<T> entities)
@@ -91,7 +91,14 @@ namespace Soul.SqlBatis
             }
         }
 
-        public IDbConnection GetDbConnection()
+        public void SaveChanges()
+        {
+            var batch = new DbBatchCommand(this);
+            batch.SaveChanges();
+		}
+
+
+		public IDbConnection GetDbConnection()
         {
             return _connection;
         }
@@ -198,7 +205,7 @@ namespace Soul.SqlBatis
             return _connection.QueryAsync<T>(sql, param, GetDbTransaction());
         }
 
-        public virtual int Execute<T>(string sql, object param = null)
+        public virtual int Execute(string sql, object param = null)
         {
             return _connection.Execute(sql, param, GetDbTransaction());
         }

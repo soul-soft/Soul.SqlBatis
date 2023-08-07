@@ -18,6 +18,14 @@ namespace Soul.SqlBatis.Infrastructure
 			}
 		}
 
+		public bool IsNotMapped
+		{
+			get
+			{
+				return Attributes.Any(a => a is NotMappedAttribute);
+			}
+		}
+
 		public IAttributeCollection Attributes { get; }
 
 		public string ColumnName

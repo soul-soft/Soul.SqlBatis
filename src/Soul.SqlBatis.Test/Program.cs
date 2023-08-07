@@ -6,8 +6,18 @@ var context = new MyDbContext(new DbContextOptions
 {
 	ConnecionProvider = () => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test")
 });
-
-var students = context.Students
-	.Where(a => a.Id != null)
-	.Sum(a=>a.Id);
+var student = new Student()
+{
+	FirstName = "Test",
+	Name = "Test",
+	CreationTime = DateTime.Now,
+};
+//context.Add(student);
+context.OpenDbConnection();
+context.Delete(new Student 
+{
+	Id = 10,
+	Name= "霄雲",
+});
+context.SaveChanges();
 Console.WriteLine();
