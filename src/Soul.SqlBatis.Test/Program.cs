@@ -9,5 +9,5 @@ var context = new MyDbContext(new DbContextOptions
 
 var students = context.Students
 	.Where(a => a.Id != null)
-	.Sum(a => a.Id);
+	.Sum(a=>a.Id);
 Console.WriteLine();

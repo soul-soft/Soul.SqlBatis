@@ -31,6 +31,7 @@ namespace Soul.SqlBatis.Infrastructure
             }
             var view = GetFromSql();
             return string.Join(" ", $"SELECT {columns} FROM {view}", tokens);
+        
         }
 
         public string Count()
