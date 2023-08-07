@@ -149,7 +149,7 @@ namespace Soul.SqlBatis
 			return Task.CompletedTask;
 		}
 
-		public DbContextTransaction BeginTransaction()
+		public DbContextTransaction BeginTransaction(IDbTransaction transaction = null)
 		{
 			var autoCloase = false;
 			if (_connection.State == ConnectionState.Closed)
@@ -157,7 +157,7 @@ namespace Soul.SqlBatis
 				OpenDbConnection();
 				autoCloase = true;
 			}
-			var transaction = _connection.BeginTransaction();
+			transaction = transaction ?? _connection.BeginTransaction();
 			_currentDbTransaction = new DbContextTransaction(() =>
 			{
 				_currentDbTransaction = null;
@@ -169,7 +169,7 @@ namespace Soul.SqlBatis
 			return CurrentDbTransaction;
 		}
 
-		public async Task<DbContextTransaction> BeginTransactionAsync()
+		public async Task<DbContextTransaction> BeginTransactionAsync(IDbTransaction transaction = null)
 		{
 			var autoCloase = false;
 			if (_connection.State == ConnectionState.Closed)
@@ -177,7 +177,7 @@ namespace Soul.SqlBatis
 				await OpenDbConnectionAsync();
 				autoCloase = true;
 			}
-			var transaction = _connection.BeginTransaction();
+			transaction = transaction ?? _connection.BeginTransaction();
 			_currentDbTransaction = new DbContextTransaction(() =>
 			{
 				_currentDbTransaction = null;

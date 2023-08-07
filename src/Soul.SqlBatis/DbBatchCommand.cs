@@ -15,35 +15,42 @@ namespace Soul.SqlBatis.Infrastructure
 
 		public int SaveChanges()
 		{
-			var row = 0;
-			foreach (var entry in _context.ChangeTracker.Entries())
+
+			using (var transaction = _context.CurrentDbTransaction ?? _context.BeginTransaction())
 			{
-				if (entry.State == EntityState.Added)
+				var row = 0;
+				foreach (var entry in _context.ChangeTracker.Entries())
 				{
-					var sql = InsertSql(_context, entry);
-					var values = entry.Properties.ToDictionary(s => s.Member.Name, s => s.CurrentValue);
-					row += _context.Execute(sql, values);
+					if (entry.State == EntityState.Added)
+					{
+						var sql = InsertSql(_context, entry);
+						var values = entry.Properties.ToDictionary(s => s.Member.Name, s => s.CurrentValue);
+						row += _context.Execute(sql, values);
+					}
+					else if (entry.State == EntityState.Modified)
+					{
+						var sql = UpdateSql(_context, entry);
+						var values = entry.Properties.ToDictionary(s => s.Member.Name, s => s.CurrentValue);
+						row += _context.Execute(sql, values);
+					}
+					else if (entry.State == EntityState.Deleted)
+					{
+						var sql = DeleteSql(_context, entry);
+						var values = entry.Properties.ToDictionary(s => s.Member.Name, s => s.CurrentValue);
+						row += _context.Execute(sql, values);
+					}
 				}
-				else if (entry.State == EntityState.Modified)
-				{
-					var sql = UpdateSql(_context, entry);
-					var values = entry.Properties.ToDictionary(s => s.Member.Name, s => s.CurrentValue);
-					row += _context.Execute(sql, values);
-				}
-				else if (entry.State == EntityState.Deleted)
-				{
-					var sql = DeleteSql(_context, entry);
-					var values = entry.Properties.ToDictionary(s => s.Member.Name, s => s.CurrentValue);
-					row += _context.Execute(sql, values);
-				}
+				transaction.CommitTransaction();
+				return row;
 			}
-			return row;
 		}
 
 		public async Task<int> SaveChangesAsync()
 		{
 			var row = 0;
-			foreach (var entry in _context.ChangeTracker.Entries())
+			using (var transaction = _context.CurrentDbTransaction ?? await _context.BeginTransactionAsync())
+			{
+				foreach (var entry in _context.ChangeTracker.Entries())
 			{
 				if (entry.State == EntityState.Added)
 				{
@@ -63,6 +70,8 @@ namespace Soul.SqlBatis.Infrastructure
 					var values = entry.Properties.ToDictionary(s => s.Member.Name, s => s.CurrentValue);
 					row += await _context.ExecuteAsync(sql, values);
 				}
+			}
+				await transaction.CommitTransactionAsync();
 			}
 			return row;
 		}
