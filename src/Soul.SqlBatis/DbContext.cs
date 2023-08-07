@@ -5,6 +5,7 @@ using System.Data.Common;
 using System.Threading.Tasks;
 using Dapper;
 using Soul.SqlBatis.Infrastructure;
+using static Dapper.SqlMapper;
 
 namespace Soul.SqlBatis
 {
@@ -22,10 +23,14 @@ namespace Soul.SqlBatis
 
         public Model Model => _model;
 
+        private ChangeTracker _changeTracker;
+
+        public ChangeTracker ChangeTracker => _changeTracker;
+
         public DbContext(DbContextOptions options)
         {
             Options = options;
-            _model = ModelCreating();   
+            _model = ModelCreating();
             _connection = options.ConnecionProvider();
         }
 
@@ -33,6 +38,57 @@ namespace Soul.SqlBatis
             where T : class
         {
             return new DbSet<T>(this);
+        }
+
+        public EntityEntry<T> Entry<T>(T entry)
+            where T : class
+        {
+            return new EntityEntry<T>(entry);
+        }
+
+        public void Add<T>(T entity)
+            where T : class
+        {
+            Entry(entity).State = EntityState.Added;
+        }
+
+        public void AddRange<T>(IEnumerable<T> entities)
+            where T : class
+        {
+            foreach (var entity in entities)
+            {
+                Add(entity);
+            }
+        }
+
+        public void Update<T>(T entity)
+            where T : class
+        {
+            Entry(entity).State = EntityState.Unchanged;
+        }
+
+        public void UpdateRange<T>(IEnumerable<T> entities)
+            where T : class
+        {
+            foreach (var entity in entities)
+            {
+                Update(entity);
+            }
+        }
+
+        public void Delete<T>(T entity)
+            where T : class
+        {
+            Entry(entity).State = EntityState.Deleted;
+        }
+
+        public void DeleteRange<T>(IEnumerable<T> entities)
+            where T : class
+        {
+            foreach (var entity in entities)
+            {
+                Delete(entity);
+            }
         }
 
         public IDbConnection GetDbConnection()
@@ -124,10 +180,10 @@ namespace Soul.SqlBatis
 
         private Model ModelCreating()
         {
-			return ModelBuilder.CreateDbContextModel(GetType(), OnModelCreating);
-		}
+            return ModelBuilder.CreateDbContextModel(GetType(), OnModelCreating);
+        }
 
-		protected virtual void OnModelCreating(ModelBuilder builder)
+        protected virtual void OnModelCreating(ModelBuilder builder)
         {
 
         }
@@ -152,17 +208,17 @@ namespace Soul.SqlBatis
             return _connection.ExecuteAsync(sql, param, GetDbTransaction());
         }
 
-		public virtual T ExecuteScalar<T>(string sql, object param = null)
-		{
-			return _connection.ExecuteScalar<T>(sql, param, GetDbTransaction());
-		}
+        public virtual T ExecuteScalar<T>(string sql, object param = null)
+        {
+            return _connection.ExecuteScalar<T>(sql, param, GetDbTransaction());
+        }
 
-		public virtual Task<T> ExecuteScalarAsync<T>(string sql, object param = null)
-		{
-			return _connection.ExecuteScalarAsync<T>(sql, param, GetDbTransaction());
-		}
+        public virtual Task<T> ExecuteScalarAsync<T>(string sql, object param = null)
+        {
+            return _connection.ExecuteScalarAsync<T>(sql, param, GetDbTransaction());
+        }
 
-		public void Dispose()
+        public void Dispose()
         {
             _currentDbTransaction?.Dispose();
             _currentDbTransaction = null;
