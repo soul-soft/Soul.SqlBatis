@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using static Soul.SqlBatis.SqlBuilder;
 
 namespace Soul.SqlBatis.Infrastructure
 {
@@ -15,49 +14,112 @@ namespace Soul.SqlBatis.Infrastructure
             _tokens = tokens;
         }
 
-        public string BuildSelect()
+        public string Select()
         {
-            var tokens = BuildTokens();
-            return string.Join(" ", $"SELECT {GetSelectSql()} FROM {GetFromSql()}", tokens);
-        }
-
-        public string GetFromSql()
-        {
-            if (_tokens.ContainsKey(DbExpressionType.From))
+            var tokens = BuildFilter();
+            var columns = GetColumns();
+            if (columns == "*")
             {
-                return _tokens[DbExpressionType.From].First();
-            }
-            else
-            {
-                return _entityType.TableName;
-            }
-
-        }
-
-        public string GetSelectSql()
-        {
-            if (_tokens.ContainsKey(DbExpressionType.Select))
-            {
-                var columns = _tokens[DbExpressionType.Select].First();
-                return columns;
-            }
-            else
-            {
-                var columns = _entityType.Properties.Select(s =>
+                columns = string.Join(", ", _entityType.Properties.Select(s =>
                 {
                     if (s.ColumnName == s.Member.Name)
                     {
                         return s.Member.Name;
                     }
                     return $"{s.ColumnName} AS {s.Member.Name}";
-                });
-                return string.Join(", ", columns);
+                }));
             }
+            var view = GetFromSql();
+            return string.Join(" ", $"SELECT {columns} FROM {view}", tokens);
         }
 
-        private IEnumerable<string> BuildTokens()
+        public string Count()
         {
-            foreach (var item in _tokens.OrderBy(s => s.Key))
+            var tokens = BuildFilter();
+            var columns = GetColumns();
+            var fromSql = GetFromSql();
+            if (_tokens.ContainsKey(DbExpressionType.GroupBy))
+            {
+                var sql = Select();
+                return $"SELECT COUNT({columns}) FROM ({sql}) AS t";
+            }
+            return string.Join(" ", $"SELECT COUNT({columns}) FROM {fromSql}", tokens);
+        }
+
+        public string Sum()
+        {
+            var tokens = BuildFilter();
+            var fromSql = GetFromSql();
+            var columns = GetColumns();
+            if (_tokens.ContainsKey(DbExpressionType.GroupBy))
+            {
+                var sql = Select();
+                return $"SELECT SUM({columns}) FROM ({sql}) AS t";
+            }
+            return string.Join(" ", $"SELECT SUM({columns}) FROM {fromSql}", tokens);
+        }
+
+        public string Max()
+        {
+            var tokens = BuildFilter();
+            var fromSql = GetFromSql();
+            var columns = GetColumns();
+            if (_tokens.ContainsKey(DbExpressionType.GroupBy))
+            {
+                var sql = Select();
+                return $"SELECT MAX({columns}) FROM ({sql}) AS t";
+            }
+            return string.Join(" ", $"SELECT MAX({columns}) FROM {fromSql}", tokens);
+        }
+
+        public string Min()
+        {
+            var tokens = BuildFilter();
+            var columns = GetColumns();
+            var fromSql = GetFromSql();
+            if (_tokens.ContainsKey(DbExpressionType.GroupBy))
+            {
+                var sql = Select();
+                return $"SELECT MIN({columns}) FROM ({sql}) AS t";
+            }
+            return string.Join(" ", $"SELECT MIN({columns}) FROM {fromSql}", tokens);
+        }
+
+        public string Avg()
+        {
+            var tokens = BuildFilter();
+            var columns = GetColumns();
+            var fromSql = GetFromSql();
+            if (_tokens.ContainsKey(DbExpressionType.GroupBy))
+            {
+                var sql = Select();
+                return $"SELECT AVG({columns}) FROM ({sql}) AS t";
+            }
+            return string.Join(" ", $"SELECT AVG({columns}) FROM {fromSql}", tokens);
+        }
+
+        private string GetFromSql()
+        {
+            if (_tokens.ContainsKey(DbExpressionType.From))
+            {
+                return _tokens[DbExpressionType.From].First();
+            }
+            return _entityType.TableName;
+        }
+
+        private string GetColumns()
+        {
+            if (_tokens.ContainsKey(DbExpressionType.Select))
+            {
+                var columns = _tokens[DbExpressionType.Select].First();
+                return columns;
+            }
+            return "*";
+        }
+
+        private string BuildFilter()
+        {
+            var filters = _tokens.OrderBy(s => s.Key).Select(item =>
             {
                 var connector = ", ";
                 if (item.Key == DbExpressionType.Where || item.Key == DbExpressionType.GroupBy)
@@ -82,8 +144,9 @@ namespace Soul.SqlBatis.Infrastructure
                         sql = $"ORDER BY {expressions}";
                         break;
                 }
-                yield return sql;
-            }
+                return sql;
+            });
+            return string.Join(" ", filters);
         }
     }
 }

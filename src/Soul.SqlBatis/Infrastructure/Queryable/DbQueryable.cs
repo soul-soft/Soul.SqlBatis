@@ -13,6 +13,8 @@ namespace Soul.SqlBatis
 
 		private readonly DbContext _context;
 
+		public Model Model => _context.Model;
+
 		private readonly List<DbExpression> _expressions = new List<DbExpression>();
 
 		private readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
@@ -60,193 +62,53 @@ namespace Soul.SqlBatis
 
 		private string BuildSelect()
 		{
-			var tokens = new DbExpressionBuilder(_context.Model, _parameters, _expressions)
-				.Build();
-			var sb = new SqlBuilder();
-			var entityType = _context.Model.GetEntityType(_type);
-			if (tokens.ContainsKey(DbExpressionType.Where))
-			{
-				var wheres = tokens[DbExpressionType.Where];
-				foreach (var item in wheres)
-				{
-					sb.Where(item);
-				}
-			}
-			if (tokens.ContainsKey(DbExpressionType.GroupBy))
-			{
-				var groups = tokens[DbExpressionType.GroupBy];
-				foreach (var item in groups)
-				{
-					sb.GroupBy(item);
-				}
-			}
-			if (tokens.ContainsKey(DbExpressionType.OrderBy))
-			{
-				var orders = tokens[DbExpressionType.OrderBy];
-				foreach (var item in orders)
-				{
-					sb.OrderBy(item);
-				}
-			}
-			if (tokens.ContainsKey(DbExpressionType.From))
-			{
-				var view = tokens[DbExpressionType.From].First();
-				sb.From(view);
-			}
-			else
-			{
-				var view = entityType.TableName;
-				sb.From(view);
-			}
-			if (tokens.ContainsKey(DbExpressionType.Select))
-			{
-				var columns = tokens[DbExpressionType.Select].First();
-				return sb.Select(columns);
-			}
-			else
-			{
-				var columns = entityType.Properties.Select(s =>
-				{
-					if (s.ColumnName == s.Member.Name)
-					{
-						return s.Member.Name;
-					}
-					return $"{s.ColumnName} AS {s.Member.Name}";
-				});
-				return sb.Select(columns);
-			}
+			var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
+			var entityType = Model.GetEntityType(_type);
+			var sb = new MySqlBuilder(entityType,tokens);
+			return sb.Select();
 		}
 
 		private string BuildCount()
 		{
-			var tokens = new DbExpressionBuilder(_context.Model, _parameters, _expressions)
-				.Build();
-			var sb = new SqlBuilder();
-			var entityType = _context.Model.GetEntityType(_type);
-			if (tokens.ContainsKey(DbExpressionType.Where))
-			{
-				var wheres = tokens[DbExpressionType.Where];
-				foreach (var item in wheres)
-				{
-					sb.Where(item);
-				}
-			}
-			if (tokens.ContainsKey(DbExpressionType.GroupBy))
-			{
-				var groups = tokens[DbExpressionType.GroupBy];
-				foreach (var item in groups)
-				{
-					sb.GroupBy(item);
-				}
-			}
-			if (tokens.ContainsKey(DbExpressionType.From))
-			{
-				var view = tokens[DbExpressionType.From].First();
-				sb.From(view);
-			}
-			else
-			{
-				var view = entityType.TableName;
-				sb.From(view);
-			}
-			if (tokens.ContainsKey(DbExpressionType.Select))
-			{
-				var columns = tokens[DbExpressionType.Select].First();
-				return sb.Count(columns);
-			}
-			else
-			{
-				return sb.Count();
-			}
-		}
+            var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
+            var entityType = Model.GetEntityType(_type);
+            var sb = new MySqlBuilder(entityType, tokens);
+            return sb.Count();
+        }
 
-		private string BuildSum()
-		{
-			var tokens = new DbExpressionBuilder(_context.Model, _parameters, _expressions)
-				.Build();
-			var sb = new SqlBuilder();
-			var entityType = _context.Model.GetEntityType(_type);
-			if (tokens.ContainsKey(DbExpressionType.Where))
-			{
-				var wheres = tokens[DbExpressionType.Where];
-				foreach (var item in wheres)
-				{
-					sb.Where(item);
-				}
-			}
-			if (tokens.ContainsKey(DbExpressionType.GroupBy))
-			{
-				var groups = tokens[DbExpressionType.GroupBy];
-				foreach (var item in groups)
-				{
-					sb.GroupBy(item);
-				}
-			}
-			if (tokens.ContainsKey(DbExpressionType.From))
-			{
-				var view = tokens[DbExpressionType.From].First();
-				sb.From(view);
-			}
-			else
-			{
-				var view = entityType.TableName;
-				sb.From(view);
-			}
-			if (tokens.ContainsKey(DbExpressionType.Select))
-			{
-				var columns = tokens[DbExpressionType.Select].First();
-				return sb.Sum(columns);
-			}
-			else
-			{
-				throw new InvalidOperationException();
-			}
-		}
+        private string BuildSum()
+        {
+            var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
+            var entityType = Model.GetEntityType(_type);
+            var sb = new MySqlBuilder(entityType, tokens);
+            return sb.Sum();
+        }
 
-		private string BuildAvg()
-		{
-			var tokens = new DbExpressionBuilder(_context.Model, _parameters, _expressions)
-				.Build();
-			var sb = new SqlBuilder();
-			var entityType = _context.Model.GetEntityType(_type);
-			if (tokens.ContainsKey(DbExpressionType.Where))
-			{
-				var wheres = tokens[DbExpressionType.Where];
-				foreach (var item in wheres)
-				{
-					sb.Where(item);
-				}
-			}
-			if (tokens.ContainsKey(DbExpressionType.GroupBy))
-			{
-				var groups = tokens[DbExpressionType.GroupBy];
-				foreach (var item in groups)
-				{
-					sb.GroupBy(item);
-				}
-			}
-			if (tokens.ContainsKey(DbExpressionType.From))
-			{
-				var view = tokens[DbExpressionType.From].First();
-				sb.From(view);
-			}
-			else
-			{
-				var view = entityType.TableName;
-				sb.From(view);
-			}
-			if (tokens.ContainsKey(DbExpressionType.Select))
-			{
-				var columns = tokens[DbExpressionType.Select].First();
-				return sb.Avg(columns);
-			}
-			else
-			{
-				throw new InvalidOperationException();
-			}
-		}
+        private string BuildMax()
+        {
+            var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
+            var entityType = Model.GetEntityType(_type);
+            var sb = new MySqlBuilder(entityType, tokens);
+            return sb.Max();
+        }
 
-		public List<T> ToList<T>()
+        private string BuildMin()
+        {
+            var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
+            var entityType = Model.GetEntityType(_type);
+            var sb = new MySqlBuilder(entityType, tokens);
+            return sb.Max();
+        }
+
+        private string BuildAvg()
+        {
+            var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
+            var entityType = Model.GetEntityType(_type);
+            var sb = new MySqlBuilder(entityType, tokens);
+            return sb.Max();
+        }
+
+        public List<T> ToList<T>()
 		{
 			var sql = BuildSelect();
 			return _context.Query<T>(sql, _parameters).ToList();

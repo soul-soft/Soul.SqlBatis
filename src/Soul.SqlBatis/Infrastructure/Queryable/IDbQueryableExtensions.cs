@@ -70,18 +70,5 @@ namespace Soul.SqlBatis
 			return await query.SumAsync<TProperty>();
 		}
 
-		public static TProperty Avg<T, TProperty>(this IDbQueryable<T> queryable, Expression<Func<T, TProperty>> expression)
-		{
-			queryable.Select(expression);
-			var query = queryable.AsQueryable();
-			return query.Avg<TProperty>();
-		}
-
-		public static async Task<TProperty> AvgAsync<T, TProperty>(this IDbQueryable<T> queryable, Expression<Func<T, TProperty>> expression)
-		{
-			queryable.Select(expression);
-			var query = queryable.AsQueryable();
-			return await query.AvgAsync<TProperty>();
-		}
 	}
 }
