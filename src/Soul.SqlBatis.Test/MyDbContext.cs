@@ -1,8 +1,6 @@
-﻿using Soul.SqlBatis.Infrastructure;
-
-namespace Soul.SqlBatis.Test
+﻿namespace Soul.SqlBatis.Test
 {
-	public class MyDbContext : DbContext
+    public class MyDbContext : DbContext
 	{
 		public MyDbContext(DbContextOptions options)
 			: base(options)
