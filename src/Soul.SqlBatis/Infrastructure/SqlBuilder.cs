@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -8,6 +7,16 @@ namespace Soul.SqlBatis
 	public class SqlBuilder
 	{
 		private List<Token> _tokens = new List<Token>();
+
+		
+		public SqlBuilder Set(string sql, bool flag = true)
+		{
+			if (flag)
+			{
+				_tokens.Add(new Token(TokenType.Set, sql));
+			}
+			return this;
+		}
 
 		public SqlBuilder Where(string sql, bool flag = true)
 		{
@@ -65,11 +74,6 @@ namespace Soul.SqlBatis
 			return Limit((row - 1) * size, size);
 		}
 
-		public string Select(string columns = "*")
-		{
-			var tokens = _tokens;
-			return string.Join(" ", $"SELECT {columns} FROM {View}", Build(tokens));
-		}
 
 		public string Build(string format)
 		{
@@ -95,14 +99,6 @@ namespace Soul.SqlBatis
 				sb._tokens.Add(item);
 			}
 			return sb;
-		}
-
-		private string View
-		{
-			get
-			{
-				return _tokens.Where(a => a.Type == TokenType.From).Select(s => s.Text).FirstOrDefault() ?? string.Empty;
-			}
 		}
 
 		private static Dictionary<TokenType, string> GetGroupTokens(IEnumerable<Token> tokens)
@@ -149,10 +145,6 @@ namespace Soul.SqlBatis
 				.ToDictionary(s => s.Key, s => s.Value);
 		}
 
-		private static string Build(IEnumerable<Token> tokens)
-		{
-			return string.Join(" ", GetGroupTokens(tokens).Select(s => s.Value));
-		}
 
 		private static TokenType? GetTokenType(string token)
 		{
