@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,8 +7,7 @@ namespace Soul.SqlBatis.Infrastructure
 {
 	public interface IAttributeCollection : IEnumerable<object>
 	{
-		T Get<T>();
-		void Set(object value);
+		T Get<T>();		
 	}
 
 	public class AttributeCollection : IAttributeCollection
@@ -30,6 +30,15 @@ namespace Soul.SqlBatis.Infrastructure
 		public IEnumerator<object> GetEnumerator()
 		{
 			return _attributes.GetEnumerator();
+		}
+
+		public void Remove(Type type)
+		{
+			var atrtribute = _attributes.Where(a => a.GetType() == type).FirstOrDefault();
+			if (atrtribute != null)
+			{
+				_attributes.Remove(atrtribute);
+			}
 		}
 
 		public void Set(object value)

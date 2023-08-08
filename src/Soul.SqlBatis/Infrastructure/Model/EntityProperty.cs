@@ -9,7 +9,11 @@ namespace Soul.SqlBatis.Infrastructure
     {
         public MemberInfo Member { get; }
 
-        public bool IsKey
+        private AttributeCollection _attributes;
+
+        public IAttributeCollection Attributes => _attributes;
+
+		public bool IsKey
         {
             get
             {
@@ -17,7 +21,15 @@ namespace Soul.SqlBatis.Infrastructure
             }
         }
 
-        public bool IsNotMapped
+		public bool IsIdentity
+		{
+			get
+			{
+				return Attributes.Any(a => a is IdentityAttribute);
+			}
+		}
+
+		public bool IsNotMapped
         {
             get
             {
@@ -25,7 +37,7 @@ namespace Soul.SqlBatis.Infrastructure
             }
         }
 
-        public IAttributeCollection Attributes { get; }
+        
 
         public string ColumnName
         {
@@ -43,16 +55,22 @@ namespace Soul.SqlBatis.Infrastructure
         public EntityProperty(MemberInfo member)
         {
             Member = member;
-            Attributes = new AttributeCollection(member.GetCustomAttributes());
+            _attributes = new AttributeCollection(member.GetCustomAttributes());
             if (string.Equals(Member.Name, "Id", System.StringComparison.OrdinalIgnoreCase))
             {
                 HasAnnotation(new KeyAttribute());
+                HasAnnotation(new IdentityAttribute());
             }
         }
 
-        public void HasAnnotation(object value)
+		internal void HasAnnotation(object value)
         {
-            Attributes.Set(value);
+			_attributes.Set(value);
+        }
+
+        internal void RemoveAnnotation<T>()
+        {
+            _attributes.Remove(typeof(T));
         }
     }
 }

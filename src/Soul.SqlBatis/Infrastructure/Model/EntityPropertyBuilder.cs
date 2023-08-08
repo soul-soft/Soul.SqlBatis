@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Soul.SqlBatis.Infrastructure
 {
@@ -19,6 +20,11 @@ namespace Soul.SqlBatis.Infrastructure
 		public void HasAnnotation(object annotation)
 		{
 			_property.HasAnnotation(annotation);
+		}
+
+		public void ValueGeneratedNever()
+		{
+			_property.RemoveAnnotation<IdentityAttribute>();
 		}
 	}
 

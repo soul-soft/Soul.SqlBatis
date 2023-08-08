@@ -2,7 +2,7 @@
 
 namespace Soul.SqlBatis.Test
 {
-    public class MyDbContext : DbContext
+	public class MyDbContext : DbContext
 	{
 		public MyDbContext(DbContextOptions options)
 			: base(options)
@@ -12,9 +12,9 @@ namespace Soul.SqlBatis.Test
 
 		public DbSet<Student> Students => Set<Student>();
 
-        protected override void OnModelCreating(ModelBuilder builder)
-        {
-            base.OnModelCreating(builder);
-        }
-    }
+		protected override void OnModelCreating(ModelBuilder builder)
+		{
+		
+		}
+	}
 }

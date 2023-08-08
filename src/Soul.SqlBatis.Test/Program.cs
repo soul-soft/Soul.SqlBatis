@@ -12,18 +12,11 @@ var context = new MyDbContext(new DbContextOptions
     ConnecionProvider = () => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test")
 });
 
-
-var sql = @"
-SELECT 
-    FirstName,
-    Count(*) Count
-FROM
-    students
-GROUP BY
-    FirstName
-";
-var list = context.FromSql<StudentGroup>(sql)
-    .Where(a => a.Count > 1)
-    .ToList();
+var student = new Student()
+{
+    CreationTime = DateTime.Now,
+    FirstName = "af"
+};
+context.Add(student);
 await context.SaveChangesAsync();
 Console.WriteLine();

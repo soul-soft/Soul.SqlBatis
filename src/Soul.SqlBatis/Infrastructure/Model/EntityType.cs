@@ -10,9 +10,12 @@ namespace Soul.SqlBatis.Infrastructure
     {
         public Type Type { get; }
 
-        public IAttributeCollection Attributes { get; }
+        private AttributeCollection _attributes;
 
-        public IReadOnlyCollection<EntityProperty> Properties { get; }
+        public IAttributeCollection Attributes => _attributes;
+
+
+		public IReadOnlyCollection<EntityProperty> Properties { get; }
 
         public string Schema
         {
@@ -40,7 +43,7 @@ namespace Soul.SqlBatis.Infrastructure
         public EntityType(Type type)
         {
             Type = type;
-            Attributes = new AttributeCollection(type.GetCustomAttributes());
+            _attributes = new AttributeCollection(type.GetCustomAttributes());
             Properties = type.GetProperties()
                 .Select(s => new EntityProperty(s))
                 .ToList();
@@ -53,7 +56,7 @@ namespace Soul.SqlBatis.Infrastructure
 
         public void HasAnnotation(object annotation)
         {
-            Attributes.Set(annotation);
+			_attributes.Set(annotation);
         }
     }
 }
