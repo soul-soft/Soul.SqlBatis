@@ -8,7 +8,6 @@ namespace Soul.SqlBatis
 {
     public static class IDbQueryableExtensions
     {
-       
         public static T First<T>(this IDbQueryable<T> queryable)
            where T : class
         {
