@@ -4,8 +4,8 @@
     {
         Select,
         From,
-        Where,
         Join,
+        Where,
         GroupBy,
         Having,
         OrderBy,
