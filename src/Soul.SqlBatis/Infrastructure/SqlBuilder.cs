@@ -9,37 +9,68 @@ namespace Soul.SqlBatis
 	{
 		private List<Token> _tokens = new List<Token>();
 
-		public SqlBuilder()
+		public SqlBuilder Where(string sql, bool flag = true)
 		{
-
+			if (flag)
+			{
+				_tokens.Add(new Token(TokenType.Where, sql));
+			}
+			return this;
 		}
 
-		internal SqlBuilder(List<Token> tokens)
+		public SqlBuilder Join(string sql, bool flag = true)
 		{
-			_tokens = tokens;
+			if (flag)
+			{
+				_tokens.Add(new Token(TokenType.Join, sql));
+			}
+			return this;
 		}
 
-		public string Update()
+		public SqlBuilder Having(string sql, bool flag = true)
 		{
-			var tokens = _tokens
-			   .Where(a => a.Type != TokenType.OrderBy)
-			   .Where(a => a.Type != TokenType.Having)
-			   .Where(a => a.Type != TokenType.GroupBy)
-			   .Where(a => a.Type != TokenType.Limit);
-			return string.Join(" ", $"UPDATE {View}", Build(tokens));
+			if (flag)
+			{
+				_tokens.Add(new Token(TokenType.Having, sql));
+			}
+			return this;
 		}
 
-		public string Delete()
+		public SqlBuilder OrderBy(string sql, bool flag = true)
 		{
-			var tokens = _tokens
-			   .Where(a => a.Type != TokenType.Set)
-			   .Where(a => a.Type != TokenType.OrderBy)
-			   .Where(a => a.Type != TokenType.Having)
-			   .Where(a => a.Type != TokenType.GroupBy)
-			   .Where(a => a.Type != TokenType.Limit);
-			return string.Join(" ", $"DELETE FROM {View}", Build(tokens));
+			if (flag)
+			{
+				_tokens.Add(new Token(TokenType.OrderBy, sql));
+			}
+			return this;
 		}
-		
+
+		public SqlBuilder GroupBy(string sql, bool flag = true)
+		{
+			if (flag)
+			{
+				_tokens.Add(new Token(TokenType.GroupBy, sql));
+			}
+			return this;
+		}
+
+		public SqlBuilder Limit(int row, int size)
+		{
+			_tokens.Add(new Token(TokenType.Limit, $"{row}, {size}"));
+			return this;
+		}
+
+		public SqlBuilder Page(int row, int size)
+		{
+			return Limit((row - 1) * size, size);
+		}
+
+		public string Select(string columns = "*")
+		{
+			var tokens = _tokens;
+			return string.Join(" ", $"SELECT {columns} FROM {View}", Build(tokens));
+		}
+
 		public string Build(string format)
 		{
 			var tokens = GetGroupTokens(_tokens);
@@ -145,7 +176,7 @@ namespace Soul.SqlBatis
 			return null;
 		}
 
-		internal class Token
+		class Token
 		{
 			public TokenType Type { get; }
 
@@ -158,7 +189,7 @@ namespace Soul.SqlBatis
 			}
 		}
 
-		internal enum TokenType
+		enum TokenType
 		{
 			From,
 			Set,
