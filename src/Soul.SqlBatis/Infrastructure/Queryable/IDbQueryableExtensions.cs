@@ -8,8 +8,49 @@ namespace Soul.SqlBatis
 {
     public static class IDbQueryableExtensions
     {
+       
+        public static T First<T>(this IDbQueryable<T> queryable)
+           where T : class
+        {
+            queryable.Take(1);
+            var query = queryable.AsQueryable();
+            var context = query.DbContext;
+            var (sql, param) = query.BuildSelect();
+            var result = context.Query<T>(sql, param);
+            return result.First();
+        }
+
+        public static async Task<T> FirstAsync<T>(this IDbQueryable<T> queryable)
+        {
+            queryable.Take(1);
+            var query = queryable.AsQueryable();
+            var context = query.DbContext;
+            var (sql, param) = query.BuildSelect();
+            var result = await context.QueryAsync<T>(sql, param);
+            return result.First();
+        }
+
+        public static T FirstOrDefault<T>(this IDbQueryable<T> queryable)
+        {
+            queryable.Take(1);
+            var query = queryable.AsQueryable();
+            var context = query.DbContext;
+            var (sql, param) = query.BuildSelect();
+            var result = context.Query<T>(sql, param);
+            return result.FirstOrDefault();
+        }
+
+        public static async Task<T> FirstOrDefaultAsync<T>(this IDbQueryable<T> queryable)
+        {
+            queryable.Take(1);
+            var query = queryable.AsQueryable();
+            var context = query.DbContext;
+            var (sql, param) = query.BuildSelect();
+            var result = await context.QueryAsync<T>(sql, param);
+            return result.FirstOrDefault();
+        }
+      
         public static List<T> ToList<T>(this IDbQueryable<T> queryable)
-            where T : class
         {
             var query = queryable.AsQueryable();
             var context = query.DbContext;
