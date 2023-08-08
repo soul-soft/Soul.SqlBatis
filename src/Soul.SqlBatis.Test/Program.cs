@@ -18,9 +18,7 @@ var student = new Student()
     Name = "Test",
     CreationTime = DateTime.Now,
 };
-//context.Add(student);
-context.OpenDbConnection();
-var query = context.Students.GroupBy(x => x.FirstName).Clone();
-var list = context.Students.First();
+context.Add(student);
+var list = context.Students.Take(10).Skip(10).First();
 await context.SaveChangesAsync();
 Console.WriteLine();
