@@ -22,6 +22,8 @@ FROM
 GROUP BY
     FirstName
 ";
-var list = context.FromSql<StudentGroup>(sql).ToList();
+var list = context.FromSql<StudentGroup>(sql)
+    .Where(a => a.Count > 1)
+    .ToList();
 await context.SaveChangesAsync();
 Console.WriteLine();
