@@ -14,10 +14,14 @@ var student = new Student()
 };
 //context.Add(student);
 context.OpenDbConnection();
-var list = context.Students
-    .Where(a => a.Id > 0)
-    .Skip(1)
-    .Skip(2)
-    .ToList();
+var query = context.Students.GroupBy(x => x.FirstName).Clone();
+var list = context.Students.GroupBy(x => x.FirstName)
+    .Select(s => new
+    {
+        s.FirstName,
+        Count = DbFunctions.Count(s.FirstName),
+        Avg = DbFunctions.Avg(s.Id)
+    }).ToList();
+
 await context.SaveChangesAsync();
 Console.WriteLine();

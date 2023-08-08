@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 using Soul.SqlBatis.Infrastructure;
 
 namespace Soul.SqlBatis
@@ -10,6 +9,7 @@ namespace Soul.SqlBatis
     public abstract class DbQueryable
     {
         private readonly Type _type;
+        protected Type Type => _type;
 
         private readonly DbContext _context;
 
@@ -19,16 +19,24 @@ namespace Soul.SqlBatis
 
         private readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
 
-        protected DbContext DbContext => _context;
+        public DbContext DbContext => _context;
 
         protected IReadOnlyCollection<DbExpression> Expressions => _expressions;
 
         protected IReadOnlyDictionary<string, object> Parameters => _parameters;
 
-        public DbQueryable(Type type, DbContext context)
+        public DbQueryable(DbContext context, Type type)
         {
             _type = type;
             _context = context;
+        }
+
+        public DbQueryable(DbContext context, Type type, List<DbExpression> expressions, Dictionary<string, object> parameters)
+        {
+            _type = type;
+            _context = context;
+            _expressions = expressions;
+            _parameters = parameters;
         }
 
         protected void AddParameters(object param)
@@ -60,69 +68,87 @@ namespace Soul.SqlBatis
             _expressions.Add(expression);
         }
 
-        public string BuildSelect()
+        public (string, object) BuildSelect()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
-            var entityType = Model.GetEntityType(_type);
+            var entityType = Model.GetEntityType(Type);
             var sb = new MySqlBuilder(entityType, tokens);
-            return sb.Select();
+            return (sb.Select(), Parameters);
         }
 
-        public string BuildCount()
+        public (string, object) BuildCount()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
-            var entityType = Model.GetEntityType(_type);
+            var entityType = Model.GetEntityType(Type);
             var sb = new MySqlBuilder(entityType, tokens);
-            return sb.Count();
+            return (sb.Count(), Parameters);
         }
 
-        public string BuildSum()
+        public (string, object) BuildSum()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
-            var entityType = Model.GetEntityType(_type);
+            var entityType = Model.GetEntityType(Type);
             var sb = new MySqlBuilder(entityType, tokens);
-            return sb.Sum();
+            return (sb.Sum(), Parameters);
         }
 
-        public string BuildMax()
+        public (string, object) BuildMax()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
-            var entityType = Model.GetEntityType(_type);
+            var entityType = Model.GetEntityType(Type);
             var sb = new MySqlBuilder(entityType, tokens);
-            return sb.Max();
+            return (sb.Max(), Parameters);
         }
 
-        public string BuildMin()
+        public (string, object) BuildMin()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
-            var entityType = Model.GetEntityType(_type);
+            var entityType = Model.GetEntityType(Type);
             var sb = new MySqlBuilder(entityType, tokens);
-            return sb.Max();
+            return (sb.Min(), Parameters);
         }
 
-        public string BuildAvg()
+        public (string, object) BuildAny()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
-            var entityType = Model.GetEntityType(_type);
+            var entityType = Model.GetEntityType(Type);
             var sb = new MySqlBuilder(entityType, tokens);
-            return sb.Max();
+            return (sb.Any(), Parameters);
+        }
+
+        public (string, object) BuildAverage()
+        {
+            var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
+            var entityType = Model.GetEntityType(Type);
+            var sb = new MySqlBuilder(entityType, tokens);
+            return (sb.Average(), Parameters);
         }
     }
 
     public class DbQueryable<T> : DbQueryable, IDbQueryable<T>
     {
-        public DbQueryable(DbContext context)
-            : base(typeof(T), context)
+        public DbQueryable(DbContext context, Type type)
+            : base(context, type)
         {
 
         }
 
-        private DbQueryable(DbContext context, IEnumerable<DbExpression> expressions, object parameters)
-            : base(typeof(T), context)
+        private DbQueryable(DbContext context, Type type, List<DbExpression> expressions, Dictionary<string, object> parameters)
+            : base(context, type, expressions, parameters)
         {
-            foreach (var item in expressions)
-                AddExpression(item);
-            AddParameters(parameters);
+
+        }
+
+        public IDbQueryable<T> Clone()
+        {
+            var query = new DbQueryable<T>(DbContext, Type, Expressions.ToList(), Parameters.ToDictionary(s => s.Key, s => s.Value));
+            return query;
+        }
+
+        public IDbQueryable<TResult> Clone<TResult>()
+        {
+            var query = new DbQueryable<TResult>(DbContext, Type, Expressions.ToList(), Parameters.ToDictionary(s => s.Key, s => s.Value));
+            return query;
         }
 
         public IDbQueryable<T> FromSql(DbSql sql, bool flag = true)
@@ -188,14 +214,14 @@ namespace Soul.SqlBatis
         {
             if (flag)
                 AddExpression(DbExpression.FromDbSql(sql, DbExpressionType.Select));
-            return new DbQueryable<TResult>(DbContext, Expressions, Parameters);
+            return Clone<TResult>();
         }
 
         public IDbQueryable<TResult> Select<TResult>(Expression<Func<T, TResult>> expression, bool flag = true)
         {
             if (flag)
                 AddExpression(DbExpression.FromExpression(expression, DbExpressionType.Select));
-            return new DbQueryable<TResult>(DbContext, Expressions, Parameters);
+            return Clone<TResult>();
         }
 
         public IDbQueryable<T> Skip(int count, bool flag = true)

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Soul.SqlBatis.Infrastructure
@@ -65,7 +66,7 @@ namespace Soul.SqlBatis.Infrastructure
             return string.Join(" ", $"SELECT SUM({columns}) FROM {fromSql}", tokens);
         }
 
-        public string Max()
+        public string Average()
         {
             var tokens = BuildFilterSql();
             var fromSql = GetFromSql();
@@ -90,7 +91,20 @@ namespace Soul.SqlBatis.Infrastructure
             }
             return string.Join(" ", $"SELECT MIN({columns}) FROM {fromSql}", tokens);
         }
-
+      
+        public string Max()
+        {
+            var tokens = BuildFilterSql();
+            var columns = GetColumnSql();
+            var fromSql = GetFromSql();
+            if (_tokens.ContainsKey(DbExpressionType.GroupBy))
+            {
+                var sql = Select();
+                return $"SELECT MAX({columns}) FROM ({sql}) AS t";
+            }
+            return string.Join(" ", $"SELECT MIN({columns}) FROM {fromSql}", tokens);
+        }
+      
         public string Avg()
         {
             var tokens = BuildFilterSql();
@@ -102,6 +116,12 @@ namespace Soul.SqlBatis.Infrastructure
                 return $"SELECT AVG({columns}) FROM ({sql}) AS t";
             }
             return string.Join(" ", $"SELECT AVG({columns}) FROM {fromSql}", tokens);
+        }
+
+        public string Any()
+        {
+            var sql = Select();
+            return $"SELECT EXISTS({sql}) AS Expr";
         }
 
         private string GetFromSql()
@@ -177,5 +197,6 @@ namespace Soul.SqlBatis.Infrastructure
             });
             return string.Join(" ", filters);
         }
+        
     }
 }
