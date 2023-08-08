@@ -18,5 +18,6 @@ var student = new Student()
     FirstName = "af"
 };
 context.Add(student);
-await context.SaveChangesAsync();
+context.SaveChanges();
+context.CurrentDbTransaction.CommitTransaction();
 Console.WriteLine();

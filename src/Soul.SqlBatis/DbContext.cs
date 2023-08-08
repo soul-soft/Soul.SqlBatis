@@ -13,6 +13,7 @@ namespace Soul.SqlBatis
     public abstract class DbContext : IDisposable
 	{
 		private readonly Model _model;
+
 		public Model Model => _model;
 
 		private IDbConnection _connection;
@@ -145,6 +146,7 @@ namespace Soul.SqlBatis
 		{
 			if (_connection.State != ConnectionState.Closed)
 			{
+				CurrentDbTransaction?.Dispose();
 				_connection.Close();
 			}
 		}

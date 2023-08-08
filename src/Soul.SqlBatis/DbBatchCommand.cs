@@ -16,9 +16,14 @@ namespace Soul.SqlBatis.Infrastructure
 
 		public int SaveChanges()
 		{
-			using (var transaction = _context.CurrentDbTransaction ?? _context.BeginTransaction())
+			var row = 0;
+			DbContextTransaction transaction = null;
+			var hasActiveDbTransaction = _context.CurrentDbTransaction != null;
+			try
 			{
-				var row = 0;
+				transaction = hasActiveDbTransaction ?
+					_context.CurrentDbTransaction
+					: _context.BeginTransaction();
 				foreach (var entry in _context.ChangeTracker.Entries())
 				{
 					if (entry.State == EntityState.Added)
@@ -34,19 +39,31 @@ namespace Soul.SqlBatis.Infrastructure
 						row += ExecuteDelete(entry);
 					}
 				}
-				if (_context.CurrentDbTransaction == null)
+				if (!hasActiveDbTransaction)
 				{
 					transaction.CommitTransaction();
 				}
 				return row;
+			}
+			finally
+			{
+				if (!hasActiveDbTransaction)
+				{
+					transaction.Dispose();
+				}
 			}
 		}
 
 		public async Task<int> SaveChangesAsync()
 		{
 			var row = 0;
-			using (var transaction = _context.CurrentDbTransaction ?? await _context.BeginTransactionAsync())
+			DbContextTransaction transaction = null;
+			var hasActiveDbTransaction = _context.CurrentDbTransaction != null;
+			try
 			{
+				transaction = hasActiveDbTransaction ?
+					_context.CurrentDbTransaction
+					: await _context.BeginTransactionAsync();
 				foreach (var entry in _context.ChangeTracker.Entries())
 				{
 					if (entry.State == EntityState.Added)
@@ -62,11 +79,19 @@ namespace Soul.SqlBatis.Infrastructure
 						row += await ExecuteDeleteAsync(entry);
 					}
 				}
-				if (_context.CurrentDbTransaction == null)
+				if (!hasActiveDbTransaction)
 				{
 					await transaction.CommitTransactionAsync();
 				}
 			}
+			finally
+			{
+				if (!hasActiveDbTransaction)
+				{
+					transaction?.Dispose();
+				}
+			}
+
 			return row;
 		}
 
@@ -136,7 +161,7 @@ namespace Soul.SqlBatis.Infrastructure
 			return _context.ExecuteAsync(sql, values);
 		}
 
-		private static void SetIdentityPropertyValue(object obj,PropertyInfo property,object value)
+		private static void SetIdentityPropertyValue(object obj, PropertyInfo property, object value)
 		{
 			var type = Nullable.GetUnderlyingType(property.PropertyType)
 				?? property.PropertyType;
