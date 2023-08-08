@@ -34,7 +34,10 @@ namespace Soul.SqlBatis.Infrastructure
 						row += ExecuteDelete(entry);
 					}
 				}
-				transaction.CommitTransaction();
+				if (_context.CurrentDbTransaction == null)
+				{
+					transaction.CommitTransaction();
+				}
 				return row;
 			}
 		}
@@ -59,7 +62,10 @@ namespace Soul.SqlBatis.Infrastructure
 						row += await ExecuteDeleteAsync(entry);
 					}
 				}
-				await transaction.CommitTransactionAsync();
+				if (_context.CurrentDbTransaction == null)
+				{
+					await transaction.CommitTransactionAsync();
+				}
 			}
 			return row;
 		}
