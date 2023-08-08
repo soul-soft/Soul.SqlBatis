@@ -169,35 +169,37 @@ namespace Soul.SqlBatis.Infrastructure
 
         private string BuildFilterSql()
         {
-            var filters = _tokens.OrderBy(s => s.Key).Select(item =>
-            {
-                var connector = ", ";
-                if (item.Key == DbExpressionType.Where || item.Key == DbExpressionType.Having)
-                    connector = " AND ";
-                var expressions = string.Join(connector, item.Value);
-                var sql = string.Empty;
-                switch (item.Key)
+            var filters = _tokens.Where(a=>a.Key!=DbExpressionType.Take)
+                .Where(a => a.Key != DbExpressionType.Skip)
+                .OrderBy(s => s.Key)
+                .Select(item =>
                 {
-                    case DbExpressionType.Where:
-                        sql = $"WHERE {expressions}";
-                        break;
-                    case DbExpressionType.Join:
-                        sql = $"{expressions}";
-                        break;
-                    case DbExpressionType.GroupBy:
-                        sql = $"Group By {expressions}";
-                        break;
-                    case DbExpressionType.Having:
-                        sql = $"HAVING {expressions}";
-                        break;
-                    case DbExpressionType.OrderBy:
-                        sql = $"ORDER BY {expressions}";
-                        break;
-                }
-                return sql;
-            });
+                    var connector = ", ";
+                    if (item.Key == DbExpressionType.Where || item.Key == DbExpressionType.Having)
+                        connector = " AND ";
+                    var expressions = string.Join(connector, item.Value);
+                    var sql = string.Empty;
+                    switch (item.Key)
+                    {
+                        case DbExpressionType.Where:
+                            sql = $"WHERE {expressions}";
+                            break;
+                        case DbExpressionType.Join:
+                            sql = $"{expressions}";
+                            break;
+                        case DbExpressionType.GroupBy:
+                            sql = $"Group By {expressions}";
+                            break;
+                        case DbExpressionType.Having:
+                            sql = $"HAVING {expressions}";
+                            break;
+                        case DbExpressionType.OrderBy:
+                            sql = $"ORDER BY {expressions}";
+                            break;
+                    }
+                    return sql;
+                });
             return string.Join(" ", filters);
         }
-
     }
 }

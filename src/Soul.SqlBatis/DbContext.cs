@@ -40,7 +40,13 @@ namespace Soul.SqlBatis
 			return new DbSet<T>(this);
 		}
 
-		public EntityEntry<T> Entry<T>(T entity)
+        public IDbQueryable<T> FromSql<T>(string fromSql)
+            where T : class
+        {
+            return new DbSet<T>(this).FromSql(fromSql);
+        }
+
+        public EntityEntry<T> Entry<T>(T entity)
 			where T : class
 		{
 			return _changeTracker.TrackGraph(entity);
