@@ -17,6 +17,7 @@ context.OpenDbConnection();
 var list = context.Students
     .Where(a => a.Id > 0)
     .Skip(1)
+    .Skip(2)
     .ToList();
 await context.SaveChangesAsync();
 Console.WriteLine();

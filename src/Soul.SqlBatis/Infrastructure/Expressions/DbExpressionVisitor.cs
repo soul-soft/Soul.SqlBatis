@@ -430,9 +430,9 @@ namespace Soul.SqlBatis.Infrastructure
         }
         public virtual string Build(Expression expression)
         {
-            if (expression is ConstantExpression constantExpression && constantExpression.Value is DbSql syntax)
+            if (expression is ConstantExpression constantExpression && constantExpression.Value is DbSql sql)
             {
-                _buffer.Append(syntax.Raw);
+                _buffer.Append(sql.Raw);
             }
             else
             {

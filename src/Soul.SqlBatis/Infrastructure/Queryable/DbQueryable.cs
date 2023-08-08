@@ -60,7 +60,7 @@ namespace Soul.SqlBatis
             _expressions.Add(expression);
         }
 
-        private string BuildSelect()
+        public string BuildSelect()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
             var entityType = Model.GetEntityType(_type);
@@ -68,7 +68,7 @@ namespace Soul.SqlBatis
             return sb.Select();
         }
 
-        private string BuildCount()
+        public string BuildCount()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
             var entityType = Model.GetEntityType(_type);
@@ -76,7 +76,7 @@ namespace Soul.SqlBatis
             return sb.Count();
         }
 
-        private string BuildSum()
+        public string BuildSum()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
             var entityType = Model.GetEntityType(_type);
@@ -84,7 +84,7 @@ namespace Soul.SqlBatis
             return sb.Sum();
         }
 
-        private string BuildMax()
+        public string BuildMax()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
             var entityType = Model.GetEntityType(_type);
@@ -92,7 +92,7 @@ namespace Soul.SqlBatis
             return sb.Max();
         }
 
-        private string BuildMin()
+        public string BuildMin()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
             var entityType = Model.GetEntityType(_type);
@@ -100,49 +100,12 @@ namespace Soul.SqlBatis
             return sb.Max();
         }
 
-        private string BuildAvg()
+        public string BuildAvg()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
             var entityType = Model.GetEntityType(_type);
             var sb = new MySqlBuilder(entityType, tokens);
             return sb.Max();
-        }
-
-        public List<T> ToList<T>()
-        {
-            var sql = BuildSelect();
-            return _context.Query<T>(sql, _parameters).ToList();
-        }
-
-        public async Task<List<T>> ToListAsync<T>()
-        {
-            var sql = BuildSelect();
-            var list = await _context.QueryAsync<T>(sql, _parameters);
-            return list.ToList();
-        }
-
-        public int Count()
-        {
-            var sql = BuildCount();
-            return _context.ExecuteScalar<int>(sql, _parameters);
-        }
-
-        public Task<int> CountAsync()
-        {
-            var sql = BuildCount();
-            return _context.ExecuteScalarAsync<int>(sql, _parameters);
-        }
-
-        public TProperty Sum<TProperty>()
-        {
-            var sql = BuildSum();
-            return _context.ExecuteScalar<TProperty>(sql, _parameters);
-        }
-
-        public Task<TProperty> SumAsync<TProperty>()
-        {
-            var sql = BuildSum();
-            return _context.ExecuteScalarAsync<TProperty>(sql, _parameters);
         }
     }
 

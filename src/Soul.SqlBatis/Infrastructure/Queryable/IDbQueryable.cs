@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace Soul.SqlBatis
 {
-	public interface IDbQueryable<T>
+    public interface IDbQueryable<T>
 	{
 		IDbQueryable<T> FromSql(DbSql sql, bool flag = true);
 		IDbQueryable<TResult> Select<TResult>(DbSql sql, bool flag = true);

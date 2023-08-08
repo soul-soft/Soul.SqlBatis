@@ -16,8 +16,8 @@ namespace Soul.SqlBatis.Infrastructure
 
         public string Select()
         {
-            var tokens = BuildFilter();
-            var columns = GetColumns();
+            var tokens = BuildFilterSql();
+            var columns = GetColumnSql();
             if (columns == "*")
             {
                 columns = string.Join(", ", _entityType.Properties.Select(s =>
@@ -30,14 +30,19 @@ namespace Soul.SqlBatis.Infrastructure
                 }));
             }
             var view = GetFromSql();
-            return string.Join(" ", $"SELECT {columns} FROM {view}", tokens);
-        
+            var limit = GetLimitSql();
+            var sql = string.Join(" ", $"SELECT {columns} FROM {view}", tokens);
+            if (string.IsNullOrEmpty(limit))
+            {
+                return sql;
+            }
+            return string.Join(" ", sql, limit);
         }
 
         public string Count()
         {
-            var tokens = BuildFilter();
-            var columns = GetColumns();
+            var tokens = BuildFilterSql();
+            var columns = GetColumnSql();
             var fromSql = GetFromSql();
             if (_tokens.ContainsKey(DbExpressionType.GroupBy))
             {
@@ -49,9 +54,9 @@ namespace Soul.SqlBatis.Infrastructure
 
         public string Sum()
         {
-            var tokens = BuildFilter();
+            var tokens = BuildFilterSql();
             var fromSql = GetFromSql();
-            var columns = GetColumns();
+            var columns = GetColumnSql();
             if (_tokens.ContainsKey(DbExpressionType.GroupBy))
             {
                 var sql = Select();
@@ -62,9 +67,9 @@ namespace Soul.SqlBatis.Infrastructure
 
         public string Max()
         {
-            var tokens = BuildFilter();
+            var tokens = BuildFilterSql();
             var fromSql = GetFromSql();
-            var columns = GetColumns();
+            var columns = GetColumnSql();
             if (_tokens.ContainsKey(DbExpressionType.GroupBy))
             {
                 var sql = Select();
@@ -75,8 +80,8 @@ namespace Soul.SqlBatis.Infrastructure
 
         public string Min()
         {
-            var tokens = BuildFilter();
-            var columns = GetColumns();
+            var tokens = BuildFilterSql();
+            var columns = GetColumnSql();
             var fromSql = GetFromSql();
             if (_tokens.ContainsKey(DbExpressionType.GroupBy))
             {
@@ -88,8 +93,8 @@ namespace Soul.SqlBatis.Infrastructure
 
         public string Avg()
         {
-            var tokens = BuildFilter();
-            var columns = GetColumns();
+            var tokens = BuildFilterSql();
+            var columns = GetColumnSql();
             var fromSql = GetFromSql();
             if (_tokens.ContainsKey(DbExpressionType.GroupBy))
             {
@@ -108,7 +113,7 @@ namespace Soul.SqlBatis.Infrastructure
             return _entityType.TableName;
         }
 
-        private string GetColumns()
+        private string GetColumnSql()
         {
             if (_tokens.ContainsKey(DbExpressionType.Select))
             {
@@ -118,7 +123,30 @@ namespace Soul.SqlBatis.Infrastructure
             return "*";
         }
 
-        private string BuildFilter()
+        private string GetLimitSql()
+        {
+            if (_tokens.Any(a => a.Key == DbExpressionType.Skip) && _tokens.Any(a => a.Key == DbExpressionType.Take))
+            {
+                var offset = _tokens[DbExpressionType.Skip].Last();
+                var take = _tokens[DbExpressionType.Take].Last();
+                return $"LIMIT {offset}, {take}";
+            }
+            else if (!_tokens.Any(a => a.Key == DbExpressionType.Skip) && _tokens.Any(a => a.Key == DbExpressionType.Take))
+            {
+                var offset = 0;
+                var take = _tokens[DbExpressionType.Take].Last();
+                return $"LIMIT {offset}, {take}";
+            }
+            else if (_tokens.Any(a => a.Key == DbExpressionType.Skip) && !_tokens.Any(a => a.Key == DbExpressionType.Take))
+            {
+                var offset = _tokens[DbExpressionType.Skip].Last();
+                var take = int.MaxValue;
+                return $"LIMIT {offset}, {take}";
+            }
+            return string.Empty;
+        }
+
+        private string BuildFilterSql()
         {
             var filters = _tokens.OrderBy(s => s.Key).Select(item =>
             {
