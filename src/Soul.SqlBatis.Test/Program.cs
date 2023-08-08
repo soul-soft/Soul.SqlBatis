@@ -19,6 +19,6 @@ var student = new Student()
     CreationTime = DateTime.Now,
 };
 context.Add(student);
-var list = context.Students.Take(10).Skip(10).First();
+var list = context.Students.Take(10).Skip(10).ToList();
 await context.SaveChangesAsync();
 Console.WriteLine();

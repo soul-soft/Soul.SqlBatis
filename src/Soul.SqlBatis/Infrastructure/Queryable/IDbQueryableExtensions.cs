@@ -48,7 +48,7 @@ namespace Soul.SqlBatis
             var result = await context.QueryAsync<T>(sql, param);
             return result.FirstOrDefault();
         }
-      
+
         public static List<T> ToList<T>(this IDbQueryable<T> queryable)
         {
             var query = queryable.AsQueryable();
