@@ -7,6 +7,7 @@ namespace Soul.SqlBatis.Infrastructure
     public class MySqlBuilder
     {
         private readonly EntityType _entityType;
+
         private readonly Dictionary<DbExpressionType, IEnumerable<string>> _tokens = new Dictionary<DbExpressionType, IEnumerable<string>>();
 
         public MySqlBuilder(EntityType entityType, Dictionary<DbExpressionType, IEnumerable<string>> tokens)
@@ -91,7 +92,7 @@ namespace Soul.SqlBatis.Infrastructure
             }
             return string.Join(" ", $"SELECT MIN({columns}) FROM {fromSql}", tokens);
         }
-      
+
         public string Max()
         {
             var tokens = BuildFilterSql();
@@ -104,7 +105,7 @@ namespace Soul.SqlBatis.Infrastructure
             }
             return string.Join(" ", $"SELECT MIN({columns}) FROM {fromSql}", tokens);
         }
-      
+
         public string Avg()
         {
             var tokens = BuildFilterSql();
@@ -171,7 +172,7 @@ namespace Soul.SqlBatis.Infrastructure
             var filters = _tokens.OrderBy(s => s.Key).Select(item =>
             {
                 var connector = ", ";
-                if (item.Key == DbExpressionType.Where || item.Key == DbExpressionType.GroupBy)
+                if (item.Key == DbExpressionType.Where || item.Key == DbExpressionType.Having)
                     connector = " AND ";
                 var expressions = string.Join(connector, item.Value);
                 var sql = string.Empty;
@@ -197,6 +198,6 @@ namespace Soul.SqlBatis.Infrastructure
             });
             return string.Join(" ", filters);
         }
-        
+
     }
 }

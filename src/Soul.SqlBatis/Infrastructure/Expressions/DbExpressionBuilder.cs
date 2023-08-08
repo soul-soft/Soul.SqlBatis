@@ -48,7 +48,7 @@ namespace Soul.SqlBatis.Infrastructure
             }
             if (expression.ExpressionType == DbExpressionType.GroupBy)
             {
-                var visitor = new DbExpressionVisitor(_model, _parameters);
+                var visitor = new GroupByDbExpressionVisitor(_model, _parameters);
                 return visitor.Build(expression.Expression);
             }
             if (expression.ExpressionType == DbExpressionType.Having)
