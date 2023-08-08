@@ -129,7 +129,7 @@ namespace Soul.SqlBatis.Infrastructure
         {
             if (_tokens.ContainsKey(DbExpressionType.From))
             {
-                return _tokens[DbExpressionType.From].First();
+                return $"({_tokens[DbExpressionType.From].First()}) as t";
             }
             return _entityType.TableName;
         }
