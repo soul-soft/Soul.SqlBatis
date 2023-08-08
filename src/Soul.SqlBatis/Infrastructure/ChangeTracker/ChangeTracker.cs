@@ -5,7 +5,7 @@ namespace Soul.SqlBatis.Infrastructure
 {
 	public class ChangeTracker
 	{
-		private Dictionary<object, EntityEntry> _entryReferences = new Dictionary<object, EntityEntry>();
+		private readonly Dictionary<object, EntityEntry> _entryReferences = new Dictionary<object, EntityEntry>();
 
 		public IEnumerable<EntityEntry> Entries()
 		{

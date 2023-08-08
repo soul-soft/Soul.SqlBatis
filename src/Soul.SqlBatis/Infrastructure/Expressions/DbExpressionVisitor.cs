@@ -172,11 +172,9 @@ namespace Soul.SqlBatis.Infrastructure
         protected string GetColumn(MemberInfo member)
         {
             var entity = Model.GetEntityType(member.DeclaringType);
-            var property = entity.GetProperty(member);
-            if (property == null)
-            {
-                throw new ModelException(string.Format("'{0}.{1}' is not mapped", member.DeclaringType.Name, member.Name));
-            }
+            var property = entity.GetProperty(member)
+                ?? throw new ModelException(string.Format("'{0}.{1}' is not mapped", member.DeclaringType.Name, member.Name)); ;
+           
             return property.ColumnName;
         }
         protected virtual void SetParameter(Expression expression)

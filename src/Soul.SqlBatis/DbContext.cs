@@ -9,9 +9,10 @@ using static Dapper.SqlMapper;
 
 namespace Soul.SqlBatis
 {
-	public abstract class DbContext : IDisposable
+    public abstract class DbContext : IDisposable
 	{
-		private Model _model;
+		private readonly Model _model;
+		public Model Model => _model;
 
 		private IDbConnection _connection;
 
@@ -21,9 +22,7 @@ namespace Soul.SqlBatis
 
 		public DbContextTransaction CurrentDbTransaction => _currentDbTransaction;
 
-		public Model Model => _model;
-
-		private ChangeTracker _changeTracker = new ChangeTracker();
+		private readonly ChangeTracker _changeTracker = new ChangeTracker();
 
 		public ChangeTracker ChangeTracker => _changeTracker;
 
