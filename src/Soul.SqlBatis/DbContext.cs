@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Threading.Tasks;
 using Dapper;
+using Microsoft.Extensions.Logging;
 using Soul.SqlBatis.Infrastructure;
 using static Dapper.SqlMapper;
 
@@ -200,32 +201,48 @@ namespace Soul.SqlBatis
 
 		public virtual IEnumerable<T> Query<T>(string sql, object param = null)
 		{
-			return _connection.Query<T>(sql, param, GetDbTransaction(), false);
+            Logging(sql);
+            return _connection.Query<T>(sql, param, GetDbTransaction(), false);
 		}
 
 		public virtual Task<IEnumerable<T>> QueryAsync<T>(string sql, object param = null)
 		{
-			return _connection.QueryAsync<T>(sql, param, GetDbTransaction());
+            Logging(sql);
+            return _connection.QueryAsync<T>(sql, param, GetDbTransaction());
 		}
 
 		public virtual int Execute(string sql, object param = null)
 		{
-			return _connection.Execute(sql, param, GetDbTransaction());
+            Logging(sql);
+            return _connection.Execute(sql, param, GetDbTransaction());
 		}
 
 		public virtual Task<int> ExecuteAsync(string sql, object param = null)
 		{
-			return _connection.ExecuteAsync(sql, param, GetDbTransaction());
+            Logging(sql);
+            return _connection.ExecuteAsync(sql, param, GetDbTransaction());
 		}
 
 		public virtual T ExecuteScalar<T>(string sql, object param = null)
 		{
-			return _connection.ExecuteScalar<T>(sql, param, GetDbTransaction());
+            Logging(sql);
+            return _connection.ExecuteScalar<T>(sql, param, GetDbTransaction());
 		}
 
 		public virtual Task<T> ExecuteScalarAsync<T>(string sql, object param = null)
 		{
-			return _connection.ExecuteScalarAsync<T>(sql, param, GetDbTransaction());
+			Logging(sql);
+            return _connection.ExecuteScalarAsync<T>(sql, param, GetDbTransaction());
+		}
+
+		protected virtual void Logging(string sql)
+		{
+			if (Options.LoggerFactory == null)
+			{
+				return;
+			}
+			var logger = Options.LoggerFactory.CreateLogger<DbContext>();
+			logger.LogInformation(sql);
 		}
 
 		public void Dispose()
