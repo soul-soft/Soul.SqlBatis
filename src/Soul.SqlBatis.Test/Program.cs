@@ -15,14 +15,6 @@ var student = new Student()
 //context.Add(student);
 context.OpenDbConnection();
 var query = context.Students.GroupBy(x => x.FirstName).Clone();
-var list = context.Students.GroupBy(x => new { x.FirstName ,x.Id})
-    .Select(s => new
-    {
-        s.Id,
-        s.FirstName,
-        Count = DbFunctions.Count(s.FirstName),
-        Avg = DbFunctions.Avg(s.Id)
-    }).ToList();
-
+var list = context.Students.First();
 await context.SaveChangesAsync();
 Console.WriteLine();

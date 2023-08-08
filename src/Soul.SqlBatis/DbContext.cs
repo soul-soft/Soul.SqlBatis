@@ -230,11 +230,23 @@ namespace Soul.SqlBatis
 
 		public void Dispose()
 		{
-			_currentDbTransaction?.Dispose();
-			_currentDbTransaction = null;
-			_connection?.Close();
-			_connection?.Dispose();
-			_connection = null;
+			try
+			{
+                _currentDbTransaction?.Dispose();
+            }
+			finally 
+			{ 
+				_currentDbTransaction = null;
+				try
+				{
+                    _connection?.Close();
+                    _connection?.Dispose();
+                }
+				finally
+				{
+					_connection = null;
+				}
+			}
 		}
 	}
 }
