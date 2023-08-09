@@ -16,7 +16,7 @@ var student = context.Students
     .Where(a => a.Id == 6)
     .AsTracking()
     .FirstOrDefault();
-student.Name = "zs1ddd";
+student.Name = "zs1ddd11";
 var ent =  context.Entry(student).Entity;
 context.SaveChanges();
 

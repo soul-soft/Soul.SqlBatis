@@ -14,16 +14,18 @@ namespace Soul.SqlBatis
         protected Type Type => _type;
 
         private readonly DbContext _context;
+        
         protected DbContext DbContext => _context;
 
 		protected Model Model => _context.Model;
 
+        protected ChangeTracker ChangeTracker => _context.ChangeTracker;
+
         protected bool IsTracking { get; private set; } = false;
 
-		private readonly List<DbExpression> _expressions = new List<DbExpression>();
+        private readonly List<DbExpression> _expressions = new List<DbExpression>();
 
         private readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
-
 
         protected IReadOnlyCollection<DbExpression> Expressions => _expressions;
 
@@ -141,7 +143,7 @@ namespace Soul.SqlBatis
 				var result = new List<T>();
 				foreach (var item in list)
                 {
-					var entry = _context.ChangeTracker.TrackGraph(item);
+					var entry = ChangeTracker.TrackGraph(item);
 					entry.State = EntityState.Unchanged;
 					result.Add(entry.Entity);
 				}
@@ -157,7 +159,7 @@ namespace Soul.SqlBatis
                 var result = new List<T>();
 				foreach (var item in list)
 				{
-                    var entry = _context.ChangeTracker.TrackGraph(item);
+                    var entry = ChangeTracker.TrackGraph(item);
 					entry.State = EntityState.Unchanged;
                     result.Add(entry.Entity);
 				}
