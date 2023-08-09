@@ -11,13 +11,13 @@ var context = new MyDbContext(new DbContextOptions
     }),
     ConnecionProvider = () => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test")
 });
-context.BeginTransaction();
+
 var student = context.Students
     .Where(a => a.Id == 6)
     .AsTracking()
     .FirstOrDefault();
-student.Name = "zs";
+student.Name = "zs1ddd";
 var ent =  context.Entry(student).Entity;
 context.SaveChanges();
-context.CurrentDbTransaction.CommitTransaction();
+
 Console.WriteLine();
