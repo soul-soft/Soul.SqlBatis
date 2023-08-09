@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Soul.SqlBatis.Infrastructure
@@ -46,6 +47,11 @@ namespace Soul.SqlBatis.Infrastructure
 		{
 			var entry = CreateEntry(entity);
 			return new EntityEntry<T>(entry);
+		}
+
+		internal void Clear()
+		{
+			_entryReferences.Clear();
 		}
 	}
 }

@@ -138,10 +138,13 @@ namespace Soul.SqlBatis
             var list = _context.Query<T>(sql, param).ToList();
             if (IsTracking)
             {
-                foreach (var item in list)
+				var result = new List<T>();
+				foreach (var item in list)
                 {
-                    _context.ChangeTracker.TrackGraph(item).State = EntityState.Unchanged;
-                }
+					var entry = _context.ChangeTracker.TrackGraph(item);
+					entry.State = EntityState.Unchanged;
+					result.Add(entry.Entity);
+				}
 			}
             return list;
         }
@@ -151,10 +154,14 @@ namespace Soul.SqlBatis
 			var list = (await _context.QueryAsync<T>(sql, param)).ToList();
 			if (IsTracking)
 			{
+                var result = new List<T>();
 				foreach (var item in list)
 				{
-					_context.ChangeTracker.TrackGraph(item).State = EntityState.Unchanged;
+                    var entry = _context.ChangeTracker.TrackGraph(item);
+					entry.State = EntityState.Unchanged;
+                    result.Add(entry.Entity);
 				}
+                return result;
 			}
 			return list.ToList();
 		}

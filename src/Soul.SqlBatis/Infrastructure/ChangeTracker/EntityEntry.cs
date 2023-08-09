@@ -52,7 +52,7 @@ namespace Soul.SqlBatis.Infrastructure
 
 		public override IReadOnlyCollection<PropertyEntry> Properties => _entry.Properties;
 
-		public EntityEntry(EntityEntry entry)
+		internal EntityEntry(EntityEntry entry)
 			: base(entry.Entity, entry.Properties)
 		{
 			_entry = entry;

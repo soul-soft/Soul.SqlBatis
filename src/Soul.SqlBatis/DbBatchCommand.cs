@@ -43,7 +43,7 @@ namespace Soul.SqlBatis.Infrastructure
 				{
 					transaction.CommitTransaction();
 				}
-				return row;
+				_context.ChangeTracker.Clear();
 			}
 			finally
 			{
@@ -52,6 +52,7 @@ namespace Soul.SqlBatis.Infrastructure
 					transaction.Dispose();
 				}
 			}
+			return row;
 		}
 
 		public async Task<int> SaveChangesAsync()
@@ -83,6 +84,7 @@ namespace Soul.SqlBatis.Infrastructure
 				{
 					await transaction.CommitTransactionAsync();
 				}
+				_context.ChangeTracker.Clear();
 			}
 			finally
 			{
@@ -91,7 +93,6 @@ namespace Soul.SqlBatis.Infrastructure
 					transaction?.Dispose();
 				}
 			}
-
 			return row;
 		}
 
@@ -129,6 +130,13 @@ namespace Soul.SqlBatis.Infrastructure
 			return 1;
 		}
 
+		private static void SetIdentityPropertyValue(object obj, PropertyInfo property, object identity)
+		{
+			var type = Nullable.GetUnderlyingType(property.PropertyType)
+				?? property.PropertyType;
+			property.SetValue(obj, Convert.ChangeType(identity, type));
+		}
+
 		private int ExecuteUpdate(EntityEntry entry)
 		{
 			var entityType = _context.Model.GetEntityType(entry.Entity.GetType());
@@ -161,13 +169,6 @@ namespace Soul.SqlBatis.Infrastructure
 			var sql = BuildDeleteSql(entityType);
 			var values = entry.Properties.ToDictionary(s => s.Member.Name, s => s.CurrentValue);
 			return _context.ExecuteAsync(sql, values);
-		}
-
-		private static void SetIdentityPropertyValue(object obj, PropertyInfo property, object value)
-		{
-			var type = Nullable.GetUnderlyingType(property.PropertyType)
-				?? property.PropertyType;
-			property.SetValue(obj, Convert.ChangeType(value, type));
 		}
 
 		private static string BuildInsertSql(EntityType entityType)
