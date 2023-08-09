@@ -16,12 +16,7 @@ namespace Soul.SqlBatis.Infrastructure
 			_entityType = entityType;
 		}
 
-		public void Ignore()
-		{
-			HasAnnotation(new NotMappedAttribute());
-		}
-
-		public void Igonre(params string[] propertyNames)
+		public void Igonre(string[] propertyNames)
 		{
 			foreach (var item in propertyNames)
 			{
@@ -29,7 +24,7 @@ namespace Soul.SqlBatis.Infrastructure
 			}
 		}
 
-		public void Igonre(params MemberInfo[] members)
+		public void Igonre(MemberInfo[] members)
 		{
 			foreach (var item in members)
 			{
@@ -47,7 +42,7 @@ namespace Soul.SqlBatis.Infrastructure
 			return new EntityPropertyBuilder(GetProperty(member));
 		}
 
-		public void HasKey(params string[] propertyNames)
+		public void HasKey(string[] propertyNames)
 		{
 			var members = _entityType.Type.GetProperties()
 				.Where(a => propertyNames.Contains(a.Name))
@@ -55,7 +50,7 @@ namespace Soul.SqlBatis.Infrastructure
 			HasKey(members);
 		}
 
-		public void HasKey(params MemberInfo[] members)
+		public void HasKey(MemberInfo[] members)
 		{
 			foreach (var item in members)
 			{

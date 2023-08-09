@@ -1,5 +1,5 @@
-﻿namespace Soul.SqlBatis.Infrastructure
-{
+﻿namespace Soul.SqlBatis
+{ 
     public enum EntityState
     {
         Detached,

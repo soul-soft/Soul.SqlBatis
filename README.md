@@ -1,5 +1,5 @@
 # Soul.SqlBatis
-这是一个sql构建工具
+这款ORM设计思想以查询性能为主，支持动态实体、实体变更跟踪、动态sql查询、Linq查询、sql+Linq混合查询。
 
 ## 基本构建
 

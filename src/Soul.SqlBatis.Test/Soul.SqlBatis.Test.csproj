@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="MyDbContext.cs~RF68bd491c.TMP" />
     <None Remove="Program.cs~RF61c6e702.TMP" />
   </ItemGroup>
 

@@ -18,11 +18,11 @@ namespace Soul.SqlBatis.Infrastructure
 		{
 			var row = 0;
 			DbContextTransaction transaction = null;
-			var hasActiveDbTransaction = _context.CurrentDbTransaction != null;
+			var hasActiveDbTransaction = _context.CurrentTransaction != null;
 			try
 			{
 				transaction = hasActiveDbTransaction ?
-					_context.CurrentDbTransaction
+					_context.CurrentTransaction
 					: _context.BeginTransaction();
 				foreach (var entry in _context.ChangeTracker.Entries())
 				{
@@ -59,11 +59,11 @@ namespace Soul.SqlBatis.Infrastructure
 		{
 			var row = 0;
 			DbContextTransaction transaction = null;
-			var hasActiveDbTransaction = _context.CurrentDbTransaction != null;
+			var hasActiveDbTransaction = _context.CurrentTransaction != null;
 			try
 			{
 				transaction = hasActiveDbTransaction ?
-					_context.CurrentDbTransaction
+					_context.CurrentTransaction
 					: await _context.BeginTransactionAsync();
 				foreach (var entry in _context.ChangeTracker.Entries())
 				{

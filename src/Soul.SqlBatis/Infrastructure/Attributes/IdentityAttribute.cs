@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Soul.SqlBatis.Infrastructure
+namespace Soul.SqlBatis
 {
 	[AttributeUsage(AttributeTargets.Property)]
 	public class IdentityAttribute : Attribute

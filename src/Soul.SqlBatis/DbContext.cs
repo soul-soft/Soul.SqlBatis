@@ -20,9 +20,9 @@ namespace Soul.SqlBatis
 
 		public DbContextOptions Options { get; }
 
-		private DbContextTransaction _currentDbTransaction;
+		private DbContextTransaction _currentTransaction;
 
-		public DbContextTransaction CurrentDbTransaction => _currentDbTransaction;
+		public DbContextTransaction CurrentTransaction => _currentTransaction;
 
 		private readonly ChangeTracker _changeTracker = new ChangeTracker();
 
@@ -156,7 +156,7 @@ namespace Soul.SqlBatis
 
 		public IDbTransaction GetDbTransaction()
 		{
-			return CurrentDbTransaction?.GetDbTransaction();
+			return CurrentTransaction?.GetDbTransaction();
 		}
 
 		public void OpenDbConnection()
@@ -186,7 +186,7 @@ namespace Soul.SqlBatis
 		{
 			if (_connection.State != ConnectionState.Closed)
 			{
-				CurrentDbTransaction?.Dispose();
+				CurrentTransaction?.Dispose();
 				_connection.Close();
 			}
 		}
@@ -206,15 +206,15 @@ namespace Soul.SqlBatis
 				autoCloase = true;
 			}
 			transaction = transaction ?? _connection.BeginTransaction();
-			_currentDbTransaction = new DbContextTransaction(() =>
+			_currentTransaction = new DbContextTransaction(() =>
 			{
-				_currentDbTransaction = null;
+				_currentTransaction = null;
 				if (autoCloase)
 				{
 					ColseDbConnection();
 				}
 			}, transaction);
-			return CurrentDbTransaction;
+			return CurrentTransaction;
 		}
 
 		public async Task<DbContextTransaction> BeginTransactionAsync(IDbTransaction transaction = null)
@@ -226,15 +226,15 @@ namespace Soul.SqlBatis
 				autoCloase = true;
 			}
 			transaction = transaction ?? _connection.BeginTransaction();
-			_currentDbTransaction = new DbContextTransaction(() =>
+			_currentTransaction = new DbContextTransaction(() =>
 			{
-				_currentDbTransaction = null;
+				_currentTransaction = null;
 				if (autoCloase)
 				{
 					ColseDbConnection();
 				}
 			}, transaction);
-			return CurrentDbTransaction;
+			return CurrentTransaction;
 		}
 
 		private Model ModelCreating()
@@ -297,11 +297,11 @@ namespace Soul.SqlBatis
 		{
 			try
 			{
-                _currentDbTransaction?.Dispose();
+                _currentTransaction?.Dispose();
             }
 			finally 
 			{ 
-				_currentDbTransaction = null;
+				_currentTransaction = null;
 				try
 				{
                     _connection?.Close();
