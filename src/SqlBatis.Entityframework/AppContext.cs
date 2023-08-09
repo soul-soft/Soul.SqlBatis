@@ -13,6 +13,8 @@ namespace SqlBatis.Entityframework
 		{
 			base.OnConfiguring(optionsBuilder);
             this.Database.BeginTransaction();
+            this.Add(new Student());
+            //this.Set<Student>().AsNoTracking;
 		}
 	}
 }

@@ -59,8 +59,22 @@ namespace Soul.SqlBatis
 			Entry(entity).State = EntityState.Added;
 		}
 
+		public void Add(object entity)
+		{
+			Entry(entity).State = EntityState.Added;
+		}
+
 		public void AddRange<T>(IEnumerable<T> entities)
 			where T : class
+		{
+			foreach (var entity in entities)
+			{
+				Add(entity);
+			}
+		}
+
+
+		public void AddRange(IEnumerable<object> entities)
 		{
 			foreach (var entity in entities)
 			{
@@ -74,6 +88,11 @@ namespace Soul.SqlBatis
 			Entry(entity).State = EntityState.Modified;
 		}
 
+		public void Update(object entity)
+		{
+			Entry(entity).State = EntityState.Modified;
+		}
+
 		public void UpdateRange<T>(IEnumerable<T> entities)
 			where T : class
 		{
@@ -83,18 +102,39 @@ namespace Soul.SqlBatis
 			}
 		}
 
-		public void Delete<T>(T entity)
+		public void UpdateRange(IEnumerable<object> entities)
+		{
+			foreach (var entity in entities)
+			{
+				Update(entity);
+			}
+		}
+
+		public void Remove<T>(T entity)
 			where T : class
 		{
 			Entry(entity).State = EntityState.Deleted;
 		}
 
-		public void DeleteRange<T>(IEnumerable<T> entities)
+		public void Remove(object entity)
+		{
+			Entry(entity).State = EntityState.Deleted;
+		}
+
+		public void RemoveRange<T>(IEnumerable<T> entities)
 			where T : class
 		{
 			foreach (var entity in entities)
 			{
-				Delete(entity);
+				Remove(entity);
+			}
+		}
+
+		public void RemoveRange(IEnumerable<object> entities)
+		{
+			foreach (var entity in entities)
+			{
+				Remove(entity);
 			}
 		}
 

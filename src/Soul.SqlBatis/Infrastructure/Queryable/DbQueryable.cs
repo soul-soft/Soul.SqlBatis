@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using Soul.SqlBatis.Infrastructure;
 
 namespace Soul.SqlBatis
@@ -9,17 +10,20 @@ namespace Soul.SqlBatis
     public abstract class DbQueryable
     {
         private readonly Type _type;
+
         protected Type Type => _type;
 
         private readonly DbContext _context;
+        protected DbContext DbContext => _context;
 
-        public Model Model => _context.Model;
+		protected Model Model => _context.Model;
 
-        private readonly List<DbExpression> _expressions = new List<DbExpression>();
+        protected bool IsTracking { get; private set; } = false;
+
+		private readonly List<DbExpression> _expressions = new List<DbExpression>();
 
         private readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
 
-        public DbContext DbContext => _context;
 
         protected IReadOnlyCollection<DbExpression> Expressions => _expressions;
 
@@ -68,7 +72,12 @@ namespace Soul.SqlBatis
             _expressions.Add(expression);
         }
 
-        public (string, object) BuildSelect()
+		internal void AsTracking()
+		{
+            IsTracking = true;
+		}
+
+		internal (string, object) BuildSelect()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
             var entityType = Model.GetEntityType(Type);
@@ -76,7 +85,7 @@ namespace Soul.SqlBatis
             return (sb.Select(), Parameters);
         }
 
-        public (string, object) BuildCount()
+		internal (string, object) BuildCount()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
             var entityType = Model.GetEntityType(Type);
@@ -84,7 +93,7 @@ namespace Soul.SqlBatis
             return (sb.Count(), Parameters);
         }
 
-        public (string, object) BuildSum()
+		internal (string, object) BuildSum()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
             var entityType = Model.GetEntityType(Type);
@@ -92,7 +101,7 @@ namespace Soul.SqlBatis
             return (sb.Sum(), Parameters);
         }
 
-        public (string, object) BuildMax()
+		internal (string, object) BuildMax()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
             var entityType = Model.GetEntityType(Type);
@@ -100,7 +109,7 @@ namespace Soul.SqlBatis
             return (sb.Max(), Parameters);
         }
 
-        public (string, object) BuildMin()
+		internal (string, object) BuildMin()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
             var entityType = Model.GetEntityType(Type);
@@ -108,7 +117,7 @@ namespace Soul.SqlBatis
             return (sb.Min(), Parameters);
         }
 
-        public (string, object) BuildAny()
+		internal (string, object) BuildAny()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
             var entityType = Model.GetEntityType(Type);
@@ -116,14 +125,50 @@ namespace Soul.SqlBatis
             return (sb.Any(), Parameters);
         }
 
-        public (string, object) BuildAverage()
+		internal (string, object) BuildAverage()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
             var entityType = Model.GetEntityType(Type);
             var sb = new MySqlBuilder(entityType, tokens);
             return (sb.Average(), Parameters);
         }
-    }
+
+        internal List<T> Query<T>(string sql,object param)
+        { 
+            var list = _context.Query<T>(sql, param);
+            if (IsTracking)
+            {
+                foreach (var item in list)
+                {
+                    _context.ChangeTracker.TrackGraph(item);
+                }
+			}
+            return list.ToList();
+        }
+
+		internal async Task<List<T>> QueryAsync<T>(string sql, object param)
+		{
+			var list = await _context.QueryAsync<T>(sql, param);
+			if (IsTracking)
+			{
+				foreach (var item in list)
+				{
+					_context.ChangeTracker.TrackGraph(item);
+				}
+			}
+			return list.ToList();
+		}
+		
+        internal T ExecuteScalar<T>(string sql, object param)
+		{
+			return _context.ExecuteScalar<T>(sql, param);
+		}
+
+		internal async Task<T> ExecuteScalarAsync<T>(string sql, object param)
+		{
+			return await _context.ExecuteScalarAsync<T>(sql, param);
+		}
+	}
 
     public class DbQueryable<T> : DbQueryable, IDbQueryable<T>
     {
