@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
+﻿using System.Reflection;
 
 namespace Soul.SqlBatis.Infrastructure
 {
@@ -17,6 +14,30 @@ namespace Soul.SqlBatis.Infrastructure
 			Entity = entity;
 			Member = member;
 			OriginalValue = member.GetValue(entity);
+		}
+
+		public bool IsModified
+		{
+			get
+			{
+				if (ReferenceEquals(CurrentValue, OriginalValue))
+				{
+					return false;
+				}
+				if (CurrentValue == null && OriginalValue == null)
+				{
+					return false;
+				}
+				if (CurrentValue != null)
+				{
+					return !CurrentValue.Equals(OriginalValue);
+				}
+				if (OriginalValue != null)
+				{
+					return !OriginalValue.Equals(CurrentValue);
+				}
+				return CurrentValue != OriginalValue;
+			}
 		}
 	}
 

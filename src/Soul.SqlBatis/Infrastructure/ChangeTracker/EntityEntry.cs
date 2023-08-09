@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Soul.SqlBatis.Infrastructure
 {
@@ -6,7 +7,23 @@ namespace Soul.SqlBatis.Infrastructure
 	{
 		public object Entity { get; }
 
-		public virtual EntityState State { get; set; }
+		private EntityState _state;
+
+		public virtual EntityState State
+		{
+			get
+			{
+				if (_state == EntityState.Unchanged && Properties.Any(a => a.IsModified))
+				{
+					return EntityState.Modified;
+				}
+				return _state;
+			}
+			set
+			{
+				_state = value;
+			}
+		}
 
 		public virtual IReadOnlyCollection<PropertyEntry> Properties { get; }
 

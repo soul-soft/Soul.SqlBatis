@@ -132,15 +132,17 @@ namespace Soul.SqlBatis.Infrastructure
 		private int ExecuteUpdate(EntityEntry entry)
 		{
 			var entityType = _context.Model.GetEntityType(entry.Entity.GetType());
-			var sql = BuildUpdateSql(entityType);
-			var values = entry.Properties.ToDictionary(s => s.Member.Name, s => s.CurrentValue);
+			var sql = BuildUpdateSql(entityType, entry);
+			var values = entry.Properties
+				.Where(a => a.IsModified || entityType.Properties.Any(p => p.Member == a.Member && p.IsKey && !p.IsNotMapped))
+				.ToDictionary(s => s.Member.Name, s => s.CurrentValue);
 			return _context.Execute(sql, values);
 		}
 
 		private Task<int> ExecuteUpdateAsync(EntityEntry entry)
 		{
 			var entityType = _context.Model.GetEntityType(entry.Entity.GetType());
-			var sql = BuildUpdateSql(entityType);
+			var sql = BuildUpdateSql(entityType, entry);
 			var values = entry.Properties.ToDictionary(s => s.Member.Name, s => s.CurrentValue);
 			return _context.ExecuteAsync(sql, values);
 		}
@@ -181,10 +183,12 @@ namespace Soul.SqlBatis.Infrastructure
 			return sql;
 		}
 
-		private static string BuildUpdateSql(EntityType entityType)
+		private static string BuildUpdateSql(EntityType entityType, EntityEntry entry)
 		{
-			var properties = entityType.Properties.Where(a => !a.IsNotMapped);
-			var columns = properties.Where(a => !a.IsKey).Select(s => $"{s.ColumnName} = @{s.Member.Name}");
+			var columns = entityType.Properties.Where(a => !a.IsNotMapped)
+				.Where(a => !a.IsKey)
+				.Where(a => entry.Properties.Any(p => p.Member == a.Member && p.IsModified))
+				.Select(s => $"{s.ColumnName} = @{s.Member.Name}");
 			var wheres = BuildWhereSql(entityType);
 			var sql = $"UPDATE {entityType.TableName} SET {string.Join(", ", columns)} WHERE {string.Join(" AND ", wheres)}";
 			return sql;

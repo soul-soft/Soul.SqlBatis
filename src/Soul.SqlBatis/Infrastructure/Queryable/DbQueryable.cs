@@ -135,25 +135,25 @@ namespace Soul.SqlBatis
 
         internal List<T> Query<T>(string sql,object param)
         { 
-            var list = _context.Query<T>(sql, param);
+            var list = _context.Query<T>(sql, param).ToList();
             if (IsTracking)
             {
                 foreach (var item in list)
                 {
-                    _context.ChangeTracker.TrackGraph(item);
+                    _context.ChangeTracker.TrackGraph(item).State = EntityState.Unchanged;
                 }
 			}
-            return list.ToList();
+            return list;
         }
 
 		internal async Task<List<T>> QueryAsync<T>(string sql, object param)
 		{
-			var list = await _context.QueryAsync<T>(sql, param);
+			var list = (await _context.QueryAsync<T>(sql, param)).ToList();
 			if (IsTracking)
 			{
 				foreach (var item in list)
 				{
-					_context.ChangeTracker.TrackGraph(item);
+					_context.ChangeTracker.TrackGraph(item).State = EntityState.Unchanged;
 				}
 			}
 			return list.ToList();
