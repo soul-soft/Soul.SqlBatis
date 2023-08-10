@@ -18,8 +18,6 @@ namespace Soul.SqlBatis
         public void Dispose()
         {
             RollbackTransaction();
-            _reset?.Invoke();
-			_reset = null;
 		}
 
         public void RollbackTransaction()
