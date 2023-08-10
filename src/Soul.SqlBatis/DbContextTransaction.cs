@@ -6,12 +6,12 @@ namespace Soul.SqlBatis
 {
     public class DbContextTransaction : IDisposable
     {
-        private Action _reset;
+        private Action _callback;
         private IDbTransaction _transaction;
 
         internal DbContextTransaction(Action reset, IDbTransaction transaction)
         {
-            _reset = reset;
+            _callback = reset;
             _transaction = transaction;
         }
 
@@ -25,8 +25,8 @@ namespace Soul.SqlBatis
             _transaction?.Rollback();
             _transaction = null;
             _transaction?.Dispose();
-            _reset?.Invoke();
-			_reset = null;
+            _callback?.Invoke();
+			_callback = null;
 
 		}
 
@@ -41,8 +41,8 @@ namespace Soul.SqlBatis
             _transaction?.Commit();
             _transaction?.Dispose();
             _transaction = null;
-            _reset.Invoke();
-			_reset = null;
+            _callback.Invoke();
+			_callback = null;
 		}
 
         public Task CommitTransactionAsync()
