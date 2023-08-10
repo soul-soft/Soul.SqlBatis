@@ -18,6 +18,4 @@ var student = context.Students
 	.ToList();
 
 
-
-
 Console.WriteLine();
