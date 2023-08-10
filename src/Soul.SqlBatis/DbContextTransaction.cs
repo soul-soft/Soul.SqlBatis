@@ -28,6 +28,7 @@ namespace Soul.SqlBatis
         {
             _transaction?.Rollback();
             _transaction = null;
+            _transaction?.Dispose();
             _reset?.Invoke();
 			_reset = null;
 
@@ -42,6 +43,7 @@ namespace Soul.SqlBatis
         public void CommitTransaction()
         {
             _transaction?.Commit();
+            _transaction?.Dispose();
             _transaction = null;
             _reset.Invoke();
 			_reset = null;
