@@ -1,10 +1,20 @@
 ﻿using System;
 using System.Data;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace Soul.SqlBatis
 {
-    public class DbContextTransaction : IDisposable
+    public interface IDbContextTransaction : IDisposable
+    {
+        void CommitTransaction();
+        Task CommitTransactionAsync();
+        void RollbackTransaction();
+        Task RollbackTransactionAsync();
+        IDbTransaction GetDbTransaction();
+    }
+
+    internal class DbContextTransaction : IDbContextTransaction
     {
         private Action _callback;
         private IDbTransaction _transaction;

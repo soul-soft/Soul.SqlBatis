@@ -20,9 +20,9 @@ namespace Soul.SqlBatis
 
 		public DbContextOptions Options { get; }
 
-		private DbContextTransaction _currentTransaction;
+		private IDbContextTransaction _currentTransaction;
 
-		public DbContextTransaction CurrentTransaction => _currentTransaction;
+		public IDbContextTransaction CurrentTransaction => _currentTransaction;
 
 		private readonly ChangeTracker _changeTracker = new ChangeTracker();
 
@@ -197,7 +197,7 @@ namespace Soul.SqlBatis
 			return Task.CompletedTask;
 		}
 
-		public DbContextTransaction BeginTransaction(IDbTransaction transaction = null)
+		public IDbContextTransaction BeginTransaction(IDbTransaction transaction = null)
 		{
 			var autoCloase = false;
 			if (_connection.State == ConnectionState.Closed)
@@ -217,7 +217,7 @@ namespace Soul.SqlBatis
 			return CurrentTransaction;
 		}
 
-		public async Task<DbContextTransaction> BeginTransactionAsync(IDbTransaction transaction = null)
+		public async Task<IDbContextTransaction> BeginTransactionAsync(IDbTransaction transaction = null)
 		{
 			var autoCloase = false;
 			if (_connection.State == ConnectionState.Closed)
