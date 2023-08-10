@@ -68,7 +68,7 @@ var context = new MyDbContext(new DbContextOptions
 
 ## 更改跟踪
 
-要支持实体跟踪，请重写Entity的Equal和HashCode为注解字段，默认以实体的引用地址作为跟踪标识。【常识】
+要支持实体跟踪，请重写Entity的Equal和HashCode为主键字段，默认以实体的引用地址作为跟踪标识。【常识】
 
 - 主动告知
 
@@ -96,7 +96,6 @@ var context = new MyDbContext(new DbContextOptions
 
 - 如果DbContext存在事务（CurrentTransaction）调用SaveChanges，使用当前事务。如果DbContext不存在事务，则自动开启一个事务，自动提交。如果提交成功，清除当前DbContext实列跟踪的实体。
 
-  
 
 - 开启事务之前会自动判断是否开启数据库连接，如果未开启则自动开启提交或者回滚自动关闭。
 
@@ -176,51 +175,3 @@ var students = context.Students
     });
 ```
 
-## 基本构建
-
-``` C#
-var req = new
-{
-    Age = (int?)50
-};
-var sb = new SqlBuilder();
-sb = sb.From("students join schools on students.sch_id = schools.id")
-    .Where("students.age > @Age", req.Age != null)
-    .OrderBy("students.age desc")
-    .Page(1, 20);
-
-var querySql = sb.Select("students.id,students.age,schools.name");
-var countSql = sb.Count();
-```
-
-## 模板方式
-
-``` C#
-var sb = new SqlBuilder();
-sb.Where("students.age > @Age", req.Age != null);
-sb.Where("students.name LIKE @Name", req.Name != null);
-sb.OrderBy("students.age desc");
-var countSql = sb.Build("SELECT COUNT(*) FROM /**WHERE**/");
-var querySql = sb.Build("SELECT * FROM /**WHERE**/ /**ORDERBY**/");
-```
-
-## 配合dapper
-
-``` C#
-var req = new
-{
-    Age = (int?)50
-};
-var values = new DynamicValues(req);
-var connection = new MysqlConnection("...");
-var sb = new SqlBuilder();
-sb = sb.From("students join schools on students.sch_id = schools.id")
-    .Where("students.age > @Age", req.Age != null)
-    .OrderBy("students.age desc")
-    .Page(1, 20);
-
-var querySql = sb.Select("students.id,students.age,schools.name");
-var countSql = sb.Count();
-var list = connection.Query(querySql, values);
-var count = connection.ExecuteScalar<int>(countSql, values);
-```
