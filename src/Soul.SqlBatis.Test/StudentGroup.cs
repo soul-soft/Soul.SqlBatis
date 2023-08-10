@@ -4,5 +4,6 @@
     {
         public int Count { get; set; }
         public string FirstName { get; set; }
-    }
+		public string SchoolName { get; set; }
+	}
 }

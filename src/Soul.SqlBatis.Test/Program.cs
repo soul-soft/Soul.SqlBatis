@@ -13,10 +13,10 @@ var context = new MyDbContext(new DbContextOptions
 });
 
 var student = context.Students
-	.Where(a => a.Id == 1)
-	.AsTracking()
-	.First();
-student.Name = "zs";
+	.Where("Id IN (SELECT StudentId FROM student_scores WHERE math > @Math)", new { Math = 90 })
+	.Where(a => DbOperations.Contains(a.FirstName, "王"))
+	.ToList();
+
 
 
 
