@@ -33,8 +33,9 @@ var context = new MyDbContext(new DbContextOptions
       public uint Id { get; set; }
       
       public string Name { get; set; }
-  	[Column("first_name")]
-  	public string FirstName { get; set; }
+      [Column("first_name")]
+
+      public string FirstName { get; set; }
   
       public DateTime CreationTime { get; set; }
   }
@@ -78,6 +79,8 @@ var context = new MyDbContext(new DbContextOptions
       Name="SqlBatis"
   };
   context.Entry(student).State = EntityState.Added;
+  //Or
+  context.Add(student);
   context.SaveChanges();
   ```
 
@@ -168,7 +171,7 @@ public static class DbFunctions
 ```C#
 var students = context.Students
     .GroupBy(a => a.FirstName)
-	.Select(s => new 
+    .Select(s => new 
     {
         s.FirstName,
         DbFunctions.Count(s.Id)        
