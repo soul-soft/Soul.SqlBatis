@@ -11,17 +11,20 @@ namespace Soul.SqlBatis
         Task CommitTransactionAsync();
         void RollbackTransaction();
         Task RollbackTransactionAsync();
-        IDbTransaction GetDbTransaction();
+        IDbTransaction DbTransaction { get; }
     }
 
     internal class DbContextTransaction : IDbContextTransaction
     {
         private Action _callback;
+        
         private IDbTransaction _transaction;
 
-        internal DbContextTransaction(Action reset, IDbTransaction transaction)
+        public IDbTransaction DbTransaction => _transaction;
+
+        internal DbContextTransaction(IDbTransaction transaction, Action callback)
         {
-            _callback = reset;
+            _callback = callback;
             _transaction = transaction;
         }
 
