@@ -245,41 +245,59 @@ namespace Soul.SqlBatis
 
         }
 
-        public virtual IEnumerable<T> Query<T>(string sql, object param = null)
+        public virtual List<T> Query<T>(string sql, object param = null)
         {
-            Logging(sql);
-            return _connection.Query<T>(sql, param, GetDbTransaction());
-        }
+			return DbCommandStrategy(() =>
+			{
+				Logging(sql);
+				return _connection.Query<T>(sql, param, GetDbTransaction());
+			});
+		}
 
-        public virtual Task<IEnumerable<T>> QueryAsync<T>(string sql, object param = null)
+        public virtual async Task<List<T>> QueryAsync<T>(string sql, object param = null)
         {
-            Logging(sql);
-            return _connection.QueryAsync<T>(sql, param, GetDbTransaction());
-        }
+            return await DbCommandStrategyAsync(async () => 
+            { 
+			    Logging(sql);
+			    return await _connection.QueryAsync<T>(sql, param, GetDbTransaction());
+            });
+		}
 
         public virtual int Execute(string sql, object param = null)
         {
-            Logging(sql);
-            return _connection.Execute(sql, param, GetDbTransaction());
+            return DbCommandStrategy(() => 
+            {
+				Logging(sql);
+				return _connection.Execute(sql, param, GetDbTransaction());
+			});
         }
 
         public virtual Task<int> ExecuteAsync(string sql, object param = null)
         {
-            Logging(sql);
-            return _connection.ExecuteAsync(sql, param, GetDbTransaction());
+            return DbCommandStrategyAsync(() => 
+            { 
+			    Logging(sql);
+                return _connection.ExecuteAsync(sql, param, GetDbTransaction());
+            });
         }
 
         public virtual T ExecuteScalar<T>(string sql, object param = null)
         {
-            Logging(sql);
-            return _connection.ExecuteScalar<T>(sql, param, GetDbTransaction());
+            return DbCommandStrategy(() =>
+            {
+			    Logging(sql);
+                return _connection.ExecuteScalar<T>(sql, param, GetDbTransaction());
+            });
         }
 
         public virtual Task<T> ExecuteScalarAsync<T>(string sql, object param = null)
         {
-            Logging(sql);
-            return _connection.ExecuteScalarAsync<T>(sql, param, GetDbTransaction());
-        }
+			return DbCommandStrategyAsync(() =>
+			{
+				Logging(sql);
+				return _connection.ExecuteScalarAsync<T>(sql, param, GetDbTransaction());
+			});
+		}
 
         protected virtual void Logging(string sql)
         {
@@ -291,7 +309,49 @@ namespace Soul.SqlBatis
             logger.LogInformation(sql);
         }
 
-        public void Dispose()
+        private T DbCommandStrategy<T>(Func<T> func)
+        {
+			var autoCloase = false;
+			try
+			{
+				if (_connection.State == ConnectionState.Closed)
+				{
+					OpenDbConnection();
+					autoCloase = true;
+				}
+				return func();
+			}
+			finally
+			{
+				if (autoCloase)
+				{
+					ColseDbConnection();
+				}
+			}
+		}
+
+		private async Task<T> DbCommandStrategyAsync<T>(Func<Task<T>> func)
+		{
+			var autoCloase = false;
+			try
+			{
+				if (_connection.State == ConnectionState.Closed)
+				{
+					await OpenDbConnectionAsync();
+					autoCloase = true;
+				}
+				return await func();
+			}
+			finally
+			{
+				if (autoCloase)
+				{
+					await ColseDbConnectionAsync();
+				}
+			}
+		}
+
+		public void Dispose()
         {
             try
             {

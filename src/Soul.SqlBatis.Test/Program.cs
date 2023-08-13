@@ -12,10 +12,10 @@ var context = new MyDbContext(new DbContextOptions
 	ConnecionProvider = () => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test")
 });
 
-var student = context.Students
-	.Where("Id IN (SELECT StudentId FROM student_scores WHERE math > @Math)", new { Math = 90 })
-	.Where(a => DbOperations.Contains(a.FirstName, "王"))
-	.ToList();
-
-
+var students = context.Students.Where(a=>a.Id==6).AsTracking().ToList();
+foreach (var item in students)
+{
+	item.Name = "aa";
+}
+var row = await context.SaveChangesAsync();
 Console.WriteLine();

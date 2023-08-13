@@ -179,8 +179,8 @@ namespace Soul.SqlBatis.Infrastructure
         }
         protected virtual void SetParameter(Expression expression)
         {
-            var name = $"@P_{Parameters.Count}";
-            _buffer.Append(name);
+            var name = $"P_{Parameters.Count}";
+            _buffer.Append($"@{name}");
             var value = GetParameter(expression);
             Parameters.Add(name, value);
         }

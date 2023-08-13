@@ -39,7 +39,7 @@ namespace Soul.SqlBatis
 				return list;
 			}
 		}
-		public static IEnumerable<T> Query<T>(this IDbConnection connection, string sql, object parameter = null, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null)
+		public static List<T> Query<T>(this IDbConnection connection, string sql, object parameter = null, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null)
 		{
 			using (var cmd = connection.CreateDbCommand(sql, parameter, transaction, commandTimeout, commandType))
 			using (var reader = cmd.ExecuteReader())
@@ -53,7 +53,7 @@ namespace Soul.SqlBatis
 				return list;
 			}
 		}
-		public static async Task<IEnumerable<T>> QueryAsync<T>(this IDbConnection connection, string sql, object parameter = null, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null)
+		public static async Task<List<T>> QueryAsync<T>(this IDbConnection connection, string sql, object parameter = null, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null)
 		{
 			using (var cmd = connection.CreateDbCommand(sql, parameter, transaction, commandTimeout, commandType) as DbCommand)
 			using (var reader = await cmd.ExecuteReaderAsync())
@@ -109,6 +109,7 @@ namespace Soul.SqlBatis
 				return (T)Convert.ChangeType(result, typeof(T));
 			}
 		}
+
 		public static IDbCommand CreateDbCommand(this IDbConnection connection, string sql, object param, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null)
 		{
 			var command = connection.CreateCommand();
@@ -127,9 +128,9 @@ namespace Soul.SqlBatis
 				var func = TypeSerializer.CreateDeserializer(param.GetType());
 				foreach (var item in func(param))
 				{
-					if (!Regex.IsMatch(command.CommandText, $@"@{item.Key}"))
+					if (Regex.IsMatch(command.CommandText, $@"@{item.Key}"))
 					{
-						continue;
+						command.AddParameter(item.Key, item.Value);
 					}
 					if (item.Value != null && item.Value is IEnumerable && item.Value.GetType() != typeof(string))
 					{
@@ -139,6 +140,7 @@ namespace Soul.SqlBatis
 			}
 			return command;
 		}
+
 		private static void AddParameter(this IDbCommand command, string name, object value)
 		{
 			var parameter = command.CreateParameter();
@@ -146,6 +148,7 @@ namespace Soul.SqlBatis
 			parameter.Value = value ?? DBNull.Value;
 			command.Parameters.Add(parameter);
 		}
+
 		private static void SplitArrayParameter(this IDbCommand command, string name, object param)
 		{
 			var names = new List<string>();
