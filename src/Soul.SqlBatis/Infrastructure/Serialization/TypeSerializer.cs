@@ -427,6 +427,24 @@ namespace Soul.SqlBatis
 					throw ThrowInvalidCastException<string>(dr, i);
 				}
 			}
+			[ConverterMethod]
+			public static byte[] ToBytes(IDataRecord dr, int i)
+			{
+				try
+				{
+					if (dr.IsDBNull(i))
+					{
+						return default;
+					}
+					var buffer = new byte[SqlMapper.Settings.BinaryBufferSize];
+					var length = dr.GetBytes(i, 0, buffer, 0, buffer.Length);
+					return buffer.Take((int)length).ToArray();
+				}
+				catch
+				{
+					throw ThrowInvalidCastException<byte>(dr, i);
+				}
+			}
 			#endregion
 
 			#region Value Type Converts
@@ -446,7 +464,7 @@ namespace Soul.SqlBatis
 				{
 					throw ThrowInvalidCastException<byte>(dr, i);
 				}
-			}
+			}			
 			[ConverterMethod]
 			public static sbyte ToSByte(IDataRecord dr, int i)
 			{

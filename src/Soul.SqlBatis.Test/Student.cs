@@ -11,6 +11,8 @@ namespace Soul.SqlBatis.Test
 
 		public string FirstName { get; set; }
 
+        public bool Age { get; set; }
+
         public DateTime CreationTime { get; set; }
     }
 }

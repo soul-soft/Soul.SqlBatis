@@ -180,6 +180,10 @@ namespace Soul.SqlBatis
 			/// 分割空数组的查询语句
 			/// </summary>
 			public static string EmptyArrayQueryCommand { get; set; } = "SELECT NULL";
+			/// <summary>
+			/// 二进制缓冲大小
+			/// </summary>
+			public static int BinaryBufferSize { get; set; } = 1024 * 1024 * 10;
 		}
 	}
 }
