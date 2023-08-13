@@ -448,6 +448,12 @@ namespace Soul.SqlBatis
 				}
 			}
 			[ConverterMethod]
+			public static sbyte ToSByte(IDataRecord dr, int i)
+			{
+				var result =ToByte(dr,i);
+				return Convert.ToSByte(result);
+			}
+			[ConverterMethod]
 			public static short ToInt16(IDataRecord dr, int i)
 			{
 				try
@@ -462,6 +468,12 @@ namespace Soul.SqlBatis
 				{
 					throw ThrowInvalidCastException<short>(dr, i);
 				}
+			}
+			[ConverterMethod]
+			public static ushort ToUInt16(IDataRecord dr, int i)
+			{
+				var result = ToInt16(dr, i);
+				return Convert.ToUInt16(result);
 			}
 			[ConverterMethod]
 			public static int ToInt32(IDataRecord dr, int i)
@@ -480,6 +492,12 @@ namespace Soul.SqlBatis
 				}
 			}
 			[ConverterMethod]
+			public static uint ToUInt32(IDataRecord dr, int i)
+			{
+				var result = ToInt32(dr, i);
+				return Convert.ToUInt32(result);
+			}
+			[ConverterMethod]
 			public static long ToInt64(IDataRecord dr, int i)
 			{
 				try
@@ -494,6 +512,12 @@ namespace Soul.SqlBatis
 				{
 					throw ThrowInvalidCastException<long>(dr, i);
 				}
+			}
+			[ConverterMethod]
+			public static ulong ToUInt64(IDataRecord dr, int i)
+			{
+				var result = ToInt64(dr, i);
+				return Convert.ToUInt64(result);
 			}
 			[ConverterMethod]
 			public static float ToFloat(IDataRecord dr, int i)
@@ -567,7 +591,7 @@ namespace Soul.SqlBatis
 					if (dr.IsDBNull(i))
 					{
 						return default;
-					}
+					}					
 					var result = dr.GetChar(i);
 					return result;
 				}
@@ -603,7 +627,8 @@ namespace Soul.SqlBatis
 						return default;
 					}
 					var value = dr.GetValue(i);
-					if (Enum.TryParse(value.ToString(), out T result)) return result;
+					if (Enum.TryParse(value.ToString(), out T result)) 
+						return result;
 					return default;
 				}
 				catch
@@ -641,6 +666,16 @@ namespace Soul.SqlBatis
 				return ToByte(dr, i);
 			}
 			[ConverterMethod(IsNullable = true)]
+			public static sbyte? ToNullableSByte(IDataRecord dr, int i)
+			{
+				var result = ToNullableByte(dr, i);
+				if (result == null)
+				{
+					return default;
+				}
+				return Convert.ToSByte(result.Value);
+			}
+			[ConverterMethod(IsNullable = true)]
 			public static short? ToNullableInt16(IDataRecord dr, int i)
 			{
 				if (dr.IsDBNull(i))
@@ -648,6 +683,16 @@ namespace Soul.SqlBatis
 					return default;
 				}
 				return ToInt16(dr, i);
+			}
+			[ConverterMethod(IsNullable = true)]
+			public static ushort? ToNullableUInt16(IDataRecord dr, int i)
+			{
+				var result = ToNullableInt16(dr, i);
+				if (result == null)
+				{
+					return default;
+				}
+				return Convert.ToUInt16(result.Value);
 			}
 			[ConverterMethod(IsNullable = true)]
 			public static int? ToNullableInt32(IDataRecord dr, int i)
@@ -659,6 +704,16 @@ namespace Soul.SqlBatis
 				return ToInt32(dr, i);
 			}
 			[ConverterMethod(IsNullable = true)]
+			public static uint? ToNullableUInt32(IDataRecord dr, int i)
+			{
+				var result = ToNullableInt32(dr, i);
+				if (result == null)
+				{
+					return default;
+				}
+				return Convert.ToUInt32(result.Value);
+			}
+			[ConverterMethod(IsNullable = true)]
 			public static long? ToNullableInt64(IDataRecord dr, int i)
 			{
 				if (dr.IsDBNull(i))
@@ -666,6 +721,16 @@ namespace Soul.SqlBatis
 					return default;
 				}
 				return ToInt64(dr, i);
+			}
+			[ConverterMethod(IsNullable = true)]
+			public static ulong? ToNullableUInt64(IDataRecord dr, int i)
+			{
+				var result = ToNullableInt64(dr, i);
+				if (result == null)
+				{
+					return default;
+				}
+				return Convert.ToUInt64(result.Value);
 			}
 			[ConverterMethod(IsNullable = true)]
 			public static float? ToNullableFloat(IDataRecord dr, int i)

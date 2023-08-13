@@ -247,7 +247,7 @@ namespace Soul.SqlBatis
 
         public virtual List<T> Query<T>(string sql, object param = null)
         {
-			return DbCommandStrategy(() =>
+			return DbCommandExecuteStrategy(() =>
 			{
 				Logging(sql);
 				return _connection.Query<T>(sql, param, GetDbTransaction());
@@ -256,7 +256,7 @@ namespace Soul.SqlBatis
 
         public virtual async Task<List<T>> QueryAsync<T>(string sql, object param = null)
         {
-            return await DbCommandStrategyAsync(async () => 
+            return await DbCommandExecuteStrategyAsync(async () => 
             { 
 			    Logging(sql);
 			    return await _connection.QueryAsync<T>(sql, param, GetDbTransaction());
@@ -265,7 +265,7 @@ namespace Soul.SqlBatis
 
         public virtual int Execute(string sql, object param = null)
         {
-            return DbCommandStrategy(() => 
+            return DbCommandExecuteStrategy(() => 
             {
 				Logging(sql);
 				return _connection.Execute(sql, param, GetDbTransaction());
@@ -274,7 +274,7 @@ namespace Soul.SqlBatis
 
         public virtual Task<int> ExecuteAsync(string sql, object param = null)
         {
-            return DbCommandStrategyAsync(() => 
+            return DbCommandExecuteStrategyAsync(() => 
             { 
 			    Logging(sql);
                 return _connection.ExecuteAsync(sql, param, GetDbTransaction());
@@ -283,7 +283,7 @@ namespace Soul.SqlBatis
 
         public virtual T ExecuteScalar<T>(string sql, object param = null)
         {
-            return DbCommandStrategy(() =>
+            return DbCommandExecuteStrategy(() =>
             {
 			    Logging(sql);
                 return _connection.ExecuteScalar<T>(sql, param, GetDbTransaction());
@@ -292,7 +292,7 @@ namespace Soul.SqlBatis
 
         public virtual Task<T> ExecuteScalarAsync<T>(string sql, object param = null)
         {
-			return DbCommandStrategyAsync(() =>
+			return DbCommandExecuteStrategyAsync(() =>
 			{
 				Logging(sql);
 				return _connection.ExecuteScalarAsync<T>(sql, param, GetDbTransaction());
@@ -309,7 +309,7 @@ namespace Soul.SqlBatis
             logger.LogInformation(sql);
         }
 
-        private T DbCommandStrategy<T>(Func<T> func)
+        private T DbCommandExecuteStrategy<T>(Func<T> func)
         {
 			var autoCloase = false;
 			try
@@ -330,7 +330,7 @@ namespace Soul.SqlBatis
 			}
 		}
 
-		private async Task<T> DbCommandStrategyAsync<T>(Func<Task<T>> func)
+		private async Task<T> DbCommandExecuteStrategyAsync<T>(Func<Task<T>> func)
 		{
 			var autoCloase = false;
 			try
