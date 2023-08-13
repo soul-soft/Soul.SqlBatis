@@ -12,7 +12,7 @@ var context = new MyDbContext(new DbContextOptions
 	ConnecionProvider = () => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test")
 });
 
-var students = context.ExecuteScalar<Color>("select Name from students limit 0,1");
+var students = context.Query<Student>("select Name from students where id in @id",new {id = new int[] { 1,2,3} });
 
 var row = await context.SaveChangesAsync();
 Console.WriteLine();
