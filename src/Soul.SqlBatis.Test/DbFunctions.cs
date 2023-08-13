@@ -10,7 +10,7 @@
         }
 
         [DbFunction(Name = "COUNT")]
-        public static long Count<T>(T column)
+        public static int Count<T>(T column)
         {
             throw new NotImplementedException();
         }

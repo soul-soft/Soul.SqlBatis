@@ -15,6 +15,7 @@ namespace Soul.SqlBatis.Infrastructure
 			{
 				if (_state == EntityState.Unchanged && Properties.Any(a => a.IsModified))
 				{
+					_state = EntityState.Modified;
 					return EntityState.Modified;
 				}
 				return _state;

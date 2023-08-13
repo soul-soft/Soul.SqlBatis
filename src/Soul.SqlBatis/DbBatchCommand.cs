@@ -17,6 +17,13 @@ namespace Soul.SqlBatis.Infrastructure
 		public int SaveChanges()
 		{
 			var row = 0;
+			var entries = _context.ChangeTracker.Entries()
+				.Where(a => a.State == EntityState.Added || a.State == EntityState.Modified || a.State == EntityState.Deleted)
+				.ToList();
+			if (!entries.Any())
+			{
+				return row;
+			}
 			IDbContextTransaction transaction = null;
 			var hasActiveDbTransaction = _context.CurrentTransaction != null;
 			try
@@ -24,7 +31,7 @@ namespace Soul.SqlBatis.Infrastructure
 				transaction = hasActiveDbTransaction ?
 					_context.CurrentTransaction
 					: _context.BeginTransaction();
-				foreach (var entry in _context.ChangeTracker.Entries())
+				foreach (var entry in entries)
 				{
 					if (entry.State == EntityState.Added)
 					{
@@ -58,6 +65,13 @@ namespace Soul.SqlBatis.Infrastructure
 		public async Task<int> SaveChangesAsync()
 		{
 			var row = 0;
+			var entries = _context.ChangeTracker.Entries()
+				.Where(a => a.State == EntityState.Added || a.State == EntityState.Modified || a.State == EntityState.Deleted)
+				.ToList();
+			if (!entries.Any())
+			{
+				return row;
+			}
 			IDbContextTransaction transaction = null;
 			var hasActiveDbTransaction = _context.CurrentTransaction != null;
 			try
@@ -65,7 +79,7 @@ namespace Soul.SqlBatis.Infrastructure
 				transaction = hasActiveDbTransaction ?
 					_context.CurrentTransaction
 					: await _context.BeginTransactionAsync();
-				foreach (var entry in _context.ChangeTracker.Entries())
+				foreach (var entry in entries)
 				{
 					if (entry.State == EntityState.Added)
 					{
