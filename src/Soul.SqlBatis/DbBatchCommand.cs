@@ -17,7 +17,7 @@ namespace Soul.SqlBatis.Infrastructure
 		public int SaveChanges()
 		{
 			var row = 0;
-			DbContextTransaction transaction = null;
+			IDbContextTransaction transaction = null;
 			var hasActiveDbTransaction = _context.CurrentTransaction != null;
 			try
 			{
@@ -58,7 +58,7 @@ namespace Soul.SqlBatis.Infrastructure
 		public async Task<int> SaveChangesAsync()
 		{
 			var row = 0;
-			DbContextTransaction transaction = null;
+			IDbContextTransaction transaction = null;
 			var hasActiveDbTransaction = _context.CurrentTransaction != null;
 			try
 			{

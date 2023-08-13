@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Threading.Tasks;
-using Dapper;
 using Microsoft.Extensions.Logging;
 using Soul.SqlBatis.Infrastructure;
-using static Dapper.SqlMapper;
 
 namespace Soul.SqlBatis
 {
@@ -250,7 +248,7 @@ namespace Soul.SqlBatis
         public virtual IEnumerable<T> Query<T>(string sql, object param = null)
         {
             Logging(sql);
-            return _connection.Query<T>(sql, param, GetDbTransaction(), false);
+            return _connection.Query<T>(sql, param, GetDbTransaction());
         }
 
         public virtual Task<IEnumerable<T>> QueryAsync<T>(string sql, object param = null)

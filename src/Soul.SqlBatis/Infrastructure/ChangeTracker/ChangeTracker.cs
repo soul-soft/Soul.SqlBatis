@@ -35,8 +35,10 @@ namespace Soul.SqlBatis.Infrastructure
 
 		private EntityEntry CreateEntry(object entity)
 		{
+			var func = TypeSerializer.CreateDeserializer(entity.GetType());
+			var values = func(entity);
 			var properties = entity.GetType().GetProperties()
-				.Select(s => new PropertyEntry(entity, s))
+				.Select(s => new PropertyEntry(entity, s, values[s.Name]))
 				.ToList();
 			var entry = new InternalEntityEntry(entity, properties);
 			_entryReferences.Add(entity, entry);
