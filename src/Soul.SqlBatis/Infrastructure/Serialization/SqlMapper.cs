@@ -98,7 +98,7 @@ namespace Soul.SqlBatis
 			using (var cmd = connection.CreateDbCommand(sql, parameter, transaction, commandTimeout, commandType))
 			{
 				var result = cmd.ExecuteScalar();
-				return (T)Convert.ChangeType(result, typeof(T));
+				return ChangeType<T>(result);
 			}
 		}
 		public static async Task<T> ExecuteScalarAsync<T>(this IDbConnection connection, string sql, object parameter = null, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null)
@@ -106,7 +106,7 @@ namespace Soul.SqlBatis
 			using (var cmd = connection.CreateDbCommand(sql, parameter, transaction, commandTimeout, commandType) as DbCommand)
 			{
 				var result = await cmd.ExecuteScalarAsync();
-				return (T)Convert.ChangeType(result, typeof(T));
+				return ChangeType<T>(result);
 			}
 		}
 
@@ -139,6 +139,19 @@ namespace Soul.SqlBatis
 				}
 			}
 			return command;
+		}
+
+		private static T ChangeType<T>(object obj)
+		{
+			if (obj is DBNull)
+			{
+				return default;
+			}
+			if (typeof(T).IsEnum)
+			{
+				return (T)Enum.Parse(typeof(T), obj.ToString());
+			}
+			return (T)Convert.ChangeType(obj, typeof(T));
 		}
 
 		private static void AddParameter(this IDbCommand command, string name, object value)

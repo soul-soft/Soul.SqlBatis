@@ -15,4 +15,8 @@ namespace Soul.SqlBatis.Test
 
         public DateTime CreationTime { get; set; }
     }
+    public enum Color
+    {
+        Blue
+    }
 }
