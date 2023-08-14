@@ -6,11 +6,11 @@ namespace Soul.SqlBatis.Infrastructure
 {
     internal class MySqlBuilder
     {
-        private readonly EntityType _entityType;
+        private readonly IEntityType _entityType;
 
         private readonly Dictionary<DbExpressionType, IEnumerable<string>> _tokens = new Dictionary<DbExpressionType, IEnumerable<string>>();
 
-        public MySqlBuilder(EntityType entityType, Dictionary<DbExpressionType, IEnumerable<string>> tokens)
+        public MySqlBuilder(IEntityType entityType, Dictionary<DbExpressionType, IEnumerable<string>> tokens)
         {
             _entityType = entityType;
             _tokens = tokens;

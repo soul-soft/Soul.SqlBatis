@@ -23,7 +23,9 @@ namespace Soul.SqlBatis
 
         protected bool IsTracking { get; private set; } = false;
 
+
         private readonly List<DbExpression> _expressions = new List<DbExpression>();
+
 
         private readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
 
