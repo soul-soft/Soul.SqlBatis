@@ -12,7 +12,7 @@ namespace Soul.SqlBatis.Infrastructure
 
         public ChangeTracker(Model model)
         {
-
+            _model = model;
         }
 
         public IEnumerable<EntityEntry> Entries()

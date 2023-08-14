@@ -266,7 +266,7 @@ namespace Soul.SqlBatis.Infrastructure
         {
             var wheres = BuildWhereSql(entityType);
             var columns = entityType.Properties
-                .Where(a => a.IsNotMapped)
+                .Where(a => !a.IsNotMapped)
                 .Select(s =>
                 {
                     if (s.ColumnName != s.Property.Name)

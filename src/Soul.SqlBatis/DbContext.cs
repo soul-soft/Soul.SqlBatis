@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Soul.SqlBatis.Infrastructure;
@@ -53,7 +54,7 @@ namespace Soul.SqlBatis
         }
 
         public T Find<T>(object key)
-        {
+        {             
             var entityEntry = ChangeTracker.Find(typeof(T), key);
             if (entityEntry != null)
             {
@@ -103,6 +104,8 @@ namespace Soul.SqlBatis
         public void Update<T>(T entity)
             where T : class
         {
+            var key = _model.GetEntityType(typeof(T)).Properties.Where(a => a.IsKey).First().Property.GetValue(entity);
+            var entry = Find<T>(key);
             Entry(entity).State = EntityState.Modified;
         }
 

@@ -18,7 +18,7 @@ namespace Soul.SqlBatis.Infrastructure
             Properties = properties;
         }
 
-        private EntityState _state;
+        private EntityState _state = EntityState.Unchanged;
 
         public virtual EntityState State
         {
