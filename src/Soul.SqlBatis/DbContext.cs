@@ -92,7 +92,6 @@ namespace Soul.SqlBatis
             }
         }
 
-
         public void AddRange(IEnumerable<object> entities)
         {
             foreach (var entity in entities)
