@@ -6,7 +6,7 @@ namespace Soul.SqlBatis.Infrastructure
 {
     public class ChangeTracker
     {
-        private Model _model;
+        private readonly Model _model;
 
         private readonly Dictionary<object, EntityEntry> _entryReferences = new Dictionary<object, EntityEntry>();
 
@@ -75,8 +75,10 @@ namespace Soul.SqlBatis.Infrastructure
             var properties = entity.GetType().GetProperties()
                 .Select(property => new PropertyEntry(entityType.GetProperty(property), entity, values[property.Name]))
                 .ToList();
-            var entry = new EntityEntry(entity, entityType, properties);
-            entry.State = EntityState.Unchanged;
+            var entry = new EntityEntry(entity, entityType, properties)
+            {
+                State = EntityState.Unchanged
+            };
             _entryReferences.Add(entity, entry);
             return entry;
         }

@@ -8,7 +8,7 @@ namespace Soul.SqlBatis.Infrastructure
     {
         public object Entity { get; }
 
-        private IEntityProperty _entityProperty;
+        private readonly IEntityProperty _entityProperty;
 
         private object _currentValue;
 
