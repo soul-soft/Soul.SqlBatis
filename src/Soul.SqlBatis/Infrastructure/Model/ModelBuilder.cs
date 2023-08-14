@@ -35,8 +35,6 @@ namespace Soul.SqlBatis.Infrastructure
 			});
 		}
 
-
-
 		public static Model CreateDbContextModel(Type type, Action<ModelBuilder> configure)
 		{
 			if (!typeof(DbContext).IsAssignableFrom(type))

@@ -6,9 +6,9 @@ namespace Soul.SqlBatis.Infrastructure
 {
 	public class Model
 	{
-		private readonly ConcurrentDictionary<Type, EntityType> _entities = new ConcurrentDictionary<Type, EntityType>();
+		private readonly ConcurrentDictionary<Type, IEntityType> _entities = new ConcurrentDictionary<Type, IEntityType>();
 
-		public Model(IEnumerable<EntityType> entities)
+		public Model(IEnumerable<IEntityType> entities)
 		{
 			foreach (var item in entities)
 			{
@@ -16,7 +16,7 @@ namespace Soul.SqlBatis.Infrastructure
 			}
 		}
 
-		public virtual EntityType GetEntityType(Type type)
+		public virtual IEntityType GetEntityType(Type type)
 		{
 			return _entities.GetOrAdd(type, key => 
 			{

@@ -22,7 +22,7 @@ namespace Soul.SqlBatis
 
         public IDbContextTransaction CurrentTransaction => _currentTransaction;
 
-        private readonly ChangeTracker _changeTracker = new ChangeTracker();
+        private readonly ChangeTracker _changeTracker;
 
         public ChangeTracker ChangeTracker => _changeTracker;
 
@@ -31,6 +31,7 @@ namespace Soul.SqlBatis
             Options = options;
             _model = ModelCreating();
             _connection = options.ConnecionProvider();
+            _changeTracker = new ChangeTracker(_model);
         }
 
         public DbSet<T> Set<T>()
@@ -49,6 +50,26 @@ namespace Soul.SqlBatis
             where T : class
         {
             return _changeTracker.TrackGraph(entity);
+        }
+
+        public T Find<T>(object key)
+        {
+            var entityEntry = ChangeTracker.Find(typeof(T), key);
+            if (entityEntry != null)
+            {
+                return (T)entityEntry.Entity;
+            }
+            return new DbContextCommand(this).Find<T>(key);
+        }
+
+        public async Task<T> FindAsync<T>(object[] key)
+        {
+            var entityEntry = ChangeTracker.Find(typeof(T), key);
+            if (entityEntry != null)
+            {
+                return (T)entityEntry.Entity;
+            }
+            return await new DbContextCommand(this).FindAsync<T>(key);
         }
 
         public void Add<T>(T entity)
@@ -83,6 +104,7 @@ namespace Soul.SqlBatis
         public void Update<T>(T entity)
             where T : class
         {
+
             Entry(entity).State = EntityState.Modified;
         }
 
@@ -138,12 +160,12 @@ namespace Soul.SqlBatis
 
         public int SaveChanges()
         {
-            return new DbBatchCommand(this).SaveChanges();
+            return new DbContextCommand(this).SaveChanges();
         }
 
         public Task<int> SaveChangesAsync()
         {
-            return new DbBatchCommand(this).SaveChangesAsync();
+            return new DbContextCommand(this).SaveChangesAsync();
         }
 
 
@@ -247,36 +269,36 @@ namespace Soul.SqlBatis
 
         public virtual List<T> Query<T>(string sql, object param = null)
         {
-			return DbCommandExecuteStrategy(() =>
-			{
-				Logging(sql);
-				return _connection.Query<T>(sql, param, GetDbTransaction());
-			});
-		}
+            return DbCommandExecuteStrategy(() =>
+            {
+                Logging(sql);
+                return _connection.Query<T>(sql, param, GetDbTransaction());
+            });
+        }
 
         public virtual async Task<List<T>> QueryAsync<T>(string sql, object param = null)
         {
-            return await DbCommandExecuteStrategyAsync(async () => 
-            { 
-			    Logging(sql);
-			    return await _connection.QueryAsync<T>(sql, param, GetDbTransaction());
+            return await DbCommandExecuteStrategyAsync(async () =>
+            {
+                Logging(sql);
+                return await _connection.QueryAsync<T>(sql, param, GetDbTransaction());
             });
-		}
+        }
 
         public virtual int Execute(string sql, object param = null)
         {
-            return DbCommandExecuteStrategy(() => 
+            return DbCommandExecuteStrategy(() =>
             {
-				Logging(sql);
-				return _connection.Execute(sql, param, GetDbTransaction());
-			});
+                Logging(sql);
+                return _connection.Execute(sql, param, GetDbTransaction());
+            });
         }
 
         public virtual Task<int> ExecuteAsync(string sql, object param = null)
         {
-            return DbCommandExecuteStrategyAsync(() => 
-            { 
-			    Logging(sql);
+            return DbCommandExecuteStrategyAsync(() =>
+            {
+                Logging(sql);
                 return _connection.ExecuteAsync(sql, param, GetDbTransaction());
             });
         }
@@ -285,19 +307,19 @@ namespace Soul.SqlBatis
         {
             return DbCommandExecuteStrategy(() =>
             {
-			    Logging(sql);
+                Logging(sql);
                 return _connection.ExecuteScalar<T>(sql, param, GetDbTransaction());
             });
         }
 
         public virtual Task<T> ExecuteScalarAsync<T>(string sql, object param = null)
         {
-			return DbCommandExecuteStrategyAsync(() =>
-			{
-				Logging(sql);
-				return _connection.ExecuteScalarAsync<T>(sql, param, GetDbTransaction());
-			});
-		}
+            return DbCommandExecuteStrategyAsync(() =>
+            {
+                Logging(sql);
+                return _connection.ExecuteScalarAsync<T>(sql, param, GetDbTransaction());
+            });
+        }
 
         protected virtual void Logging(string sql)
         {
@@ -311,47 +333,47 @@ namespace Soul.SqlBatis
 
         private T DbCommandExecuteStrategy<T>(Func<T> func)
         {
-			var autoCloase = false;
-			try
-			{
-				if (_connection.State == ConnectionState.Closed)
-				{
-					OpenDbConnection();
-					autoCloase = true;
-				}
-				return func();
-			}
-			finally
-			{
-				if (autoCloase)
-				{
-					ColseDbConnection();
-				}
-			}
-		}
+            var autoCloase = false;
+            try
+            {
+                if (_connection.State == ConnectionState.Closed)
+                {
+                    OpenDbConnection();
+                    autoCloase = true;
+                }
+                return func();
+            }
+            finally
+            {
+                if (autoCloase)
+                {
+                    ColseDbConnection();
+                }
+            }
+        }
 
-		private async Task<T> DbCommandExecuteStrategyAsync<T>(Func<Task<T>> func)
-		{
-			var autoCloase = false;
-			try
-			{
-				if (_connection.State == ConnectionState.Closed)
-				{
-					await OpenDbConnectionAsync();
-					autoCloase = true;
-				}
-				return await func();
-			}
-			finally
-			{
-				if (autoCloase)
-				{
-					await ColseDbConnectionAsync();
-				}
-			}
-		}
+        private async Task<T> DbCommandExecuteStrategyAsync<T>(Func<Task<T>> func)
+        {
+            var autoCloase = false;
+            try
+            {
+                if (_connection.State == ConnectionState.Closed)
+                {
+                    await OpenDbConnectionAsync();
+                    autoCloase = true;
+                }
+                return await func();
+            }
+            finally
+            {
+                if (autoCloase)
+                {
+                    await ColseDbConnectionAsync();
+                }
+            }
+        }
 
-		public void Dispose()
+        public void Dispose()
         {
             try
             {

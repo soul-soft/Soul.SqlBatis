@@ -5,58 +5,55 @@ using System.Linq;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-	public interface IAttributeCollection : IEnumerable<object>
-	{
-		T Get<T>();		
-	}
+    public class AttributeCollection : IEnumerable<object>
+    {
+        private readonly List<object> _metadata = new List<object>();
 
-	public class AttributeCollection : IAttributeCollection
-	{
-		private readonly List<object> _attributes = new List<object>();
+        public IReadOnlyCollection<object> Metadata => _metadata;
 
-		public AttributeCollection(IEnumerable<object> attributes)
-		{
-			foreach (var item in attributes)
-			{
-				Set(item);
-			}
-		}
+        public AttributeCollection(IEnumerable<object> attributes)
+        {
+            foreach (var item in attributes)
+            {
+                Set(item);
+            }
+        }
 
-		public T Get<T>()
-		{
-			return _attributes.OfType<T>().FirstOrDefault();
-		}
+        public T Get<T>()
+        {
+            return _metadata.OfType<T>().FirstOrDefault();
+        }
 
-		public IEnumerator<object> GetEnumerator()
-		{
-			return _attributes.GetEnumerator();
-		}
+        public IEnumerator<object> GetEnumerator()
+        {
+            return _metadata.GetEnumerator();
+        }
 
-		public void Remove(Type type)
-		{
-			var atrtribute = _attributes.Where(a => a.GetType() == type).FirstOrDefault();
-			if (atrtribute != null)
-			{
-				_attributes.Remove(atrtribute);
-			}
-		}
+        public void Remove(Type type)
+        {
+            var atrtribute = _metadata.Where(a => a.GetType() == type).FirstOrDefault();
+            if (atrtribute != null)
+            {
+                _metadata.Remove(atrtribute);
+            }
+        }
 
-		public void Set(object value)
-		{
-			var type = value.GetType();
-			var old = _attributes
-				.Where(a => a.GetType() == type)
-				.FirstOrDefault();
-			if (old != null)
-			{
-				_attributes.Remove(old);
-			}
-			_attributes.Add(value);
-		}
+        public void Set(object value)
+        {
+            var type = value.GetType();
+            var old = _metadata
+                .Where(a => a.GetType() == type)
+                .FirstOrDefault();
+            if (old != null)
+            {
+                _metadata.Remove(old);
+            }
+            _metadata.Add(value);
+        }
 
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return GetEnumerator();
-		}
-	}
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+    }
 }

@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-    public class MySqlBuilder
+    internal class MySqlBuilder
     {
         private readonly EntityType _entityType;
 
@@ -24,11 +24,11 @@ namespace Soul.SqlBatis.Infrastructure
             {
                 columns = string.Join(", ", _entityType.Properties.Select(s =>
                 {
-                    if (s.ColumnName == s.Member.Name)
+                    if (s.ColumnName == s.Property.Name)
                     {
-                        return s.Member.Name;
+                        return s.Property.Name;
                     }
-                    return $"{s.ColumnName} AS {s.Member.Name}";
+                    return $"{s.ColumnName} AS {s.Property.Name}";
                 }));
             }
             var view = GetFromSql();
@@ -169,7 +169,7 @@ namespace Soul.SqlBatis.Infrastructure
 
         private string BuildFilterSql()
         {
-            var filters = _tokens.Where(a=>a.Key!=DbExpressionType.Take)
+            var filters = _tokens.Where(a => a.Key != DbExpressionType.Take)
                 .Where(a => a.Key != DbExpressionType.Skip)
                 .OrderBy(s => s.Key)
                 .Select(item =>

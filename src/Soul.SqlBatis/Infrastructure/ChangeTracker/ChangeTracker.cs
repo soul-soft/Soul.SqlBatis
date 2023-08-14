@@ -4,56 +4,84 @@ using System.Linq;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-	public class ChangeTracker
-	{
-		private readonly Dictionary<object, EntityEntry> _entryReferences = new Dictionary<object, EntityEntry>();
+    public class ChangeTracker
+    {
+        private Model _model;
 
-		public IEnumerable<EntityEntry> Entries()
-		{
-			return _entryReferences.Values;
-		}
+        private readonly Dictionary<object, EntityEntry> _entryReferences = new Dictionary<object, EntityEntry>();
 
-		public EntityEntry TrackGraph(object entity)
-		{
-			return GetOrCreateEntry(entity);
-		}
+        public ChangeTracker(Model model)
+        {
 
-		public EntityEntry<T> TrackGraph<T>(T entity)
-		{
-			var entry = GetOrCreateEntry(entity);
-			return new EntityEntry<T>(entry);
-		}
+        }
 
-		private EntityEntry GetOrCreateEntry(object entity)
-		{
-			if (_entryReferences.ContainsKey(entity))
-			{
-				return _entryReferences[entity];
-			}
-			return CreateEntry(entity);
-		}
+        public IEnumerable<EntityEntry> Entries()
+        {
+            return _entryReferences.Values;
+        }
 
-		private EntityEntry CreateEntry(object entity)
-		{
-			var func = TypeSerializer.CreateDeserializer(entity.GetType());
-			var values = func(entity);
-			var properties = entity.GetType().GetProperties()
-				.Select(s => new PropertyEntry(entity, s, values[s.Name]))
-				.ToList();
-			var entry = new InternalEntityEntry(entity, properties);
-			_entryReferences.Add(entity, entry);
-			return entry;
-		}
+        public IEnumerable<EntityEntry<T>> Entries<T>()
+        {
+            return _entryReferences.Values
+                .Where(a => a.GetType() == typeof(T))
+                .Select(s => new EntityEntry<T>(s));
+        }
 
-		private EntityEntry<T> CreateEntry<T>(T entity)
-		{
-			var entry = CreateEntry(entity);
-			return new EntityEntry<T>(entry);
-		}
+        public EntityEntry Find(Type entityType, object key)
+        {
+            foreach (var entry in _entryReferences.Values.Where(a => a.Type == entityType))
+            {
+                var entity = entry.Find(key);
+                if (entity != null)
+                {
+                    return entry;
+                }
+            }
+            return null;
+        }
 
-		internal void Clear()
-		{
-			_entryReferences.Clear();
-		}
-	}
+        public EntityEntry TrackGraph(object entity)
+        {
+            return GetOrCreateEntry(entity);
+        }
+
+        public EntityEntry<T> TrackGraph<T>(T entity)
+        {
+            var entry = GetOrCreateEntry(entity);
+            return new EntityEntry<T>(entry);
+        }
+
+        private EntityEntry GetOrCreateEntry(object entity)
+        {
+            if (_entryReferences.ContainsKey(entity))
+            {
+                return _entryReferences[entity];
+            }
+            return CreateEntry(entity);
+        }
+
+        private EntityEntry CreateEntry(object entity)
+        {
+            var entityType = _model.GetEntityType(entity.GetType());
+            var func = TypeSerializer.CreateDeserializer(entity.GetType());
+            var values = func(entity);
+            var properties = entity.GetType().GetProperties()
+                .Select(property => new PropertyEntry(entityType.GetProperty(property), entity, values[property.Name]))
+                .ToList();
+            var entry = new EntityEntry(entity, entityType, properties);
+            _entryReferences.Add(entity, entry);
+            return entry;
+        }
+
+        private EntityEntry<T> CreateEntry<T>(T entity)
+        {
+            var entry = CreateEntry(entity);
+            return new EntityEntry<T>(entry);
+        }
+
+        internal void Clear()
+        {
+            _entryReferences.Clear();
+        }
+    }
 }

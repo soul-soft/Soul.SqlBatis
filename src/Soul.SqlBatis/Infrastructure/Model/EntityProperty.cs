@@ -1,74 +1,85 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Reflection;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-    public class EntityProperty
+    public interface IEntityProperty
     {
-        public MemberInfo Member { get; }
+        bool IsKey { get; }
+        bool IsIdentity { get; }
+        bool IsNotMapped { get; }
+        PropertyInfo Property { get; }
+        string ColumnName { get; }
+        IReadOnlyCollection<object> Metadata { get; }
+    }
+
+    internal class EntityProperty : IEntityProperty
+    {
+        public PropertyInfo Property { get; }
 
         private AttributeCollection _attributes;
-
-        public IAttributeCollection Attributes => _attributes;
-
-		public bool IsKey
-        {
-            get
-            {
-                return Attributes.Any(a => a is KeyAttribute);
-            }
-        }
-
-		public bool IsIdentity
-		{
-			get
-			{
-				return Attributes.Any(a => a is IdentityAttribute);
-			}
-		}
-
-		public bool IsNotMapped
-        {
-            get
-            {
-                return Attributes.Any(a => a is NotMappedAttribute);
-            }
-        }
-
         
+        public IReadOnlyCollection<object> Metadata => _attributes.Metadata;
+        
+        public bool IsKey
+        {
+            get
+            {
+                return _attributes.Any(a => a is KeyAttribute);
+            }
+        }
+
+        public bool IsIdentity
+        {
+            get
+            {
+                return _attributes.Any(a => a is IdentityAttribute);
+            }
+        }
+
+        public bool IsNotMapped
+        {
+            get
+            {
+                return _attributes.Any(a => a is NotMappedAttribute);
+            }
+        }
+
+
 
         public string ColumnName
         {
             get
             {
-                var columnName = Attributes.Get<ColumnAttribute>()?.Name;
+                var columnName = _attributes.Get<ColumnAttribute>()?.Name;
                 if (!string.IsNullOrEmpty(columnName))
                 {
                     return columnName;
                 }
-                return Member.Name;
+                return Property.Name;
             }
         }
 
         public EntityProperty(MemberInfo member)
         {
-            Member = member;
+            Property = member as PropertyInfo;
             _attributes = new AttributeCollection(member.GetCustomAttributes());
-            if (string.Equals(Member.Name, "Id", System.StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(Property.Name, "Id", System.StringComparison.OrdinalIgnoreCase))
             {
-                HasAnnotation(new KeyAttribute());
-                HasAnnotation(new IdentityAttribute());
+                SetAnnotation(new KeyAttribute());
+                SetAnnotation(new IdentityAttribute());
             }
         }
 
-		internal void HasAnnotation(object value)
+        public void SetAnnotation(object value)
         {
-			_attributes.Set(value);
+            _attributes.Set(value);
         }
 
-        internal void RemoveAnnotation<T>()
+        public void RemoveAnnotation<T>()
         {
             _attributes.Remove(typeof(T));
         }

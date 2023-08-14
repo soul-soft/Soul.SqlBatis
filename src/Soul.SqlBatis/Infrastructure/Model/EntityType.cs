@@ -6,39 +6,23 @@ using System.Reflection;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-    public class EntityType
+    public interface IEntityType
+    {
+        Type Type { get; }
+        string Schema { get; }
+        string TableName { get; }
+        IReadOnlyCollection<object> Metadata { get; }
+        IReadOnlyCollection<IEntityProperty> Properties { get; }
+        IEntityProperty GetProperty(MemberInfo member);
+    }
+
+    internal class EntityType: IEntityType
     {
         public Type Type { get; }
-
+        
         private AttributeCollection _attributes;
-
-        public IAttributeCollection Attributes => _attributes;
-
-
-		public IReadOnlyCollection<EntityProperty> Properties { get; }
-
-        public string Schema
-        {
-            get
-            {
-                var name = Attributes.Get<TableAttribute>()?.Schema;
-                return name ?? string.Empty;
-            }
-        }
-
-        public virtual string TableName
-        {
-            get
-            {
-                var name = Attributes.Get<TableAttribute>()?.Name;
-                if (!string.IsNullOrEmpty(name))
-                {
-                    return name;
-                }
-                return Type.Name;
-            }
-
-        }
+       
+        public IReadOnlyCollection<IEntityProperty> Properties { get; }
 
         public EntityType(Type type)
         {
@@ -49,14 +33,39 @@ namespace Soul.SqlBatis.Infrastructure
                 .ToList();
         }
 
-        public virtual EntityProperty GetProperty(MemberInfo member)
+        public IReadOnlyCollection<object> Metadata => _attributes.Metadata;
+
+        public string Schema
         {
-            return Properties.Where(a => a.Member == member).FirstOrDefault();
+            get
+            {
+                var name = _attributes.Get<TableAttribute>()?.Schema;
+                return name ?? string.Empty;
+            }
+        }
+
+        public virtual string TableName
+        {
+            get
+            {
+                var name = _attributes.Get<TableAttribute>()?.Name;
+                if (!string.IsNullOrEmpty(name))
+                {
+                    return name;
+                }
+                return Type.Name;
+            }
+
+        }
+
+        public virtual IEntityProperty GetProperty(MemberInfo member)
+        {
+            return Properties.Where(a => a.Property == member).FirstOrDefault();
         }
 
         public void HasAnnotation(object annotation)
         {
-			_attributes.Set(annotation);
+            _attributes.Set(annotation);
         }
     }
 }

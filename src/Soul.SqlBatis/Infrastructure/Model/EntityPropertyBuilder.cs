@@ -1,25 +1,24 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-	public class EntityPropertyBuilder
+    public class EntityPropertyBuilder
 	{
 		private readonly EntityProperty _property;
 
-		public EntityPropertyBuilder(EntityProperty property)
+		public EntityPropertyBuilder(IEntityProperty property)
 		{
-			_property = property;
+			_property = property as EntityProperty;
 		}
 
 		public void HasColumnName(string name)
 		{
-			_property.HasAnnotation(new ColumnAttribute(name));
+			_property.SetAnnotation(new ColumnAttribute(name));
 		}
 
 		public void HasAnnotation(object annotation)
 		{
-			_property.HasAnnotation(annotation);
+			_property.SetAnnotation(annotation);
 		}
 
 		public void ValueGeneratedNever()
@@ -31,7 +30,7 @@ namespace Soul.SqlBatis.Infrastructure
 	public class EntityPropertyBuilder<T> : EntityPropertyBuilder
 		where T : class
 	{
-		public EntityPropertyBuilder(EntityProperty property)
+		public EntityPropertyBuilder(IEntityProperty property)
 			: base(property)
 		{
 

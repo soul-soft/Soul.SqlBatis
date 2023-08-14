@@ -1,62 +1,84 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-	public abstract class EntityEntry
-	{
-		public object Entity { get; }
+    public class EntityEntry : IEntityType
+    {
+        public object Entity { get; }
+     
+        internal IEntityType EntityType { get; }
+       
+        public EntityEntry(object entity, IEntityType entityType, IReadOnlyCollection<PropertyEntry> properties)
+        {
+            Entity = entity;
+            EntityType = entityType;
+            Properties = properties;
+        }
 
-		private EntityState _state;
+        private EntityState _state;
 
-		public virtual EntityState State
-		{
-			get
-			{
-				if (_state == EntityState.Unchanged && Properties.Any(a => a.IsModified))
-				{
-					_state = EntityState.Modified;
-					return EntityState.Modified;
-				}
-				return _state;
-			}
-			set
-			{
-				_state = value;
-			}
-		}
+        public virtual EntityState State
+        {
+            get
+            {
+                if (_state == EntityState.Unchanged && Properties.Any(a => a.IsModified))
+                {
+                    _state = EntityState.Modified;
+                    return EntityState.Modified;
+                }
+                return _state;
+            }
+            set
+            {
+                _state = value;
+            }
+        }
 
-		public virtual IReadOnlyCollection<PropertyEntry> Properties { get; }
+        public virtual IReadOnlyCollection<PropertyEntry> Properties { get; }
 
-		public EntityEntry(object entity, IReadOnlyCollection<PropertyEntry> properties)
-		{
-			Entity = entity;
-			Properties = properties;
-		}
-	}
+        public Type Type => EntityType.Type;
 
-	internal class InternalEntityEntry : EntityEntry
-	{
-		public InternalEntityEntry(object entity, IReadOnlyCollection<PropertyEntry> properties)
-			: base(entity, properties)
-		{
-		}
-	}
+        public string Schema => EntityType.Schema;
 
-	public class EntityEntry<T> : EntityEntry
-	{
-		private readonly EntityEntry _entry;
+        public string TableName => EntityType.TableName;
 
-		public new T Entity => (T)_entry.Entity;
+        public IReadOnlyCollection<object> Metadata => EntityType.Metadata;
 
-		public override EntityState State { get => _entry.State; set => _entry.State = value; }
+        IReadOnlyCollection<IEntityProperty> IEntityType.Properties => EntityType.Properties;
 
-		public override IReadOnlyCollection<PropertyEntry> Properties => _entry.Properties;
+        public object Find(object key)
+        {
+            var keyValue = Properties.Where(a => a.IsKey).Select(s => s.OriginalValue).First();
+            if (key.Equals(keyValue))
+            {
+                return Entity;
+            }
+            return default;
+        }
 
-		internal EntityEntry(EntityEntry entry)
-			: base(entry.Entity, entry.Properties)
-		{
-			_entry = entry;
-		}
-	}
+        public IEntityProperty GetProperty(MemberInfo member)
+        {
+            return EntityType.GetProperty(member);
+        }
+    }
+
+    public class EntityEntry<T> : EntityEntry
+    {
+        private readonly EntityEntry _entry;
+
+        public new T Entity => (T)_entry.Entity;
+
+        public override EntityState State { get => _entry.State; set => _entry.State = value; }
+
+        public override IReadOnlyCollection<PropertyEntry> Properties => _entry.Properties;
+
+        internal EntityEntry(EntityEntry entry)
+            : base(entry.Entity, entry.EntityType, entry.Properties)
+        {
+            _entry = entry;
+        }
+    }
 }

@@ -11,7 +11,7 @@ namespace Soul.SqlBatis.Infrastructure
 	{
 		private EntityType _entityType;
 
-		public EntityTypeBuilder(EntityType entityType)
+		internal EntityTypeBuilder(EntityType entityType)
 		{
 			_entityType = entityType;
 		}
@@ -141,16 +141,20 @@ namespace Soul.SqlBatis.Infrastructure
 			return member;
 		}
 
-		protected EntityProperty GetProperty(MemberInfo member)
+		protected IEntityProperty GetProperty(MemberInfo member)
 		{
-			return _entityType.GetProperty(member);
+			if (member is PropertyInfo property)
+			{
+				return _entityType.GetProperty(property);
+			}
+			throw new InvalidCastException();
 		}
 	}
 
 	public class EntityTypeBuilder<T> : EntityTypeBuilder
 		where T : class
 	{
-		public EntityTypeBuilder(EntityType target) 
+		internal EntityTypeBuilder(EntityType target) 
 			: base(target)
 		{
 		}
