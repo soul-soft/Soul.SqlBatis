@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Soul.SqlBatis.Infrastructure
@@ -18,27 +17,24 @@ namespace Soul.SqlBatis.Infrastructure
         public int SaveChanges()
         {
             var row = 0;
-            var entries = _context.ChangeTracker.Entries()
-                .Where(a => a.State == EntityState.Added || a.State == EntityState.Modified || a.State == EntityState.Deleted)
-                .ToList();
-            if (!entries.Any())
+            if (!HasChanges())
             {
                 return row;
             }
+
             IDbContextTransaction transaction = null;
             var hasActiveDbTransaction = _context.CurrentTransaction != null;
             try
             {
-                transaction = hasActiveDbTransaction ?
-                    _context.CurrentTransaction
-                    : _context.BeginTransaction();
+                transaction = hasActiveDbTransaction ? _context.CurrentTransaction : _context.BeginTransaction();
+                var entries = _context.ChangeTracker.Entries();
                 foreach (var entry in entries)
                 {
                     if (entry.State == EntityState.Added)
                     {
                         row += ExecuteInsert(entry);
                     }
-                    else if (entry.State == EntityState.Modified)
+                    else if (entry.State == EntityState.Modified || entry.State == EntityState.Unchanged)
                     {
                         row += ExecuteUpdate(entry);
                     }
@@ -66,10 +62,7 @@ namespace Soul.SqlBatis.Infrastructure
         public async Task<int> SaveChangesAsync()
         {
             var row = 0;
-            var entries = _context.ChangeTracker.Entries()
-                .Where(a => a.State == EntityState.Added || a.State == EntityState.Modified || a.State == EntityState.Deleted)
-                .ToList();
-            if (!entries.Any())
+            if (!HasChanges())
             {
                 return row;
             }
@@ -77,16 +70,15 @@ namespace Soul.SqlBatis.Infrastructure
             var hasActiveDbTransaction = _context.CurrentTransaction != null;
             try
             {
-                transaction = hasActiveDbTransaction ?
-                    _context.CurrentTransaction
-                    : await _context.BeginTransactionAsync();
+                transaction = hasActiveDbTransaction ? _context.CurrentTransaction : await _context.BeginTransactionAsync();
+                var entries = _context.ChangeTracker.Entries();
                 foreach (var entry in entries)
                 {
                     if (entry.State == EntityState.Added)
                     {
                         row += await ExecuteInsertAsync(entry);
                     }
-                    else if (entry.State == EntityState.Modified)
+                    else if (entry.State == EntityState.Modified || entry.State == EntityState.Unchanged)
                     {
                         row += await ExecuteUpdateAsync(entry);
                     }
@@ -109,6 +101,13 @@ namespace Soul.SqlBatis.Infrastructure
                 }
             }
             return row;
+        }
+
+        public bool HasChanges()
+        {
+            return _context.ChangeTracker.Entries()
+               .Where(a => a.State == EntityState.Added || a.State == EntityState.Modified || a.State == EntityState.Deleted || a.Properties.Any(p => p.IsModified))
+               .Any();
         }
 
         public static void SetIdentityPropertyValue(EntityEntry entityEntry, object identity)
@@ -151,8 +150,7 @@ namespace Soul.SqlBatis.Infrastructure
 
         private int ExecuteInsert(EntityEntry entry)
         {
-            var sql = BuildInsertSql(entry);
-            var values = entry.Properties.ToDictionary(s => s.Property.Name, s => s.CurrentValue);
+            var (sql, values) = BuildInsertSql(entry);
             if (!entry.Properties.Any(a => a.IsIdentity))
             {
                 return _context.Execute(sql, values);
@@ -164,8 +162,7 @@ namespace Soul.SqlBatis.Infrastructure
 
         private async Task<int> ExecuteInsertAsync(EntityEntry entry)
         {
-            var sql = BuildInsertSql(entry);
-            var values = entry.Properties.ToDictionary(s => s.Property.Name, s => s.CurrentValue);
+            var (sql, values) = BuildInsertSql(entry);
             if (!entry.Properties.Any(a => a.IsIdentity))
             {
                 return await _context.ExecuteAsync(sql, values);
@@ -178,77 +175,80 @@ namespace Soul.SqlBatis.Infrastructure
 
         private int ExecuteUpdate(EntityEntry entityEntry)
         {
-            var sql = BuildUpdateSql(entityEntry);
-            var values = entityEntry.Properties
-                .Where(a => !a.IsNotMapped)
-                .Where(a => a.IsModified || a.IsKey)
-                .ToDictionary(s => s.Property.Name, s => s.CurrentValue);
+            var (sql, values) = BuildUpdateSql(entityEntry);
             return _context.Execute(sql, values);
         }
 
         private Task<int> ExecuteUpdateAsync(EntityEntry entityEntry)
         {
-            var sql = BuildUpdateSql(entityEntry);
-            var values = entityEntry.Properties
-                .Where(a => !a.IsNotMapped)
-                .Where(a => a.IsModified || a.IsKey)
-                .ToDictionary(s => s.Property.Name, s => s.CurrentValue);
+            var (sql, values) = BuildUpdateSql(entityEntry);
             return _context.ExecuteAsync(sql, values);
         }
 
         private int ExecuteDelete(EntityEntry entityEntry)
         {
-            var sql = BuildDeleteSql(entityEntry);
-            var values = entityEntry.Properties
-                .Where(a => a.IsKey)
-                .ToDictionary(s => s.Property.Name, s => s.OriginalValue);
+            var (sql, values) = BuildDeleteSql(entityEntry);
             return _context.Execute(sql, values);
         }
 
         private Task<int> ExecuteDeleteAsync(EntityEntry entityEntry)
         {
-            var sql = BuildDeleteSql(entityEntry);
-            var values = entityEntry.Properties
-                .Where(a => a.IsKey)
-                .ToDictionary(s => s.Property.Name, s => s.OriginalValue);
+            var (sql, values) = BuildDeleteSql(entityEntry);
             return _context.ExecuteAsync(sql, values);
         }
 
-        private static string BuildInsertSql(EntityEntry entityEntry)
+        private static (string, object) BuildInsertSql(EntityEntry entityEntry)
         {
+            var func = TypeSerializer.CreateDeserializer(entityEntry.Type);
             var properties = entityEntry.Properties
                 .Where(a => !a.IsNotMapped)
                 .Where(a => !a.IsIdentity);
             var columns = properties.Select(s => s.ColumnName);
+            var values = func(entityEntry.Entity);
+            values = values.Where(a => properties.Any(p => p.Property.Name == a.Key)).ToDictionary(s => s.Key, s => s.Value);
             var parameters = properties.Select(s => $"@{s.Property.Name}");
             var sql = $"INSERT INTO {entityEntry.TableName} ({string.Join(",", columns)}) VALUES ({string.Join(",", parameters)})";
             if (entityEntry.Properties.Any(a => a.IsIdentity))
             {
-                return $"{sql};SELECT LAST_INSERT_ID();";
+                return ($"{sql};SELECT LAST_INSERT_ID();", values);
             }
-            return sql;
+            return (sql, values);
         }
 
-        private static string BuildUpdateSql(EntityEntry entityEntry)
+        private static (string, object) BuildUpdateSql(EntityEntry entityEntry)
         {
-            var columns = entityEntry.Properties
-                .Where(a => !a.IsKey)
-                .Where(a => !a.IsNotMapped)
-                .Where(a => a.IsModified)
-                .Select(s => $"{s.ColumnName} = @{s.Property.Name}");
-            var wheres = BuildWhereSql(entityEntry);
-            var sql = $"UPDATE {entityEntry.TableName} SET {string.Join(", ", columns)} WHERE {string.Join(" AND ", wheres)}";
-            return sql;
+            if (entityEntry.State == EntityState.Modified)
+            {
+                var properties = entityEntry.Properties
+                    .Where(a => !a.IsNotMapped);
+                var columns = properties.Where(a => !a.IsKey).Select(s => $"{s.ColumnName} = @{s.Property.Name}");
+                var values = properties.ToDictionary(s => s.Property.Name, s => s.CurrentValue);
+                var wheres = BuildWhereSql(entityEntry);
+                var sql = $"UPDATE {entityEntry.TableName} SET {string.Join(", ", columns)} WHERE {string.Join(" AND ", wheres)}";
+                return (sql, values);
+            }
+            else
+            {
+                var properties = entityEntry.Properties
+                    .Where(a => !a.IsNotMapped)
+                    .Where(a => a.IsKey || a.IsModified);
+                var columns = properties.Where(a => !a.IsKey).Select(s => $"{s.ColumnName} = @{s.Property.Name}");
+                var values = properties.ToDictionary(s => s.Property.Name, s => s.CurrentValue);
+                var wheres = BuildWhereSql(entityEntry);
+                var sql = $"UPDATE {entityEntry.TableName} SET {string.Join(", ", columns)} WHERE {string.Join(" AND ", wheres)}";
+                return (sql, values);
+            }
         }
 
-        private static string BuildDeleteSql(EntityEntry entityEntry)
+        private static (string, object) BuildDeleteSql(EntityEntry entityEntry)
         {
             var wheres = BuildWhereSql(entityEntry);
-            var parameters = entityEntry.Properties
-                .Where(a => a.IsKey)
-                .Select(s => $"@{s.Property.Name}");
+            var properties = entityEntry.Properties
+                .Where(a => a.IsKey);
+            var values = properties
+                .ToDictionary(s => s.Property.Name, s => s.OriginalValue);
             var sql = $"DELETE FROM {entityEntry.TableName} WHERE {wheres}";
-            return sql;
+            return (sql, values);
         }
 
         private static string BuildWhereSql(IEntityType entityEntry)

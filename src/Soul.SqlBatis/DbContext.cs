@@ -54,7 +54,7 @@ namespace Soul.SqlBatis
         }
 
         public T Find<T>(object key)
-        {             
+        {
             var entityEntry = ChangeTracker.Find(typeof(T), key);
             if (entityEntry != null)
             {
@@ -104,13 +104,19 @@ namespace Soul.SqlBatis
         public void Update<T>(T entity)
             where T : class
         {
-            var key = _model.GetEntityType(typeof(T)).Properties.Where(a => a.IsKey).First().Property.GetValue(entity);
-            var entry = Find<T>(key);
+            if (ChangeTracker.HasEntry(entity))
+            {
+                return;
+            }
             Entry(entity).State = EntityState.Modified;
         }
 
         public void Update(object entity)
         {
+            if (ChangeTracker.HasEntry(entity))
+            {
+                return;
+            }
             Entry(entity).State = EntityState.Modified;
         }
 

@@ -168,6 +168,10 @@ namespace Soul.SqlBatis
 			int index = 0;
 			foreach (var item in (IEnumerable)param)
 			{
+				if (item == null)
+				{
+					continue;
+				}
 				var key = $"{name}_{index}";
 				command.AddParameter(key, item);
 				names.Add(key);

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace Soul.SqlBatis.Infrastructure
@@ -6,8 +7,10 @@ namespace Soul.SqlBatis.Infrastructure
     public class PropertyEntry : IEntityProperty
     {
         public object Entity { get; }
-     
+
         private IEntityProperty _entityProperty;
+
+        private object _currentValue;
 
         public PropertyEntry(IEntityProperty property, object entity, object originalValue)
         {
@@ -16,7 +19,18 @@ namespace Soul.SqlBatis.Infrastructure
             OriginalValue = originalValue;
         }
 
-        public object CurrentValue => _entityProperty.Property.GetValue(Entity);
+        [DebuggerHidden]
+        public object CurrentValue
+        {
+            get
+            {
+                if (_currentValue == null)
+                {
+                    _currentValue = _entityProperty.Property.GetValue(Entity);
+                }
+                return _currentValue;
+            }
+        }
 
         public object OriginalValue { get; }
 
@@ -24,10 +38,6 @@ namespace Soul.SqlBatis.Infrastructure
         {
             get
             {
-                if (ReferenceEquals(CurrentValue, OriginalValue))
-                {
-                    return false;
-                }
                 if (CurrentValue == null && OriginalValue == null)
                 {
                     return false;
@@ -36,11 +46,7 @@ namespace Soul.SqlBatis.Infrastructure
                 {
                     return !CurrentValue.Equals(OriginalValue);
                 }
-                if (OriginalValue != null)
-                {
-                    return !OriginalValue.Equals(CurrentValue);
-                }
-                return CurrentValue != OriginalValue;
+                return !OriginalValue.Equals(CurrentValue);
             }
         }
 

@@ -20,6 +20,11 @@ namespace Soul.SqlBatis.Infrastructure
             return _entryReferences.Values;
         }
 
+        public bool HasEntry(object entry)
+        {
+            return _entryReferences.Keys.Any(a => ReferenceEquals(a, entry));
+        }
+
         public IEnumerable<EntityEntry<T>> Entries<T>()
         {
             return _entryReferences.Values
@@ -29,12 +34,12 @@ namespace Soul.SqlBatis.Infrastructure
 
         public EntityEntry Find(Type type, object key)
         {
-            var entityType = _model.GetEntityType(type);
-            var keyProperty = entityType.Properties.Where(a => a.IsKey).First().Property;
+            var property = _model.GetEntityType(type).Properties.Where(a => a.IsKey).Select(s => s.Property).First();
+            var changeKey = Convert.ChangeType(key, property.PropertyType);
             foreach (var entry in _entryReferences.Values.Where(a => a.Type == type))
             {
-                var cacheKey = entry.Properties.Where(a => a.IsKey).Select(s=>s.OriginalValue).First();
-                if (cacheKey.Equals(key))
+                var cacheKey = entry.Properties.Where(a => a.IsKey).Select(s => s.OriginalValue).First();
+                if (cacheKey.Equals(changeKey))
                 {
                     return entry;
                 }
@@ -71,6 +76,7 @@ namespace Soul.SqlBatis.Infrastructure
                 .Select(property => new PropertyEntry(entityType.GetProperty(property), entity, values[property.Name]))
                 .ToList();
             var entry = new EntityEntry(entity, entityType, properties);
+            entry.State = EntityState.Unchanged;
             _entryReferences.Add(entity, entry);
             return entry;
         }
