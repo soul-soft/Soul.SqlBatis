@@ -126,7 +126,12 @@ namespace Soul.SqlBatis.Infrastructure
             var values = new Dictionary<string, object>();
             var keyProperty = entityType.Properties.Where(a => a.IsKey).First();
             values.Add(keyProperty.Property.Name, key);
-            return _context.Query<T>(sql, values).FirstOrDefault();
+            var entity = _context.Query<T>(sql, values).FirstOrDefault();
+            if (entity != null)
+            {
+                _context.ChangeTracker.TrackGraph(entity);
+            }
+            return entity;
         }
 
         public async Task<T> FindAsync<T>(object key)
@@ -136,7 +141,12 @@ namespace Soul.SqlBatis.Infrastructure
             var values = new Dictionary<string, object>();
             var keyProperty = entityType.Properties.Where(a => a.IsKey).First();
             values.Add(keyProperty.Property.Name, key);
-            return (await _context.QueryAsync<T>(sql, values)).FirstOrDefault();
+            var entity = (await _context.QueryAsync<T>(sql, values)).FirstOrDefault();
+            if (entity != null)
+            {
+                _context.ChangeTracker.TrackGraph(entity);
+            }
+            return entity;
         }
 
         private int ExecuteInsert(EntityEntry entry)
