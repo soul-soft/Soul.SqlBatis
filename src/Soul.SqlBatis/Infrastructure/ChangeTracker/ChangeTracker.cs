@@ -27,12 +27,14 @@ namespace Soul.SqlBatis.Infrastructure
                 .Select(s => new EntityEntry<T>(s));
         }
 
-        public EntityEntry Find(Type entityType, object key)
+        public EntityEntry Find(Type type, object key)
         {
-            foreach (var entry in _entryReferences.Values.Where(a => a.Type == entityType))
+            var entityType = _model.GetEntityType(type);
+            var keyProperty = entityType.Properties.Where(a => a.IsKey).First().Property;
+            foreach (var entry in _entryReferences.Values.Where(a => a.Type == type))
             {
-                var entity = entry.Find(key);
-                if (entity != null)
+                var cacheKey = entry.Properties.Where(a => a.IsKey).Select(s=>s.OriginalValue).First();
+                if (cacheKey.Equals(key))
                 {
                     return entry;
                 }

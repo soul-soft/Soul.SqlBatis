@@ -49,16 +49,6 @@ namespace Soul.SqlBatis.Infrastructure
 
         IReadOnlyCollection<IEntityProperty> IEntityType.Properties => EntityType.Properties;
 
-        public object Find(object key)
-        {
-            var keyValue = Properties.Where(a => a.IsKey).Select(s => s.OriginalValue).First();
-            if (key.Equals(keyValue))
-            {
-                return Entity;
-            }
-            return default;
-        }
-
         public IEntityProperty GetProperty(MemberInfo member)
         {
             return EntityType.GetProperty(member);

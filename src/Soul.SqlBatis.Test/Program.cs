@@ -14,6 +14,6 @@ var context = new MyDbContext(new DbContextOptions
 var students = context.Students.Where(a => a.Id == 2)
 	.AsTracking()
 	.First();
-students.Name = "aaf";
+var student = context.Find<Student>(2);
 var row = await context.SaveChangesAsync();
 Console.WriteLine();
