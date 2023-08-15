@@ -4,8 +4,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
 	  <Copyright>MIT</Copyright>
 	  <RepositoryUrl>https://github.com/soul-soft/Soul.SqlBatis</RepositoryUrl>
-	  <Version>1.1.0-beta008</Version>
-	  <PackageReleaseNotes>预览版</PackageReleaseNotes>
+	  <Version>1.1.0-beta009</Version>
+	  <PackageReleaseNotes>支持json</PackageReleaseNotes>
 	  <Description>宇宙无敌orm，不接受任何反驳！！！</Description>
   </PropertyGroup>
 
