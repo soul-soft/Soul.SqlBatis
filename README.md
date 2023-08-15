@@ -69,7 +69,7 @@ var context = new MyDbContext(new DbContextOptions
 
 ## 更改跟踪
 
-要支持实体跟踪，请重写Entity的Equal和HashCode为主键字段，默认以实体的引用地址作为跟踪标识。【常识】
+要支持实体跟踪，请重写Entity的Equal和HashCode为主键字段，默认以实体的引用地址作为跟踪标识。【常识】，底层实现原理是这样的。TypeSerializer采用Emit技术动态创建一个解构器（会缓存），把实体转换成字典，记录此原始值。也就是说他是基于引用（内存地址）进行更改跟踪的。这有一个弊端，如果字段是一个引用类型，那么无法记录它的原生值，比如json类型。因此json类型建议使用值类型，或者更新时构造一个新的对象。
 
 - 主动告知
 
@@ -89,11 +89,120 @@ var context = new MyDbContext(new DbContextOptions
   ```C#
   var student = context.Students
   	.Where(a => a.Id == 1)
-  	.AsTracking()//数据量大慎用，底层采用反射
+  	.AsTracking()
   	.First();
   student.Name = "zs";
-  context.SaveChanges();
+  context.SaveChanges();		
   ```
+  
+
+- 实体状态
+
+  ```c#
+  //状态被标记为UnChanged，并且永不改变，此时SqlBatis会和原始值进行比对，如果字段被修改则只更新修改的字段
+  var student1 = context.Students
+  	.Where(a => a.Id == 1)
+      .AsTracking()
+  	.First();
+  student1.Name = "cw";
+  var student2 = new Student
+  {
+  	Name = "zs"    
+  };
+  //实体被标记为Added，保存之后返回自增id
+  context.Add(student2);
+  var student3 = new Student
+  {
+      Id = 2,
+  	Name = "zs"    
+  };
+  //实体被标记为Modified，由于数据上下文没有对student3进行跟踪，无法知道它的原始值，无法判断哪些字段被修改了，此时将执行全量字段更新（考虑到查询一次对数据一样有压力）
+  context.Update(student3);
+  //实体被标记为Deleted
+  context.Delete(new 
+  {
+  	Id = 3    
+  });
+  ```
+
+- json
+
+  1. json类型必须通过JsonValue注解类型，对于json数组，框架内置了一个JsonArray，并实现了更改跟踪。
+
+  2. 由于SqlBatis是基于内存地址进行更改跟踪的，对于引用类型将失效。json对象建议使用结构体或者record（这符合值对象设计原则）或者你可以实现INotifyPropertyChanged接口
+
+  ```C#
+  //使用值类型，值类型clr采用值复制的方式，禁用属性更改功能
+  [JsonValue]//如果作为JsonArray的泛型参数，无需此标记
+  public struct Address
+  {
+      public string City { get; set; }
+  }
+  //不推荐
+  [JsonValue]//如果作为JsonArray的泛型参数，无需此标记
+  public class Address : INotifyPropertyChanged
+  {
+      private string _city;
+      
+      public string City 
+      { 
+          get
+          {
+              return _city;
+          }
+          set
+          {
+              _city = value;
+              NotifyPropertyChanged();
+          }
+      }
+      
+      public event PropertyChangedEventHandler PropertyChanged;
+  
+  	private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+  	{
+  		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+  	}
+  }
+  
+  [Table("students")]
+  public class Student
+  {
+      public uint Id { get; set; }
+  
+      public string Name { get; set; }
+  
+      public string FirstName { get; set; }
+  
+      public DateTime CreationTime { get; set; }
+      
+      //Address类型上必须使用JsonValue进行标记
+  	public Address Address { get; set; }
+      
+      //Address类型上无需使用JsonValue进行标记
+      public JsonArray<Address> Addresses { get; set; }
+  
+      public override bool Equals(object? obj)
+      {
+          if (obj == null || !(obj is Student))
+              return false;
+          if (ReferenceEquals(this, obj))
+          {
+              return true;
+          }
+          var other = (Student)obj;
+          return Id == other.Id;
+      }
+  
+      public override int GetHashCode()
+      {
+          return Id.GetHashCode();
+      }
+  }
+  
+  ```
+
+  
 
 ## 保存数据
 

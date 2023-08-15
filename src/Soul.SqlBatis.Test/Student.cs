@@ -6,8 +6,33 @@ namespace Soul.SqlBatis.Test
 {
 	public class Address : INotifyPropertyChanged
 	{
-		public string P { get; set; }
-		public string C { get; set; }
+		private string _p;
+		public string P
+		{
+			get
+			{
+				return _p;
+			}
+			set
+			{
+				_p = value;
+				NotifyPropertyChanged();
+			}
+		}
+		private string _c;
+		public string C 
+		{
+			get 
+			{
+				return _c;
+			}
+			set
+			{
+				_c = value;
+				NotifyPropertyChanged();
+
+			}
+		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
