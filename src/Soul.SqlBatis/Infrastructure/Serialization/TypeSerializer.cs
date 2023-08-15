@@ -34,7 +34,7 @@ namespace Soul.SqlBatis
 			var key = CreateSerializerCacheKey(typeof(T), record);
 			return _serializers.GetOrAdd(key, _ =>
 			{
-				return CreateDynamicSerializer<T>(record);
+				return CreateEmitSerializer<T>(record);
 			}) as Func<IDataRecord, T>;
 		}
 		/// <summary>
@@ -76,14 +76,14 @@ namespace Soul.SqlBatis
 			}
 			return _deserializers.GetOrAdd(type, _ =>
 			{
-				return CreateDynamicDeserializer(type);
+				return CreateEmitDeserializer(type);
 			});
 		}
 		/// <summary>
 		/// 创建对象解构器
 		/// </summary>
 		/// <returns></returns>
-		public static Func<object, Dictionary<string, object>> CreateDynamicDeserializer(Type type)
+		public static Func<object, Dictionary<string, object>> CreateEmitDeserializer(Type type)
 		{
 			var resultType = typeof(Dictionary<string, object>);
 			var properties = type.GetProperties();
@@ -120,7 +120,7 @@ namespace Soul.SqlBatis
 		/// <param name="record"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public static Func<IDataRecord, T> CreateDynamicSerializer<T>(IDataRecord record)
+		public static Func<IDataRecord, T> CreateEmitSerializer<T>(IDataRecord record)
 		{
 			var entityType = typeof(T);
 			if (record.FieldCount == 1 && HasConverter(entityType))
@@ -128,7 +128,7 @@ namespace Soul.SqlBatis
 				var dynamicMethod = new DynamicMethod($"Adpt", entityType, new Type[] { typeof(IDataRecord) }, true);
 				var generator = dynamicMethod.GetILGenerator();
 				var local = generator.DeclareLocal(entityType);
-				var converterMethod = FindConverter(entityType);
+				var converterMethod = FindSerializerConverter(entityType);
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldc_I4, 0);
 				if (converterMethod.IsVirtual)
@@ -160,7 +160,7 @@ namespace Soul.SqlBatis
 					{
 						continue;
 					}
-					var converterMethod = FindConverter(property.PropertyType);
+					var converterMethod = FindSerializerConverter(property.PropertyType);
 					generator.Emit(OpCodes.Ldloc, entityReference);
 					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Ldc_I4, item.Ordinal);
@@ -191,7 +191,7 @@ namespace Soul.SqlBatis
 				{
 					var parameter = FindParameter(constructor, item.Name);
 					int parameterIndex = parameters.IndexOf(parameter);
-					var converterMethod = FindConverter(item.Type);
+					var converterMethod = FindSerializerConverter(item.Type);
 					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Ldc_I4, item.Ordinal);
 					if (converterMethod.IsVirtual)
@@ -241,7 +241,7 @@ namespace Soul.SqlBatis
 		/// <param name="type"></param>
 		/// <returns></returns>
 		/// <exception cref="InvalidCastException"></exception>
-		private static MethodInfo FindConverter(Type type)
+		private static MethodInfo FindSerializerConverter(Type type)
 		{
 			MethodInfo method;
 			if (GetUnderlyingType(type).IsEnum)
