@@ -1,65 +1,101 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-    public class PropertyEntry : IEntityProperty
-    {
-        public object Entity { get; }
+	public class PropertyEntry : IEntityProperty
+	{
+		public object Entity { get; }
 
-        private readonly IEntityProperty _entityProperty;
+		private readonly IEntityProperty _property;
 
-        private object _currentValue;
+		private object _currentValue;
 
-        public PropertyEntry(IEntityProperty property, object entity, object originalValue)
-        {
-            _entityProperty = property;
-            Entity = entity;
-            OriginalValue = originalValue;
-        }
+		private bool? _isModified;
 
-        [DebuggerHidden]
-        public object CurrentValue
-        {
-            get
-            {
-                if (_currentValue == null)
-                {
-                    _currentValue = _entityProperty.Property.GetValue(Entity);
-                }
-                return _currentValue;
-            }
-        }
+		public PropertyEntry(IEntityProperty property, object entity, object originalValue)
+		{
+			_property = property;
+			Entity = entity;
+			OriginalValue = originalValue;
+			ListenChange();
+		}
 
-        public object OriginalValue { get; }
+		private void ListenChange()
+		{
+			if (OriginalValue != null && OriginalValue is INotifyCollectionChanged notifyCollectionChanged)
+			{
+				notifyCollectionChanged.CollectionChanged += NotifyCollectionChanged;
+			}
+			else if (OriginalValue != null && OriginalValue is INotifyPropertyChanged notifyPropertyChanged)
+			{
+				notifyPropertyChanged.PropertyChanged += NotifyPropertyChanged;
+			}
+		}
 
-        public bool IsModified
-        {
-            get
-            {
-                if (CurrentValue == null && OriginalValue == null)
-                {
-                    return false;
-                }
-                if (CurrentValue != null)
-                {
-                    return !CurrentValue.Equals(OriginalValue);
-                }
-                return !OriginalValue.Equals(CurrentValue);
-            }
-        }
+		private void NotifyCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+		{
+			_isModified = true;
+		}
 
-        public bool IsKey => _entityProperty.IsKey;
+		private void NotifyPropertyChanged(object sender, PropertyChangedEventArgs e)
+		{
+			_isModified = true;
+		}
 
-        public bool IsIdentity => _entityProperty.IsIdentity;
+		[DebuggerHidden]
+		public object CurrentValue
+		{
+			get
+			{
+				if (_currentValue == null)
+				{
+					_currentValue = _property.Property.GetValue(Entity);
+				}
+				return _currentValue;
+			}
+		}
 
-        public bool IsNotMapped => _entityProperty.IsNotMapped;
+		public object OriginalValue { get; }
 
-        public PropertyInfo Property => _entityProperty.Property;
+		public bool IsModified
+		{
+			get
+			{
+				if (_isModified != null)
+				{
+					return _isModified.Value;
+				}
+				if (CurrentValue == null && OriginalValue == null)
+				{
+					_isModified = false;
+					return false;
+				}
+				if (CurrentValue != null)
+				{
+					_isModified = !CurrentValue.Equals(OriginalValue);
+				}
+				else
+				{
+					_isModified = !OriginalValue.Equals(CurrentValue);
+				}
+				return _isModified.Value;
+			}
+		}
 
-        public string ColumnName => _entityProperty.ColumnName;
+		public bool IsKey => _property.IsKey;
 
-        public IReadOnlyCollection<object> Metadata => _entityProperty.Metadata;
-    }
+		public bool IsIdentity => _property.IsIdentity;
+
+		public bool IsNotMapped => _property.IsNotMapped;
+
+		public PropertyInfo Property => _property.Property;
+
+		public string ColumnName => _property.ColumnName;
+
+		public IReadOnlyCollection<object> Metadata => _property.Metadata;
+	}
 }

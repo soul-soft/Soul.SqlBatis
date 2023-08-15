@@ -21,7 +21,6 @@ namespace Soul.SqlBatis.Infrastructure
 
         public virtual EntityState State { get; internal set; }
 
-
         public virtual IReadOnlyCollection<PropertyEntry> Properties { get; }
 
         public Type Type => EntityType.Type;

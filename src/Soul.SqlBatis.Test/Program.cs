@@ -13,14 +13,13 @@ var context = new MyDbContext(new DbContextOptions
 });
 var student = context.Students
     .AsTracking()
-    .Where(a => DbFunctions.JsonExtract<string>(a.Address, "$.P") == "江西1")
+    .Where(a => a.Id == 6)
     .First();
-student.FirstName = "王";
-student.Address = new Address()
-{
-    P = "江西2",
-    C = "上饶2"
-};
+student.FirstName = "王2";
+//student.Address.Add(new Address 
+//{
+//    P = "faf"
+//});
 var stu = context.Entry(student);
 var row = await context.SaveChangesAsync();
 Console.WriteLine();
