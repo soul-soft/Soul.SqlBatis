@@ -92,9 +92,10 @@ var context = new MyDbContext(new DbContextOptions
   	.AsTracking()
   	.First();
   student.Name = "zs";
+  //Find方法会先从上下文开始查找，如果存在key则，否则发起数据查询，并跟踪实体
+  var student2 = context.Find<Student>(1);
   context.SaveChanges();		
   ```
-  
 
 - 实体状态
 
