@@ -11,10 +11,15 @@ var context = new MyDbContext(new DbContextOptions
     }),
     ConnecionProvider = () => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test")
 });
-var student = new Student
+var student = context.Students
+    .AsTracking()
+    .Where(a => DbFunctions.JsonExtract<string>(a.Address, "$.P") == "浙江")
+    .First();
+student.Address = new Address()
 {
-    Name = "zs"
+    P = "江西",
+    C = "上饶"
 };
-context.Add(student);
+var stu = context.Entry(student);
 var row = await context.SaveChangesAsync();
 Console.WriteLine();

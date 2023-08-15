@@ -158,7 +158,19 @@ namespace Soul.SqlBatis
 		{
 			var parameter = command.CreateParameter();
 			parameter.ParameterName = name;
-			parameter.Value = value ?? DBNull.Value;
+			if (value == null)
+			{
+                parameter.Value = DBNull.Value;
+            }
+			else if(TypeSerializer.IsJson(value.GetType()))
+			{
+				var json = TypeSerializer.JsonSerialize(value);
+                parameter.Value = json;
+			}
+			else
+			{
+				parameter.Value = value;
+			}
 			command.Parameters.Add(parameter);
 		}
 

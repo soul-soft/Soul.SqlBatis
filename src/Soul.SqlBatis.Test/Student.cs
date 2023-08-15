@@ -2,6 +2,12 @@
 
 namespace Soul.SqlBatis.Test
 {
+    [JsonValue]
+    public struct Address
+    {
+        public string P { get; set; }
+        public string C { get; set; }
+    }
     [Table("students")]
     public class Student
     {
@@ -12,6 +18,8 @@ namespace Soul.SqlBatis.Test
 		public string FirstName { get; set; }
 
         public DateTime CreationTime { get; set; }
+
+        public Address Address { get; set; }
 
         public override bool Equals(object? obj)
         {
