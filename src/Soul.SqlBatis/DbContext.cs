@@ -34,7 +34,7 @@ namespace Soul.SqlBatis
             _connection = options.ConnecionProvider();
             _changeTracker = new ChangeTracker(_model);
         }
-
+     
         public DbSet<T> Set<T>()
             where T : class
         {
@@ -270,6 +270,11 @@ namespace Soul.SqlBatis
         }
 
         protected virtual void OnModelCreating(ModelBuilder builder)
+        {
+
+        }
+
+        protected virtual void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
 
         }

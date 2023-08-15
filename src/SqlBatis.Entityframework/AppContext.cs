@@ -7,13 +7,12 @@ namespace SqlBatis.Entityframework
     {
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Student>().Property(a => a.FirstName).HasValueGenerator(a=>a.ToString(),);
             modelBuilder.Entity<Student>().ToTable(nameof(Student));        
         }
 		
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
-			base.OnConfiguring(optionsBuilder);
+            base.OnConfiguring(optionsBuilder);
             this.Database.BeginTransaction();
             this.Add(new Student());
             this.Find<Student>();
