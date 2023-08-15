@@ -156,12 +156,12 @@ namespace Soul.SqlBatis
 		private static Func<IDataRecord, T> CreateEmitSerializer<T>(IDataRecord record)
 		{
 			var entityType = typeof(T);
-			if (record.FieldCount == 1 && ValueConverters.HasValueConverterMethod(entityType))
+			if (record.FieldCount == 1 && DefaultConverters.HasValueConverterMethod(entityType))
 			{
 				var dynamicMethod = new DynamicMethod($"Adpt", entityType, new Type[] { typeof(IDataRecord) }, true);
 				var generator = dynamicMethod.GetILGenerator();
 				var local = generator.DeclareLocal(entityType);
-				var converterMethod = ValueConverters.FindValueConverterMethod(entityType);
+				var converterMethod = DefaultConverters.FindValueConverterMethod(entityType);
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldc_I4, 0);
 				if (converterMethod.IsVirtual)
@@ -193,7 +193,7 @@ namespace Soul.SqlBatis
 					{
 						continue;
 					}
-					var converterMethod = ValueConverters.FindValueConverterMethod(property.PropertyType);
+					var converterMethod = DefaultConverters.FindValueConverterMethod(property.PropertyType);
 					generator.Emit(OpCodes.Ldloc, entityReference);
 					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Ldc_I4, item.Ordinal);
@@ -224,7 +224,7 @@ namespace Soul.SqlBatis
 				{
 					var parameter = FindConstructorInfoParameter(constructor, item.Name);
 					int parameterIndex = parameters.IndexOf(parameter);
-					var converterMethod = ValueConverters.FindValueConverterMethod(item.Type);
+					var converterMethod = DefaultConverters.FindValueConverterMethod(item.Type);
 					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Ldc_I4, item.Ordinal);
 					if (converterMethod.IsVirtual)
@@ -261,7 +261,7 @@ namespace Soul.SqlBatis
 					return s.Name.ToUpper().Replace("_", string.Empty);
 				}
 			});
-			if (names.Count() == 1 && ValueConverters.HasValueConverterMethod(type))
+			if (names.Count() == 1 && DefaultConverters.HasValueConverterMethod(type))
 			{
 				return string.Format("{0}|{1}", type.Name, type.GUID.ToString("N"));
 			}
