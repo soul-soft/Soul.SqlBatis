@@ -161,10 +161,10 @@ var context = new MyDbContext(new DbContextOptions
       
       public event PropertyChangedEventHandler PropertyChanged;
   
-  	private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
-  	{
-  		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-  	}
+      private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+      {
+          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+      }
   }
   
   [Table("students")]
@@ -179,7 +179,7 @@ var context = new MyDbContext(new DbContextOptions
       public DateTime CreationTime { get; set; }
       
       //Address类型上必须使用JsonValue进行标记
-  	public Address Address { get; set; }
+      public Address Address { get; set; }
       
       //Address类型上无需使用JsonValue进行标记
       public JsonArray<Address> Addresses { get; set; }
