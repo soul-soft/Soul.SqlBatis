@@ -81,6 +81,7 @@ var context = new MyDbContext(new DbContextOptions
   context.Entry(student).State = EntityState.Added;
   //Or
   context.Add(student);
+  //提交成功之后，清除当前上下文跟踪的所有实体的引用
   context.SaveChanges();
   ```
 
@@ -92,7 +93,7 @@ var context = new MyDbContext(new DbContextOptions
   	.AsTracking()
   	.First();
   student.Name = "zs";
-  //Find方法会先从上下文开始查找，如果存在key则，否则发起数据查询，并跟踪实体
+  //Find方法会先从上下文开始查找，如果存在key则，否则发起数据查询，并跟踪实体，对于一些重量级的对象，跨组件查询非常有用
   var student2 = context.Find<Student>(1);
   context.SaveChanges();		
   ```
