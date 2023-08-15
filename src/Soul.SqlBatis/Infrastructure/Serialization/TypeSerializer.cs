@@ -36,7 +36,11 @@ namespace Soul.SqlBatis
 		/// <returns></returns>
 		public static T JsonDeserialize<T>(string json)
 		{
-			if (json == null)
+			if (typeof(IJsonArray).IsAssignableFrom(typeof(T)))
+			{
+				json = "[]";
+			}
+			else if (json == null)
 			{
 				return default;
 			}

@@ -11,15 +11,16 @@ var context = new MyDbContext(new DbContextOptions
     }),
     ConnecionProvider = () => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test")
 });
+
 var student = context.Students
     .AsTracking()
     .Where(a => a.Id == 6)
     .First();
 student.FirstName = "王2";
-//student.Address.Add(new Address 
-//{
-//    P = "faf"
-//});
+student.Address.Add(new Address
+{
+    P = "faf"
+});
 var stu = context.Entry(student);
 var row = await context.SaveChangesAsync();
 Console.WriteLine();

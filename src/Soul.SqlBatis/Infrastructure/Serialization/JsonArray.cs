@@ -4,8 +4,13 @@ using System.Collections.Specialized;
 
 namespace Soul.SqlBatis
 {
+	public interface IJsonArray
+	{
+
+	}
+
 	[JsonValue]
-	public class JsonArray<T> : ICollection<T>, INotifyCollectionChanged
+	public class JsonArray<T> : IJsonArray, ICollection<T>, INotifyCollectionChanged
 	{
 		private readonly List<T> _array = new List<T>();
 
