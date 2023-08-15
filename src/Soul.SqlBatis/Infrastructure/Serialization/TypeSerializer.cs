@@ -250,7 +250,7 @@ namespace Soul.SqlBatis
 		/// <returns></returns>
 		private static string CreateEmitSerializerCacheKey(Type type, IDataRecord record)
 		{
-			var fields = GetDataRecordFields(record).Select(s =>
+			var names = GetDataRecordFields(record).Select(s =>
 			{
 				if (SqlMapper.Settings.MatchNamesWithUnderscores)
 				{
@@ -261,12 +261,12 @@ namespace Soul.SqlBatis
 					return s.Name.ToUpper().Replace("_", string.Empty);
 				}
 			});
-			string names = string.Empty;
-			if (!ValueConverters.HasValueConverterMethod(type))
+			if (names.Count() == 1 && ValueConverters.HasValueConverterMethod(type))
 			{
-				names = string.Join(",", fields);
+				return string.Format("{0}|{1}", type.Name, type.GUID.ToString("N"));
 			}
-			return string.Format("{0}|{1}|{2}", type.Name, names, type.GUID.ToString("N"));
+			var columns = string.Join(",", names);
+			return string.Format("{0}|{1}|{2}", type.Name, columns, type.GUID.ToString("N"));
 		}
 		/// <summary>
 		/// 获取字段
