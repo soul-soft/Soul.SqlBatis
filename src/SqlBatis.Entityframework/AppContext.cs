@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace SqlBatis.Entityframework
 {
@@ -6,7 +7,8 @@ namespace SqlBatis.Entityframework
     {
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Student>().ToTable(nameof(Student));
+            modelBuilder.Entity<Student>().Property(a => a.FirstName).HasValueGenerator(a=>a.ToString(),);
+            modelBuilder.Entity<Student>().ToTable(nameof(Student));        
         }
 		
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

@@ -2,7 +2,7 @@
 
 namespace Soul.SqlBatis
 {
-    [AttributeUsage(AttributeTargets.Struct)]
+    [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class)]
     public class JsonValueAttribute : Attribute
     {
 

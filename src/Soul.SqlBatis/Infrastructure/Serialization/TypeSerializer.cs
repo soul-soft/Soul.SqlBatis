@@ -24,7 +24,7 @@ namespace Soul.SqlBatis
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static bool IsJson(Type type)
+        public static bool IsJsonValueType(Type type)
         {
             return type.CustomAttributes.Any(a => a.AttributeType == typeof(JsonValueAttribute));
         }
@@ -266,7 +266,7 @@ namespace Soul.SqlBatis
                     .Where(a => (IsNullable(type) == IsNullable(a.ReturnType)) || (!IsNullable(type) == !IsNullable(a.ReturnType)))
                     .First();
             }
-            else if (IsJson(type))
+            else if (IsJsonValueType(type))
             {
                 method = DefaultConverter.Converters
                     .Where(a => a.GetCustomAttribute<ConverterMethodAttribute>().Token == ConverterMethodToken.Json)
@@ -300,7 +300,7 @@ namespace Soul.SqlBatis
             {
                 return true;
             }
-            else if (IsJson(type))
+            else if (IsJsonValueType(type))
             {
                 return true;
             }
