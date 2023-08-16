@@ -4,10 +4,21 @@
     <TargetFramework>netstandard2.0</TargetFramework>
 	  <Copyright>MIT</Copyright>
 	  <RepositoryUrl>https://github.com/soul-soft/Soul.SqlBatis</RepositoryUrl>
-	  <Version>1.1.0-beta011</Version>
-	  <PackageReleaseNotes>支持json</PackageReleaseNotes>
+	  <Version>1.1.0-beta012</Version>
+	  <PackageReleaseNotes>预览版本</PackageReleaseNotes>
 	  <Description>宇宙无敌orm，不接受任何反驳！！！</Description>
+	  <Company>Soul</Company>
+	  <Authors>Soul</Authors>
+	  <PackageTags>orm</PackageTags>
+	  <PackageIcon>soul.png</PackageIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\soul.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.32" />
