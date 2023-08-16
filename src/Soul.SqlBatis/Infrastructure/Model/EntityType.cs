@@ -16,12 +16,12 @@ namespace Soul.SqlBatis.Infrastructure
         IEntityProperty GetProperty(MemberInfo member);
     }
 
-    internal class EntityType: IEntityType
+    internal class EntityType : IEntityType
     {
         public Type Type { get; }
-        
+
         private AttributeCollection _attributes;
-       
+
         public IReadOnlyCollection<IEntityProperty> Properties { get; }
 
         public EntityType(Type type)
@@ -60,7 +60,7 @@ namespace Soul.SqlBatis.Infrastructure
 
         public virtual IEntityProperty GetProperty(MemberInfo member)
         {
-            return Properties.Where(a => a.Property == member).FirstOrDefault();
+            return Properties.Where(a => a.Property.Name == member.Name).FirstOrDefault();
         }
 
         public void HasAnnotation(object annotation)
