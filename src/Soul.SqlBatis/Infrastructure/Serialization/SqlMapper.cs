@@ -220,7 +220,12 @@ namespace Soul.SqlBatis
             public static JsonSerializerOptions JsonSerializerOptions { get; } = new JsonSerializerOptions()
             {
                 PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             };
+            /// <summary>
+            /// 是否初始化json数组
+            /// </summary>
+            public static bool InitializeJsonArray { get; set; } = true;
         }
     }
 }

@@ -14,10 +14,10 @@ namespace Soul.SqlBatis
 		static ValueConverters()
 		{
 			_converters = typeof(ValueConverters).GetMethods()
-				.Where(a => a.CustomAttributes.Any(c => c.AttributeType == typeof(ConverterMethodAttribute)))
+				.Where(a => a.CustomAttributes.Any(c => c.AttributeType == typeof(ValueConverterAttribute)))
 				.Select(s =>
 				{
-					var converterMethodAttribute = s.GetCustomAttribute<ConverterMethodAttribute>();
+					var converterMethodAttribute = s.GetCustomAttribute<ValueConverterAttribute>();
 					return new ValueConverter(converterMethodAttribute.Token, converterMethodAttribute.IsNullable, s);
 				})
 				.ToList();
@@ -36,14 +36,14 @@ namespace Soul.SqlBatis
 			if (ReflectionUtility.GetUnderlyingType(type).IsEnum)
 			{
 				converter = _converters
-					.Where(a => a.Token == ConverterMethodToken.Enum)
+					.Where(a => a.Token == ValueConverterToken.Enum)
 					.Where(a => (ReflectionUtility.IsNullable(type) == a.IsNullable) || (ReflectionUtility.IsNullable(type) == a.IsNullable))
 					.First();
 			}
 			else if (TypeSerializer.IsJsonValueType(type))
 			{
 				converter = _converters
-					.Where(a => a.Token == ConverterMethodToken.Json)
+					.Where(a => a.Token == ValueConverterToken.Json)
 					.First();
 			}
 			else
@@ -85,7 +85,7 @@ namespace Soul.SqlBatis
 		#endregion
 
 		#region Reference Type Converts
-		[ConverterMethod(IsNullable = true)]
+		[ValueConverter(IsNullable = true)]
 		public static object ToObject(IDataRecord dr, int i)
 		{
 			try
@@ -101,7 +101,7 @@ namespace Soul.SqlBatis
 				throw ThrowInvalidCastException<object>(dr, i);
 			}
 		}
-		[ConverterMethod(IsNullable = true)]
+		[ValueConverter(IsNullable = true)]
 		public static string ToString(IDataRecord dr, int i)
 		{
 			try
@@ -117,7 +117,7 @@ namespace Soul.SqlBatis
 				throw ThrowInvalidCastException<string>(dr, i);
 			}
 		}
-		[ConverterMethod(IsNullable = true)]
+		[ValueConverter(IsNullable = true)]
 		public static byte[] ToBytes(IDataRecord dr, int i)
 		{
 			try
@@ -135,7 +135,7 @@ namespace Soul.SqlBatis
 				throw ThrowInvalidCastException<byte>(dr, i);
 			}
 		}
-		[ConverterMethod(Token = ConverterMethodToken.Json, IsNullable = true)]
+		[ValueConverter(Token = ValueConverterToken.Json, IsNullable = true)]
 		public static T ToJson<T>(IDataRecord dr, int i)
 		{
 			var json = ToString(dr, i);
@@ -144,7 +144,7 @@ namespace Soul.SqlBatis
 		#endregion
 
 		#region Value Type Converts
-		[ConverterMethod]
+		[ValueConverter]
 		public static byte ToByte(IDataRecord dr, int i)
 		{
 			try
@@ -161,13 +161,13 @@ namespace Soul.SqlBatis
 				throw ThrowInvalidCastException<byte>(dr, i);
 			}
 		}
-		[ConverterMethod]
+		[ValueConverter]
 		public static sbyte ToSByte(IDataRecord dr, int i)
 		{
 			var result = ToByte(dr, i);
 			return Convert.ToSByte(result);
 		}
-		[ConverterMethod]
+		[ValueConverter]
 		public static short ToInt16(IDataRecord dr, int i)
 		{
 			try
@@ -183,13 +183,13 @@ namespace Soul.SqlBatis
 				throw ThrowInvalidCastException<short>(dr, i);
 			}
 		}
-		[ConverterMethod]
+		[ValueConverter]
 		public static ushort ToUInt16(IDataRecord dr, int i)
 		{
 			var result = ToInt16(dr, i);
 			return Convert.ToUInt16(result);
 		}
-		[ConverterMethod]
+		[ValueConverter]
 		public static int ToInt32(IDataRecord dr, int i)
 		{
 			try
@@ -205,13 +205,13 @@ namespace Soul.SqlBatis
 				throw ThrowInvalidCastException<int>(dr, i);
 			}
 		}
-		[ConverterMethod]
+		[ValueConverter]
 		public static uint ToUInt32(IDataRecord dr, int i)
 		{
 			var result = ToInt32(dr, i);
 			return Convert.ToUInt32(result);
 		}
-		[ConverterMethod]
+		[ValueConverter]
 		public static long ToInt64(IDataRecord dr, int i)
 		{
 			try
@@ -227,13 +227,13 @@ namespace Soul.SqlBatis
 				throw ThrowInvalidCastException<long>(dr, i);
 			}
 		}
-		[ConverterMethod]
+		[ValueConverter]
 		public static ulong ToUInt64(IDataRecord dr, int i)
 		{
 			var result = ToInt64(dr, i);
 			return Convert.ToUInt64(result);
 		}
-		[ConverterMethod]
+		[ValueConverter]
 		public static float ToFloat(IDataRecord dr, int i)
 		{
 			try
@@ -249,7 +249,7 @@ namespace Soul.SqlBatis
 				throw ThrowInvalidCastException<float>(dr, i);
 			}
 		}
-		[ConverterMethod]
+		[ValueConverter]
 		public static double ToDouble(IDataRecord dr, int i)
 		{
 			try
@@ -265,7 +265,7 @@ namespace Soul.SqlBatis
 				throw ThrowInvalidCastException<double>(dr, i);
 			}
 		}
-		[ConverterMethod]
+		[ValueConverter]
 		public static bool ToBoolean(IDataRecord dr, int i)
 		{
 			try
@@ -281,7 +281,7 @@ namespace Soul.SqlBatis
 				throw ThrowInvalidCastException<bool>(dr, i);
 			}
 		}
-		[ConverterMethod]
+		[ValueConverter]
 		public static decimal ToDecimal(IDataRecord dr, int i)
 		{
 			try
@@ -297,7 +297,7 @@ namespace Soul.SqlBatis
 				throw ThrowInvalidCastException<bool>(dr, i);
 			}
 		}
-		[ConverterMethod]
+		[ValueConverter]
 		public static char ToChar(IDataRecord dr, int i)
 		{
 			try
@@ -314,7 +314,7 @@ namespace Soul.SqlBatis
 				throw ThrowInvalidCastException<char>(dr, i);
 			}
 		}
-		[ConverterMethod]
+		[ValueConverter]
 		public static DateTime ToDateTime(IDataRecord dr, int i)
 		{
 			try
@@ -330,7 +330,7 @@ namespace Soul.SqlBatis
 				throw ThrowInvalidCastException<DateTime>(dr, i);
 			}
 		}
-		[ConverterMethod(Token = ConverterMethodToken.Enum)]
+		[ValueConverter(Token = ValueConverterToken.Enum)]
 		public static T ToEnum<T>(IDataRecord dr, int i)
 			where T : struct
 		{
@@ -350,7 +350,7 @@ namespace Soul.SqlBatis
 				throw ThrowInvalidCastException<T>(dr, i);
 			}
 		}
-		[ConverterMethod]
+		[ValueConverter]
 		public static Guid ToGuid(IDataRecord dr, int i)
 		{
 			try
@@ -370,7 +370,7 @@ namespace Soul.SqlBatis
 		#endregion
 
 		#region Nullable Value Type Converts
-		[ConverterMethod(IsNullable = true)]
+		[ValueConverter(IsNullable = true)]
 		public static byte? ToNullableByte(IDataRecord dr, int i)
 		{
 			if (dr.IsDBNull(i))
@@ -379,7 +379,7 @@ namespace Soul.SqlBatis
 			}
 			return ToByte(dr, i);
 		}
-		[ConverterMethod(IsNullable = true)]
+		[ValueConverter(IsNullable = true)]
 		public static sbyte? ToNullableSByte(IDataRecord dr, int i)
 		{
 			var result = ToNullableByte(dr, i);
@@ -389,7 +389,7 @@ namespace Soul.SqlBatis
 			}
 			return Convert.ToSByte(result.Value);
 		}
-		[ConverterMethod(IsNullable = true)]
+		[ValueConverter(IsNullable = true)]
 		public static short? ToNullableInt16(IDataRecord dr, int i)
 		{
 			if (dr.IsDBNull(i))
@@ -398,7 +398,7 @@ namespace Soul.SqlBatis
 			}
 			return ToInt16(dr, i);
 		}
-		[ConverterMethod(IsNullable = true)]
+		[ValueConverter(IsNullable = true)]
 		public static ushort? ToNullableUInt16(IDataRecord dr, int i)
 		{
 			var result = ToNullableInt16(dr, i);
@@ -408,7 +408,7 @@ namespace Soul.SqlBatis
 			}
 			return Convert.ToUInt16(result.Value);
 		}
-		[ConverterMethod(IsNullable = true)]
+		[ValueConverter(IsNullable = true)]
 		public static int? ToNullableInt32(IDataRecord dr, int i)
 		{
 			if (dr.IsDBNull(i))
@@ -417,7 +417,7 @@ namespace Soul.SqlBatis
 			}
 			return ToInt32(dr, i);
 		}
-		[ConverterMethod(IsNullable = true)]
+		[ValueConverter(IsNullable = true)]
 		public static uint? ToNullableUInt32(IDataRecord dr, int i)
 		{
 			var result = ToNullableInt32(dr, i);
@@ -427,7 +427,7 @@ namespace Soul.SqlBatis
 			}
 			return Convert.ToUInt32(result.Value);
 		}
-		[ConverterMethod(IsNullable = true)]
+		[ValueConverter(IsNullable = true)]
 		public static long? ToNullableInt64(IDataRecord dr, int i)
 		{
 			if (dr.IsDBNull(i))
@@ -436,7 +436,7 @@ namespace Soul.SqlBatis
 			}
 			return ToInt64(dr, i);
 		}
-		[ConverterMethod(IsNullable = true)]
+		[ValueConverter(IsNullable = true)]
 		public static ulong? ToNullableUInt64(IDataRecord dr, int i)
 		{
 			var result = ToNullableInt64(dr, i);
@@ -446,7 +446,7 @@ namespace Soul.SqlBatis
 			}
 			return Convert.ToUInt64(result.Value);
 		}
-		[ConverterMethod(IsNullable = true)]
+		[ValueConverter(IsNullable = true)]
 		public static float? ToNullableFloat(IDataRecord dr, int i)
 		{
 			if (dr.IsDBNull(i))
@@ -455,7 +455,7 @@ namespace Soul.SqlBatis
 			}
 			return ToFloat(dr, i);
 		}
-		[ConverterMethod(IsNullable = true)]
+		[ValueConverter(IsNullable = true)]
 		public static double? ToNullableDouble(IDataRecord dr, int i)
 		{
 			if (dr.IsDBNull(i))
@@ -464,7 +464,7 @@ namespace Soul.SqlBatis
 			}
 			return ToDouble(dr, i);
 		}
-		[ConverterMethod(IsNullable = true)]
+		[ValueConverter(IsNullable = true)]
 		public static bool? ToNullableBoolean(IDataRecord dr, int i)
 		{
 			if (dr.IsDBNull(i))
@@ -473,7 +473,7 @@ namespace Soul.SqlBatis
 			}
 			return ToBoolean(dr, i);
 		}
-		[ConverterMethod(IsNullable = true)]
+		[ValueConverter(IsNullable = true)]
 		public static decimal? ToNullableDecimal(IDataRecord dr, int i)
 		{
 			if (dr.IsDBNull(i))
@@ -482,7 +482,7 @@ namespace Soul.SqlBatis
 			}
 			return ToDecimal(dr, i);
 		}
-		[ConverterMethod(IsNullable = true)]
+		[ValueConverter(IsNullable = true)]
 		public static char? ToNullableChar(IDataRecord dr, int i)
 		{
 			if (dr.IsDBNull(i))
@@ -491,7 +491,7 @@ namespace Soul.SqlBatis
 			}
 			return ToChar(dr, i);
 		}
-		[ConverterMethod(IsNullable = true)]
+		[ValueConverter(IsNullable = true)]
 		public static DateTime? ToNullableDateTime(IDataRecord dr, int i)
 		{
 			if (dr.IsDBNull(i))
@@ -500,7 +500,7 @@ namespace Soul.SqlBatis
 			}
 			return ToDateTime(dr, i);
 		}
-		[ConverterMethod(IsNullable = true, Token = ConverterMethodToken.Enum)]
+		[ValueConverter(IsNullable = true, Token = ValueConverterToken.Enum)]
 		public static T? ToNullableEnum<T>(IDataRecord dr, int i)
 			where T : struct, Enum
 		{
@@ -510,7 +510,7 @@ namespace Soul.SqlBatis
 			}
 			return ToEnum<T>(dr, i);
 		}
-		[ConverterMethod(IsNullable = true)]
+		[ValueConverter(IsNullable = true)]
 		public static Guid? ToNullableGuid(IDataRecord dr, int i)
 		{
 			if (dr.IsDBNull(i))
@@ -533,11 +533,11 @@ namespace Soul.SqlBatis
 
 	internal class ValueConverter
 	{
-		public ConverterMethodToken Token { get; set; }
+		public ValueConverterToken Token { get; set; }
 		public bool IsNullable { get; set; }
 		public MethodInfo Method { get; set; }
 
-		public ValueConverter(ConverterMethodToken token, bool isNullable, MethodInfo method)
+		public ValueConverter(ValueConverterToken token, bool isNullable, MethodInfo method)
 		{
 			Token = token;
 			IsNullable = isNullable;
@@ -548,15 +548,15 @@ namespace Soul.SqlBatis
 	/// 用于标记转换器
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Method)]
-	internal class ConverterMethodAttribute : Attribute
+	internal class ValueConverterAttribute : Attribute
 	{
-		public ConverterMethodToken Token { get; set; }
+		public ValueConverterToken Token { get; set; }
 		public bool IsNullable { get; set; }
 	}
 	/// <summary>
 	/// 标记转换的类型
 	/// </summary>
-	internal enum ConverterMethodToken
+	internal enum ValueConverterToken
 	{
 		Enum,
 		Json
