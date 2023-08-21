@@ -15,7 +15,8 @@ namespace Soul.SqlBatis.Infrastructure
         {
             if (node.Method.Name == nameof(DbOperations.Raw))
             {
-                Visit(node.Arguments[0]);
+                var constantExpression = node.Arguments[0] as ConstantExpression;
+                SetSql(constantExpression.Value.ToString());
             }
             else if (node.Method.Name == nameof(DbOperations.Like))
             {
