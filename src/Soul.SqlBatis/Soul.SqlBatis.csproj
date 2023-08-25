@@ -3,6 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<Copyright>MIT</Copyright>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/soul-soft/Soul.SqlBatis</RepositoryUrl>
 		<PackageProjectUrl>https://github.com/soul-soft/Soul.SqlBatis</PackageProjectUrl>
