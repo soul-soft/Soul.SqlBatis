@@ -60,7 +60,7 @@ namespace Soul.SqlBatis
             {
                 return (T)entityEntry.Entity;
             }
-            return new DbContextBatchCommand(this).Find<T>(key);
+            return new DbContextCommand(this).Find<T>(key);
         }
 
         public async Task<T> FindAsync<T>(object[] key)
@@ -70,7 +70,7 @@ namespace Soul.SqlBatis
             {
                 return (T)entityEntry.Entity;
             }
-            return await new DbContextBatchCommand(this).FindAsync<T>(key);
+            return await new DbContextCommand(this).FindAsync<T>(key);
         }
 
         public void Add<T>(T entity)
@@ -167,12 +167,12 @@ namespace Soul.SqlBatis
 
         public int SaveChanges()
         {
-            return new DbContextBatchCommand(this).SaveChanges();
+            return new DbContextCommand(this).SaveChanges();
         }
 
         public Task<int> SaveChangesAsync()
         {
-            return new DbContextBatchCommand(this).SaveChangesAsync();
+            return new DbContextCommand(this).SaveChangesAsync();
         }
 
 
@@ -281,7 +281,7 @@ namespace Soul.SqlBatis
 
         public virtual List<T> Query<T>(string sql, object param = null)
         {
-            return DbCommandExecuteStrategy(() =>
+            return AutoOpenConnectionStrategy(() =>
             {
                 Logging(sql);
                 return _connection.Query<T>(sql, param, GetDbTransaction());
@@ -290,7 +290,7 @@ namespace Soul.SqlBatis
 
         public virtual async Task<List<T>> QueryAsync<T>(string sql, object param = null)
         {
-            return await DbCommandExecuteStrategyAsync(async () =>
+            return await AutoOpenConnectionStrategyAsync(async () =>
             {
                 Logging(sql);
                 return await _connection.QueryAsync<T>(sql, param, GetDbTransaction());
@@ -299,7 +299,7 @@ namespace Soul.SqlBatis
 
         public virtual int Execute(string sql, object param = null)
         {
-            return DbCommandExecuteStrategy(() =>
+            return AutoOpenConnectionStrategy(() =>
             {
                 Logging(sql);
                 return _connection.Execute(sql, param, GetDbTransaction());
@@ -308,7 +308,7 @@ namespace Soul.SqlBatis
 
         public virtual Task<int> ExecuteAsync(string sql, object param = null)
         {
-            return DbCommandExecuteStrategyAsync(() =>
+            return AutoOpenConnectionStrategyAsync(() =>
             {
                 Logging(sql);
                 return _connection.ExecuteAsync(sql, param, GetDbTransaction());
@@ -317,7 +317,7 @@ namespace Soul.SqlBatis
 
         public virtual T ExecuteScalar<T>(string sql, object param = null)
         {
-            return DbCommandExecuteStrategy(() =>
+            return AutoOpenConnectionStrategy(() =>
             {
                 Logging(sql);
                 return _connection.ExecuteScalar<T>(sql, param, GetDbTransaction());
@@ -326,7 +326,7 @@ namespace Soul.SqlBatis
 
         public virtual Task<T> ExecuteScalarAsync<T>(string sql, object param = null)
         {
-            return DbCommandExecuteStrategyAsync(() =>
+            return AutoOpenConnectionStrategyAsync(() =>
             {
                 Logging(sql);
                 return _connection.ExecuteScalarAsync<T>(sql, param, GetDbTransaction());
@@ -343,7 +343,7 @@ namespace Soul.SqlBatis
             logger.LogInformation(sql);
         }
 
-        private T DbCommandExecuteStrategy<T>(Func<T> func)
+        private T AutoOpenConnectionStrategy<T>(Func<T> func)
         {
             var autoCloase = false;
             try
@@ -364,7 +364,7 @@ namespace Soul.SqlBatis
             }
         }
 
-        private async Task<T> DbCommandExecuteStrategyAsync<T>(Func<Task<T>> func)
+        private async Task<T> AutoOpenConnectionStrategyAsync<T>(Func<Task<T>> func)
         {
             var autoCloase = false;
             try

@@ -45,7 +45,15 @@ namespace Soul.SqlBatis.Infrastructure
                 SetLeftInclude();
                 foreach (var item in node.Arguments)
                 {
-                    Visit(item);
+                    if (item.Type == typeof(SqlToken))
+                    {
+                        var value = GetParameter(item);
+                        SetSql(value.ToString());
+                    }
+                    else
+                    {
+                        Visit(item);
+                    }
                     if (item != node.Arguments.Last())
                     {
                         SetSql(", ");

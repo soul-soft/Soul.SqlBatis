@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-    internal class DbContextBatchCommand
+    internal class DbContextCommand
     {
         private readonly DbContext _context;
 
-        public DbContextBatchCommand(DbContext context)
+        public DbContextCommand(DbContext context)
         {
             _context = context;
         }
