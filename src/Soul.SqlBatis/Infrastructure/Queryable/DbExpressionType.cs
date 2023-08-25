@@ -3,6 +3,7 @@
     public enum DbExpressionType
     {
         Select,
+        Set,
         From,
         Join,
         Where,

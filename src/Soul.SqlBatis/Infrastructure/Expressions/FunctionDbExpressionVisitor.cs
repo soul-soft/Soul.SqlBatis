@@ -7,7 +7,7 @@ namespace Soul.SqlBatis.Infrastructure
 {
     internal class FunctionDbExpressionVisitor : DbExpressionVisitor
     {
-        public FunctionDbExpressionVisitor(Model model, Dictionary<string, object> parameters)
+        public FunctionDbExpressionVisitor(Model model, DynamicParameters parameters)
             : base(model, parameters)
         {
 

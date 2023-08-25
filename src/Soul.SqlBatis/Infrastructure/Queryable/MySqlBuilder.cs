@@ -16,6 +16,20 @@ namespace Soul.SqlBatis.Infrastructure
             _tokens = tokens;
         }
 
+        public string Update()
+        {
+            var filter = BuildFilterSql();
+            var view = BuildFromSql();
+            return string.Join(" ", $"UPDATE {view}", filter);
+        }
+     
+        public string Delete()
+        {
+            var filter = BuildFilterSql();
+            var view = BuildFromSql();
+            return string.Join(" ", $"DELETE FROM {view}", filter);
+        }
+
         public string Select()
         {
             var tokens = BuildFilterSql();
@@ -31,7 +45,7 @@ namespace Soul.SqlBatis.Infrastructure
                     return $"{s.ColumnName} AS {s.Property.Name}";
                 }));
             }
-            var view = GetFromSql();
+            var view = BuildFromSql();
             var limit = GetLimitSql();
             var sql = string.Join(" ", $"SELECT {columns} FROM {view}", tokens);
             if (string.IsNullOrEmpty(limit))
@@ -43,9 +57,9 @@ namespace Soul.SqlBatis.Infrastructure
 
         public string Count()
         {
-            var tokens = BuildFilterSql();
+            var tokens = BuildFilterSql(DbExpressionType.OrderBy);
             var columns = GetColumnSql();
-            var fromSql = GetFromSql();
+            var fromSql = BuildFromSql();
             if (_tokens.ContainsKey(DbExpressionType.GroupBy))
             {
                 var sql = Select();
@@ -57,7 +71,7 @@ namespace Soul.SqlBatis.Infrastructure
         public string Sum()
         {
             var tokens = BuildFilterSql();
-            var fromSql = GetFromSql();
+            var fromSql = BuildFromSql();
             var columns = GetColumnSql();
             if (_tokens.ContainsKey(DbExpressionType.GroupBy))
             {
@@ -70,7 +84,7 @@ namespace Soul.SqlBatis.Infrastructure
         public string Average()
         {
             var tokens = BuildFilterSql();
-            var fromSql = GetFromSql();
+            var fromSql = BuildFromSql();
             var columns = GetColumnSql();
             if (_tokens.ContainsKey(DbExpressionType.GroupBy))
             {
@@ -84,7 +98,7 @@ namespace Soul.SqlBatis.Infrastructure
         {
             var tokens = BuildFilterSql();
             var columns = GetColumnSql();
-            var fromSql = GetFromSql();
+            var fromSql = BuildFromSql();
             if (_tokens.ContainsKey(DbExpressionType.GroupBy))
             {
                 var sql = Select();
@@ -97,7 +111,7 @@ namespace Soul.SqlBatis.Infrastructure
         {
             var tokens = BuildFilterSql();
             var columns = GetColumnSql();
-            var fromSql = GetFromSql();
+            var fromSql = BuildFromSql();
             if (_tokens.ContainsKey(DbExpressionType.GroupBy))
             {
                 var sql = Select();
@@ -110,7 +124,7 @@ namespace Soul.SqlBatis.Infrastructure
         {
             var tokens = BuildFilterSql();
             var columns = GetColumnSql();
-            var fromSql = GetFromSql();
+            var fromSql = BuildFromSql();
             if (_tokens.ContainsKey(DbExpressionType.GroupBy))
             {
                 var sql = Select();
@@ -125,7 +139,7 @@ namespace Soul.SqlBatis.Infrastructure
             return $"SELECT EXISTS({sql}) AS Expr";
         }
 
-        private string GetFromSql()
+        private string BuildFromSql()
         {
             if (_tokens.ContainsKey(DbExpressionType.From))
             {
@@ -167,9 +181,11 @@ namespace Soul.SqlBatis.Infrastructure
             return string.Empty;
         }
 
-        private string BuildFilterSql()
+        private string BuildFilterSql(params DbExpressionType[] filters)
         {
-            var filters = _tokens.Where(a => a.Key != DbExpressionType.Take)
+            var tokens = _tokens
+                .Where(a => !filters.Contains(a.Key))
+                .Where(a => a.Key != DbExpressionType.Take)
                 .Where(a => a.Key != DbExpressionType.Skip)
                 .OrderBy(s => s.Key)
                 .Select(item =>
@@ -181,6 +197,9 @@ namespace Soul.SqlBatis.Infrastructure
                     var sql = string.Empty;
                     switch (item.Key)
                     {
+                        case DbExpressionType.Set:
+                            sql = $"SET {expressions}";
+                            break;
                         case DbExpressionType.Where:
                             sql = $"WHERE {expressions}";
                             break;
@@ -199,7 +218,7 @@ namespace Soul.SqlBatis.Infrastructure
                     }
                     return sql;
                 });
-            return string.Join(" ", filters);
+            return string.Join(" ", tokens);
         }
     }
 }

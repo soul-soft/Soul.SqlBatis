@@ -9,14 +9,14 @@ namespace Soul.SqlBatis
     public static class IDbQueryableExtensions
     {
         public static IDbQueryable<T> AsTracking<T>(this IDbQueryable<T> queryable)
-			where T : class
-		{
+            where T : class
+        {
             var query = queryable.AsQueryable();
             query.AsTracking();
-			return queryable;
+            return queryable;
         }
 
-		public static T First<T>(this IDbQueryable<T> queryable)
+        public static T First<T>(this IDbQueryable<T> queryable)
            where T : class
         {
             queryable.Take(1);
@@ -177,6 +177,27 @@ namespace Soul.SqlBatis
             var query = queryable.AsQueryable();
             var (sql, param) = query.BuildAny();
             return query.ExecuteScalarAsync<bool>(sql, param);
+        }
+
+        public static int ExecuteUpdate<T>(this IDbQueryable<T> queryable)
+        {
+            var query = queryable.AsQueryable();
+            var (sql, param) = query.BuildUpdate();
+            return query.Execute(sql, param);
+        }
+
+        public static int ExecuteDelete<T>(this IDbQueryable<T> queryable)
+        {
+            var query = queryable.AsQueryable();
+            var (sql, param) = query.BuildDelete();
+            return query.Execute(sql, param);
+        }
+
+        public static Task<int> ExecuteDeleteAsync<T>(this IDbQueryable<T> queryable)
+        {
+            var query = queryable.AsQueryable();
+            var (sql, param) = query.BuildDelete();
+            return query.ExecuteAsync(sql, param);
         }
 
         private static DbQueryable AsQueryable<T>(this IDbQueryable<T> queryable)

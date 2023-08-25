@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace Soul.SqlBatis.Infrastructure
 {
@@ -8,11 +9,11 @@ namespace Soul.SqlBatis.Infrastructure
     {
         private readonly Model _model;
 
-        private readonly Dictionary<string, object> _parameters;
+        private readonly DynamicParameters _parameters;
 
         private readonly IEnumerable<DbExpression> _expressions;
 
-        public DbExpressionBuilder(Model model, Dictionary<string, object> parametsers, IEnumerable<DbExpression> expressions)
+        public DbExpressionBuilder(Model model, DynamicParameters parametsers, IEnumerable<DbExpression> expressions)
         {
             _model = model;
             _parameters = parametsers;
@@ -66,6 +67,24 @@ namespace Soul.SqlBatis.Infrastructure
                 var visitor = new SelectDbExpressionVisitor(_model, _parameters);
                 return visitor.Build(expression.Expression);
             }
+            if (expression.ExpressionType == DbExpressionType.Set)
+            {
+                var setExpression = expression as DbSetExpression;
+                var memberExpression = GetMemberExpression(setExpression.Expression);
+                var columnName = _model.GetEntityType(memberExpression.Member.DeclaringType).GetProperty(memberExpression.Member).ColumnName;
+                if (setExpression.Value is ConstantExpression constantExpression)
+                {
+                    var parameterName = _parameters.AddAnonymous(constantExpression.Value);
+                    return $"{columnName} = @{parameterName}";
+                }
+                else
+                {
+                    var visitor = new DbExpressionVisitor(_model, _parameters);
+                    var valueExpression = visitor.Build(setExpression.Value);
+                    return $"{columnName} = {valueExpression}";
+                }
+
+            }
             throw new NotImplementedException();
         }
 
@@ -91,6 +110,19 @@ namespace Soul.SqlBatis.Infrastructure
                 result.Add(item.Key, item.Select(s => s.Expression));
             }
             return result;
+        }
+
+        private MemberExpression GetMemberExpression(Expression expression)
+        {
+            if (expression is LambdaExpression lambdaExpression)
+            {
+                return GetMemberExpression(lambdaExpression.Body);
+            }
+            if (expression is MemberExpression memberExpression)
+            {
+                return memberExpression;
+            }
+            throw new NotSupportedException();
         }
     }
 }

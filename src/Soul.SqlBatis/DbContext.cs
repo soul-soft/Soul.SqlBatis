@@ -60,7 +60,7 @@ namespace Soul.SqlBatis
             {
                 return (T)entityEntry.Entity;
             }
-            return new DbContextCommand(this).Find<T>(key);
+            return new DbContextBatchCommand(this).Find<T>(key);
         }
 
         public async Task<T> FindAsync<T>(object[] key)
@@ -70,7 +70,7 @@ namespace Soul.SqlBatis
             {
                 return (T)entityEntry.Entity;
             }
-            return await new DbContextCommand(this).FindAsync<T>(key);
+            return await new DbContextBatchCommand(this).FindAsync<T>(key);
         }
 
         public void Add<T>(T entity)
@@ -167,12 +167,12 @@ namespace Soul.SqlBatis
 
         public int SaveChanges()
         {
-            return new DbContextCommand(this).SaveChanges();
+            return new DbContextBatchCommand(this).SaveChanges();
         }
 
         public Task<int> SaveChangesAsync()
         {
-            return new DbContextCommand(this).SaveChangesAsync();
+            return new DbContextBatchCommand(this).SaveChangesAsync();
         }
 
 

@@ -10,11 +10,11 @@ namespace Soul.SqlBatis.Infrastructure
     {
         protected Model Model { get; }
 
-        protected Dictionary<string, object> Parameters { get; } = new Dictionary<string, object>();
+        protected DynamicParameters Parameters { get; } = new DynamicParameters();
 
         private readonly StringBuilder _buffer = new StringBuilder();
 
-        public DbExpressionVisitor(Model model, Dictionary<string, object> parameters)
+        public DbExpressionVisitor(Model model, DynamicParameters parameters)
         {
             Model = model;
             Parameters = parameters;
@@ -179,10 +179,9 @@ namespace Soul.SqlBatis.Infrastructure
         }
         protected virtual void SetParameter(Expression expression)
         {
-            var name = $"P_{Parameters.Count}";
-            _buffer.Append($"@{name}");
             var value = GetParameter(expression);
-            Parameters.Add(name, value);
+            var name = Parameters.AddAnonymous(value);
+            _buffer.Append($"@{name}");
         }
         public void SetBinaryType(ExpressionType expressionType)
         {

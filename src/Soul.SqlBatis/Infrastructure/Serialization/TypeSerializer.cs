@@ -103,11 +103,18 @@ namespace Soul.SqlBatis
 		/// <returns></returns>
 		public static Func<object, Dictionary<string, object>> CreateDeserializer(Type type)
 		{
+			if (type == typeof(DynamicParameters))
+			{
+				return (object param) => 
+				{
+					return (param as DynamicParameters).ToDictionary();
+                };
+			}
 			if (type == typeof(Dictionary<string, object>))
 			{
-				return (object values) =>
+				return (object param) =>
 				{
-					return (Dictionary<string, object>)values;
+					return (Dictionary<string, object>)param;
 				};
 			}
 			return _deserializers.GetOrAdd(type, _ =>

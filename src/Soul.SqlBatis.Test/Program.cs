@@ -12,8 +12,10 @@ var context = new MyDbContext(new DbContextOptions
     ConnecionProvider = () => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test")
 });
 
-var i1 = context.Query<Student>("select Id,Name from students");
-var i2 = context.Query<Student>("select Name,Id from students");
+var row1 = context.Students
+    .Set(a => a.CreationTime, a => DbFunctions.Now())
+    .Where(a => a.Id == 2)
+    .ExecuteUpdate();
 
 var row = await context.SaveChangesAsync();
 Console.WriteLine();

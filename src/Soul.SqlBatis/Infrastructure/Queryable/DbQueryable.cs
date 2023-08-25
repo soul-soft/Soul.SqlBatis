@@ -14,24 +14,22 @@ namespace Soul.SqlBatis
         protected Type Type => _type;
 
         private readonly DbContext _context;
-        
+
         protected DbContext DbContext => _context;
 
-		protected Model Model => _context.Model;
+        protected Model Model => _context.Model;
 
         protected ChangeTracker ChangeTracker => _context.ChangeTracker;
 
         protected bool IsTracking { get; private set; } = false;
 
-
         private readonly List<DbExpression> _expressions = new List<DbExpression>();
 
-
-        private readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
+        private readonly DynamicParameters _parameters = new DynamicParameters();
 
         protected IReadOnlyCollection<DbExpression> Expressions => _expressions;
 
-        protected IReadOnlyDictionary<string, object> Parameters => _parameters;
+        protected DynamicParameters Parameters => _parameters;
 
         public DbQueryable(DbContext context, Type type)
         {
@@ -39,7 +37,7 @@ namespace Soul.SqlBatis
             _context = context;
         }
 
-        public DbQueryable(DbContext context, Type type, List<DbExpression> expressions, Dictionary<string, object> parameters)
+        public DbQueryable(DbContext context, Type type, List<DbExpression> expressions, DynamicParameters parameters)
         {
             _type = type;
             _context = context;
@@ -76,12 +74,28 @@ namespace Soul.SqlBatis
             _expressions.Add(expression);
         }
 
-		internal void AsTracking()
-		{
+        internal void AsTracking()
+        {
             IsTracking = true;
-		}
+        }
 
-		internal (string, object) BuildSelect()
+        internal (string, object) BuildUpdate()
+        {
+            var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
+            var entityType = Model.GetEntityType(Type);
+            var sb = new MySqlBuilder(entityType, tokens);
+            return (sb.Update(), Parameters);
+        }
+
+        internal (string, object) BuildDelete()
+        {
+            var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
+            var entityType = Model.GetEntityType(Type);
+            var sb = new MySqlBuilder(entityType, tokens);
+            return (sb.Delete(), Parameters);
+        }
+
+        internal (string, object) BuildSelect()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
             var entityType = Model.GetEntityType(Type);
@@ -89,7 +103,7 @@ namespace Soul.SqlBatis
             return (sb.Select(), Parameters);
         }
 
-		internal (string, object) BuildCount()
+        internal (string, object) BuildCount()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
             var entityType = Model.GetEntityType(Type);
@@ -97,7 +111,7 @@ namespace Soul.SqlBatis
             return (sb.Count(), Parameters);
         }
 
-		internal (string, object) BuildSum()
+        internal (string, object) BuildSum()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
             var entityType = Model.GetEntityType(Type);
@@ -105,7 +119,7 @@ namespace Soul.SqlBatis
             return (sb.Sum(), Parameters);
         }
 
-		internal (string, object) BuildMax()
+        internal (string, object) BuildMax()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
             var entityType = Model.GetEntityType(Type);
@@ -113,7 +127,7 @@ namespace Soul.SqlBatis
             return (sb.Max(), Parameters);
         }
 
-		internal (string, object) BuildMin()
+        internal (string, object) BuildMin()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
             var entityType = Model.GetEntityType(Type);
@@ -121,7 +135,7 @@ namespace Soul.SqlBatis
             return (sb.Min(), Parameters);
         }
 
-		internal (string, object) BuildAny()
+        internal (string, object) BuildAny()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
             var entityType = Model.GetEntityType(Type);
@@ -129,7 +143,7 @@ namespace Soul.SqlBatis
             return (sb.Any(), Parameters);
         }
 
-		internal (string, object) BuildAverage()
+        internal (string, object) BuildAverage()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
             var entityType = Model.GetEntityType(Type);
@@ -137,49 +151,59 @@ namespace Soul.SqlBatis
             return (sb.Average(), Parameters);
         }
 
-        internal List<T> Query<T>(string sql,object param)
-        { 
+        internal List<T> Query<T>(string sql, object param)
+        {
             var list = _context.Query<T>(sql, param).ToList();
             if (IsTracking)
             {
-				var result = new List<T>();
-				foreach (var item in list)
+                var result = new List<T>();
+                foreach (var item in list)
                 {
-					var entry = ChangeTracker.TrackGraph(item);
-					entry.State = EntityState.Unchanged;
-					result.Add(entry.Entity);
-				}
-			}
+                    var entry = ChangeTracker.TrackGraph(item);
+                    entry.State = EntityState.Unchanged;
+                    result.Add(entry.Entity);
+                }
+            }
             return list;
         }
 
-		internal async Task<List<T>> QueryAsync<T>(string sql, object param)
-		{
-			var list = (await _context.QueryAsync<T>(sql, param)).ToList();
-			if (IsTracking)
-			{
+        internal async Task<List<T>> QueryAsync<T>(string sql, object param)
+        {
+            var list = (await _context.QueryAsync<T>(sql, param)).ToList();
+            if (IsTracking)
+            {
                 var result = new List<T>();
-				foreach (var item in list)
-				{
+                foreach (var item in list)
+                {
                     var entry = ChangeTracker.TrackGraph(item);
-					entry.State = EntityState.Unchanged;
+                    entry.State = EntityState.Unchanged;
                     result.Add(entry.Entity);
-				}
+                }
                 return result;
-			}
-			return list.ToList();
-		}
-		
-        internal T ExecuteScalar<T>(string sql, object param)
-		{
-			return _context.ExecuteScalar<T>(sql, param);
-		}
+            }
+            return list.ToList();
+        }
 
-		internal async Task<T> ExecuteScalarAsync<T>(string sql, object param)
-		{
-			return await _context.ExecuteScalarAsync<T>(sql, param);
-		}
-	}
+        internal int Execute(string sql, object param)
+        {
+            return _context.Execute(sql, param);
+        }
+
+        internal Task<int> ExecuteAsync(string sql, object param)
+        {
+            return _context.ExecuteAsync(sql, param);
+        }
+
+        internal T ExecuteScalar<T>(string sql, object param)
+        {
+            return _context.ExecuteScalar<T>(sql, param);
+        }
+
+        internal async Task<T> ExecuteScalarAsync<T>(string sql, object param)
+        {
+            return await _context.ExecuteScalarAsync<T>(sql, param);
+        }
+    }
 
     public class DbQueryable<T> : DbQueryable, IDbQueryable<T>
     {
@@ -189,7 +213,7 @@ namespace Soul.SqlBatis
 
         }
 
-        private DbQueryable(DbContext context, Type type, List<DbExpression> expressions, Dictionary<string, object> parameters)
+        private DbQueryable(DbContext context, Type type, List<DbExpression> expressions, DynamicParameters parameters)
             : base(context, type, expressions, parameters)
         {
 
@@ -197,13 +221,13 @@ namespace Soul.SqlBatis
 
         public IDbQueryable<T> Clone()
         {
-            var query = new DbQueryable<T>(DbContext, Type, Expressions.ToList(), Parameters.ToDictionary(s => s.Key, s => s.Value));
+            var query = new DbQueryable<T>(DbContext, Type, Expressions.ToList(), Parameters);
             return query;
         }
 
         public IDbQueryable<TResult> Clone<TResult>()
         {
-            var query = new DbQueryable<TResult>(DbContext, Type, Expressions.ToList(), Parameters.ToDictionary(s => s.Key, s => s.Value));
+            var query = new DbQueryable<TResult>(DbContext, Type, Expressions.ToList(), Parameters);
             return query;
         }
 
@@ -278,6 +302,20 @@ namespace Soul.SqlBatis
             if (flag)
                 AddExpression(DbExpression.FromLambdaExpression(expression, DbExpressionType.Select));
             return Clone<TResult>();
+        }
+
+        public IDbQueryable<T> Set<TResult>(Expression<Func<T, TResult>> column, TResult value, bool flag = true)
+        {
+            if (flag)
+                AddExpression(DbExpression.FromSetExpression(column, Expression.Constant(value)));
+            return this;
+        }
+
+        public IDbQueryable<T> Set<TResult>(Expression<Func<T, TResult>> column, Expression<Func<T, TResult>> expression, bool flag = true)
+        {
+            if (flag)
+                AddExpression(DbExpression.FromSetExpression(column, expression));
+            return this;
         }
 
         public IDbQueryable<T> Skip(int count, bool flag = true)

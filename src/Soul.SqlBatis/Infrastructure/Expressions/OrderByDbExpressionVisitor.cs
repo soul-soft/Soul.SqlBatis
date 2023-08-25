@@ -8,7 +8,7 @@ namespace Soul.SqlBatis.Infrastructure
 	{
 		private readonly bool _desc;
 
-		public OrderByDbExpressionVisitor(Model model, Dictionary<string, object> parameters, bool desc = false)
+		public OrderByDbExpressionVisitor(Model model, DynamicParameters parameters, bool desc = false)
 			: base(model, parameters)
 		{
 			_desc = desc;
