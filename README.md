@@ -239,6 +239,7 @@ var context = new MyDbContext(new DbContextOptions
   ";
   var student = context.FromSql<StudentGroup>(view)
   	.Where(a => DbOperations.Contains(a.FirstName, "王"))
+    .Take(10).Skip(0)//分页  
   	.ToList();
   ```
 
