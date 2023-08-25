@@ -231,14 +231,14 @@ namespace Soul.SqlBatis
             return query;
         }
 
-        public IDbQueryable<T> FromSql(DbSqlExpression sql, bool flag = true)
+        public IDbQueryable<T> FromSql(DbSqlToken sql, bool flag = true)
         {
             if (flag)
                 AddExpression(DbExpression.FromSqlExpression(sql, DbExpressionType.From));
             return this;
         }
 
-        public IDbQueryable<T> GroupBy(DbSqlExpression sql, bool flag = true)
+        public IDbQueryable<T> GroupBy(DbSqlToken sql, bool flag = true)
         {
             if (flag)
                 AddExpression(DbExpression.FromSqlExpression(sql, DbExpressionType.GroupBy));
@@ -252,7 +252,7 @@ namespace Soul.SqlBatis
             return this;
         }
 
-        public IDbQueryable<T> Having(DbSqlExpression sql, object param = null, bool flag = true)
+        public IDbQueryable<T> Having(DbSqlToken sql, object param = null, bool flag = true)
         {
             if (flag)
             {
@@ -269,7 +269,7 @@ namespace Soul.SqlBatis
             return this;
         }
 
-        public IDbQueryable<T> OrderBy(DbSqlExpression sql, bool flag = true)
+        public IDbQueryable<T> OrderBy(DbSqlToken sql, bool flag = true)
         {
             if (flag)
                 AddExpression(DbExpression.FromSqlExpression(sql, DbExpressionType.OrderBy));
@@ -290,7 +290,7 @@ namespace Soul.SqlBatis
             return this;
         }
 
-        public IDbQueryable<TResult> Select<TResult>(DbSqlExpression sql, bool flag = true)
+        public IDbQueryable<TResult> Select<TResult>(DbSqlToken sql, bool flag = true)
         {
             if (flag)
                 AddExpression(DbExpression.FromSqlExpression(sql, DbExpressionType.Select));
@@ -332,7 +332,7 @@ namespace Soul.SqlBatis
             return this;
         }
 
-        public IDbQueryable<T> Where(DbSqlExpression sql, object param = null, bool flag = true)
+        public IDbQueryable<T> Where(DbSqlToken sql, object param = null, bool flag = true)
         {
             if (flag)
             {
