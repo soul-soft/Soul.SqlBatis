@@ -13,9 +13,8 @@ var context = new MyDbContext(new DbContextOptions
 });
 
 var row1 = context.Students
-    .Set(a => a.CreationTime, a => DbFunctions.Now())
     .Where(a => a.Id == 2)
-    .ExecuteUpdate();
+    .ExecuteDelete();
 
 var row = await context.SaveChangesAsync();
 Console.WriteLine();
