@@ -1,16 +1,16 @@
 ﻿namespace Soul.SqlBatis
 {
-    public class DbSqlToken
+    public class SqlToken
     {
         public string Raw { get; }
 
-        public DbSqlToken(string raw)
+        public SqlToken(string raw)
         {
             Raw = raw;
         }
 
-        public static explicit operator string(DbSqlToken syntax) => syntax.Raw;
+        public static explicit operator string(SqlToken syntax) => syntax.Raw;
 
-        public static implicit operator DbSqlToken(string raw) => new DbSqlToken(raw);
+        public static implicit operator SqlToken(string raw) => new SqlToken(raw);
     }
 }

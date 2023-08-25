@@ -7,12 +7,12 @@ namespace Soul.SqlBatis
     {
         IDbQueryable<T> Set<TResult>(Expression<Func<T, TResult>> column, TResult value, bool flag = true);
         IDbQueryable<T> Set<TResult>(Expression<Func<T, TResult>> column, Expression<Func<T, TResult>> expression, bool flag = true);
-        IDbQueryable<T> FromSql(DbSqlToken sql, bool flag = true);
-        IDbQueryable<TResult> Select<TResult>(DbSqlToken sql, bool flag = true);
-        IDbQueryable<T> Where(DbSqlToken sql, object param = null, bool flag = true);
-        IDbQueryable<T> Having(DbSqlToken sql, object param = null, bool flag = true);
-        IDbQueryable<T> GroupBy(DbSqlToken sql, bool flag = true);
-        IDbQueryable<T> OrderBy(DbSqlToken sql, bool flag = true);
+        IDbQueryable<T> FromSql(SqlToken sql, bool flag = true);
+        IDbQueryable<TResult> Select<TResult>(SqlToken sql, bool flag = true);
+        IDbQueryable<T> Where(SqlToken sql, object param = null, bool flag = true);
+        IDbQueryable<T> Having(SqlToken sql, object param = null, bool flag = true);
+        IDbQueryable<T> GroupBy(SqlToken sql, bool flag = true);
+        IDbQueryable<T> OrderBy(SqlToken sql, bool flag = true);
         IDbQueryable<TResult> Select<TResult>(Expression<Func<T, TResult>> expression, bool flag = true);
         IDbQueryable<T> Where(Expression<Func<T, bool>> expression, bool flag = true);
         IDbQueryable<T> Having(Expression<Func<T, bool>> expression, bool flag = true);

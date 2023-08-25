@@ -13,7 +13,7 @@ var context = new MyDbContext(new DbContextOptions
 });
 
 var row1 = context.Students
-    .Where(a => a.Id == 2)
+    .Where("id>0")
     .ExecuteDelete();
 
 var row = await context.SaveChangesAsync();
