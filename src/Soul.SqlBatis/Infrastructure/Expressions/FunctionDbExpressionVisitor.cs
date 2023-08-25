@@ -16,20 +16,18 @@ namespace Soul.SqlBatis.Infrastructure
         protected override void SetParameter(Expression expression)
         {
             var value = GetParameter(expression);
-            string sql;
             if (value == null)
             {
-                sql = "NULL";
+                SetSql("NULL");
             }
-            if (value.GetType()==typeof(string))
+            else if(expression.Type == typeof(string))
             {
-                sql = $"'{value}'";
+                SetSql($"'{value}'");
             }
             else
             {
-                sql = value.ToString();
+                SetSql(value.ToString());
             }
-            SetSql(sql);
         }
 
         protected override Expression VisitMethodCall(MethodCallExpression node)

@@ -1,10 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Linq.Expressions;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-	internal class OrderByDbExpressionVisitor : DbExpressionVisitor
+    internal class OrderByDbExpressionVisitor : DbExpressionVisitor
 	{
 		private readonly bool _desc;
 

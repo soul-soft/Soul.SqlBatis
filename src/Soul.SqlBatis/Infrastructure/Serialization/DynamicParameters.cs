@@ -34,7 +34,7 @@ namespace Soul.SqlBatis
             _values.Add(name, value);
         }
 
-        public string AddAnonymous(object value)
+        internal string AddAnonymous(object value)
         {
             var name = $"P_{_values.Count}";
             _values.Add(name, value);

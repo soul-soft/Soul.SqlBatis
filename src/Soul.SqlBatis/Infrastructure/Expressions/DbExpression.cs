@@ -24,9 +24,9 @@ namespace Soul.SqlBatis.Infrastructure
             return new DbSetExpression(expression, value);
         }
 
-        public static DbExpression FromSqlExpression(SqlToken sql, DbExpressionType expressionType)
+        public static DbExpression FromSqlExpression(SqlToken token, DbExpressionType expressionType)
         {
-            return new DbSqlExpression(sql, expressionType);
+            return new DbSqlExpression(token, expressionType);
         }
 
         public static DbExpression FromLambdaExpression(Expression expression, DbExpressionType expressionType)
@@ -39,7 +39,7 @@ namespace Soul.SqlBatis.Infrastructure
     {
         public DbSqlExpression(SqlToken token, DbExpressionType expressionType)
         {
-            Expression = Expression.Constant(token);
+            Expression = Expression.Constant(token, typeof(SqlToken));
             ExpressionType = expressionType;
         }
     }

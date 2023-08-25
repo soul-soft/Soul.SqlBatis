@@ -12,7 +12,7 @@ namespace Soul.SqlBatis.Test
         }
 
         [DbFunction(Name = "COUNT")]
-        public static int Count<T>(T column)
+        public static int Count(SqlToken token)
         {
             throw new NotImplementedException();
         }

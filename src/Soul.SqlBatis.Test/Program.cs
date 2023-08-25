@@ -16,10 +16,14 @@ var context = new MyDbContext(new DbContextOptions
 var json = "{\"Orders\":{\"Id\":1,\"Name\":1}}";
 
 var model = JsonSerializer.Deserialize<QueryModel>(json);
-var (list, count) = context.Students
-    .Where(a => a.Id > 10)
-    .OrderBy(model)
-    .ToPageList(1, 10);
+var list = context.Students
+    .GroupBy(a => a.Name)
+    .Select(s => new
+    {
+        s.Name,
+        Count = DbFunctions.Count("*"),
+    })
+    .ToList();
 
 var row = await context.SaveChangesAsync();
 Console.WriteLine();
