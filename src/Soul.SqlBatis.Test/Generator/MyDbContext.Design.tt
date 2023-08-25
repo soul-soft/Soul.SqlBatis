@@ -1,0 +1,36 @@
+﻿<#@ template language="C#" hostspecific="true"#>
+<#@ assembly name="System.Core" #>
+<#@ include file="$(SolutionDir)\References\MySqlHelper.ttinclude"#>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ output extension=".cs" #>
+<#
+	var tables = MysqlManager.GetTables(Host);
+#>
+using System;
+using Soul.SqlBatis;
+using Soul.SqlBatis.Entities;
+
+namespace Soul.SqlBatis.Infrastructure
+{
+	public partial class MyDbContext : DbContext
+	{
+<#foreach(var table in tables){#>
+		/// <summary>
+		/// <#=table.Description#>
+		/// </summary>
+		public DbSet<<#=table.Name#>> <#=GetDbSetName(table.Name)#> => Set<<#=table.Name#>>();
+<#}#>
+	}
+}
+
+<#+
+	public static string GetDbSetName(string name)
+	{
+		if (name.EndsWith("y"))
+		{
+			return $"{name.TrimEnd('y')}ies";
+		}
+		return $"{name}s";
+	}
+#>

@@ -22,4 +22,32 @@
     <ProjectReference Include="..\Soul.SqlBatis\Soul.SqlBatis.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Generator\MyDbContext.Design.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>MyDbContext.Design.cs</LastGenOutput>
+    </None>
+    <None Update="Generator\Entities.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Entities.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Generator\Entities.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Entities.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Generator\MyDbContext.Design.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>MyDbContext.Design.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>
