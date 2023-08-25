@@ -9,7 +9,6 @@
 		<PackageProjectUrl>https://github.com/soul-soft/Soul.SqlBatis</PackageProjectUrl>
 		<IncludeSymbols>true</IncludeSymbols>
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
-		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<NoWarn>1701;1702;1591</NoWarn>
 		<Version>1.1.0-beta018</Version>
 		<PackageReleaseNotes>Preview Version</PackageReleaseNotes>
