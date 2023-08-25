@@ -278,7 +278,5 @@ namespace Soul.SqlBatis.Infrastructure
                 });
             return $"SELECT {string.Join(", ", columns)} FROM {entityType.TableName} WHERE {wheres}";
         }
-
-
     }
 }
