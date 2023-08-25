@@ -63,6 +63,8 @@ namespace Soul.SqlBatis.Infrastructure
             }
         }
 
+        public string CSharpName => Property.Name;
+
         public EntityProperty(MemberInfo member)
         {
             Property = member as PropertyInfo;
