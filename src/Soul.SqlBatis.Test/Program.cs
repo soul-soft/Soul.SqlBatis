@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using MySqlConnector;
 using Soul.SqlBatis;
 using Soul.SqlBatis.Test;
@@ -12,9 +13,13 @@ var context = new MyDbContext(new DbContextOptions
     ConnecionProvider = () => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test")
 });
 
-var row1 = context.Students
-    .Where("id>0")
-    .ExecuteDelete();
+var json = "{\"Orders\":{\"Id\":1,\"Name\":1}}";
+
+var model = JsonSerializer.Deserialize<QueryModel>(json);
+var (list, count) = context.Students
+    .Where(a => a.Id > 10)
+    .OrderBy(model)
+    .ToPageList(1, 10);
 
 var row = await context.SaveChangesAsync();
 Console.WriteLine();

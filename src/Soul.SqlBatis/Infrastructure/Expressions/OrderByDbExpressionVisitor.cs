@@ -8,7 +8,7 @@ namespace Soul.SqlBatis.Infrastructure
 	{
 		private readonly bool _desc;
 
-		public OrderByDbExpressionVisitor(Model model, DynamicParameters parameters, bool desc = false)
+		public OrderByDbExpressionVisitor(IModel model, DynamicParameters parameters, bool desc = false)
 			: base(model, parameters)
 		{
 			_desc = desc;
@@ -31,7 +31,7 @@ namespace Soul.SqlBatis.Infrastructure
 		public override string Build(Expression expression)
 		{
 			var order = base.Build(expression);
-			return string.Format("{0} {1}", order, OrderType);
+			return string.Join(" ", order, OrderType);
 		}
 
 		private string OrderType

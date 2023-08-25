@@ -17,7 +17,7 @@ namespace Soul.SqlBatis
 
         protected DbContext DbContext => _context;
 
-        protected Model Model => _context.Model;
+        protected IModel Model => _context.Model;
 
         protected ChangeTracker ChangeTracker => _context.ChangeTracker;
 
@@ -218,6 +218,8 @@ namespace Soul.SqlBatis
         {
 
         }
+
+        IModel IDbQueryable<T>.Model => DbContext.Model;
 
         public IDbQueryable<T> Clone()
         {

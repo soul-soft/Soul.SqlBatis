@@ -7,21 +7,49 @@ namespace Soul.SqlBatis.Infrastructure
 {
     public class DbExpressionBuilder
     {
-        private readonly Model _model;
+        private readonly IModel _model;
 
         private readonly DynamicParameters _parameters;
 
         private readonly IEnumerable<DbExpression> _expressions;
 
-        public DbExpressionBuilder(Model model, DynamicParameters parametsers, IEnumerable<DbExpression> expressions)
+        public DbExpressionBuilder(IModel model, DynamicParameters parametsers, IEnumerable<DbExpression> expressions)
         {
             _model = model;
             _parameters = parametsers;
             _expressions = expressions;
         }
+     
+        public Dictionary<DbExpressionType, IEnumerable<string>> Build()
+        {
+            var result = new Dictionary<DbExpressionType, IEnumerable<string>>();
+            var values = _expressions.Select(s =>
+            {
+                var key = s.ExpressionType;
+                if (key == DbExpressionType.OrderByDescending)
+                {
+                    key = DbExpressionType.OrderBy;
+                }
+                var value = Build(s);
+                return new
+                {
+                    ExpressionType = key,
+                    Expression = value
+                };
+            }).GroupBy(s => s.ExpressionType);
+            foreach (var item in values)
+            {
+                result.Add(item.Key, item.Select(s => s.Expression));
+            }
+            return result;
+        }
 
         private string Build(DbExpression expression)
         {
+            if (expression is DbSqlExpression sqlExpression)
+            {
+                return (sqlExpression.Expression as ConstantExpression).Value.ToString();
+            }
             if (expression.ExpressionType == DbExpressionType.From)
             {
                 var visitor = new DbExpressionVisitor(_model, _parameters);
@@ -86,30 +114,6 @@ namespace Soul.SqlBatis.Infrastructure
 
             }
             throw new NotImplementedException();
-        }
-
-        public Dictionary<DbExpressionType, IEnumerable<string>> Build()
-        {
-            var result = new Dictionary<DbExpressionType, IEnumerable<string>>();
-            var values = _expressions.Select(s =>
-            {
-                var key = s.ExpressionType;
-                if (key == DbExpressionType.OrderByDescending)
-                {
-                    key = DbExpressionType.OrderBy;
-                }
-                var value = Build(s);
-                return new
-                {
-                    ExpressionType = key,
-                    Expression = value
-                };
-            }).GroupBy(s => s.ExpressionType);
-            foreach (var item in values)
-            {
-                result.Add(item.Key, item.Select(s => s.Expression));
-            }
-            return result;
         }
 
         private MemberExpression GetMemberExpression(Expression expression)

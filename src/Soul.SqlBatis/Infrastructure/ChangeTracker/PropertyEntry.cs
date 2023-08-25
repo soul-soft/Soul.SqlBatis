@@ -97,5 +97,7 @@ namespace Soul.SqlBatis.Infrastructure
 		public string ColumnName => _property.ColumnName;
 
 		public IReadOnlyCollection<object> Metadata => _property.Metadata;
-	}
+
+        public string CSharpName => _property.CSharpName;
+    }
 }

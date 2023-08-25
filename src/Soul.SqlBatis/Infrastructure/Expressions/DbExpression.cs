@@ -2,17 +2,6 @@
 
 namespace Soul.SqlBatis.Infrastructure
 {
-    public class DbSetExpression: DbExpression
-    {
-        public Expression Value { get; }
-        public DbSetExpression(Expression expression,Expression value)
-        {
-            Value = value;
-            Expression = expression;
-            ExpressionType = DbExpressionType.Set;
-        }
-    }
-
     public class DbExpression
     {
         public Expression Expression { get; protected set; }
@@ -21,7 +10,7 @@ namespace Soul.SqlBatis.Infrastructure
 
         protected DbExpression()
         {
-            
+
         }
 
         private DbExpression(Expression expression, DbExpressionType expressionType)
@@ -37,12 +26,32 @@ namespace Soul.SqlBatis.Infrastructure
 
         public static DbExpression FromSqlExpression(SqlToken sql, DbExpressionType expressionType)
         {
-            return new DbExpression(Expression.Constant(sql), expressionType);
+            return new DbSqlExpression(sql, expressionType);
         }
 
         public static DbExpression FromLambdaExpression(Expression expression, DbExpressionType expressionType)
         {
             return new DbExpression(expression, expressionType);
+        }
+    }
+
+    public class DbSqlExpression : DbExpression
+    {
+        public DbSqlExpression(SqlToken token, DbExpressionType expressionType)
+        {
+            Expression = Expression.Constant(token);
+            ExpressionType = expressionType;
+        }
+    }
+
+    public class DbSetExpression : DbExpression
+    {
+        public Expression Value { get; }
+        public DbSetExpression(Expression expression, Expression value)
+        {
+            Value = value;
+            Expression = expression;
+            ExpressionType = DbExpressionType.Set;
         }
     }
 }

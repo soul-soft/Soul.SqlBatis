@@ -7,7 +7,7 @@ namespace Soul.SqlBatis.Infrastructure
     internal class GroupByDbExpressionVisitor : DbExpressionVisitor
 	{
 
-		public GroupByDbExpressionVisitor(Model model, DynamicParameters parameters)
+		public GroupByDbExpressionVisitor(IModel model, DynamicParameters parameters)
 			: base(model, parameters)
 		{
 		}

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Linq.Expressions;
+using Soul.SqlBatis.Infrastructure;
 
 namespace Soul.SqlBatis
 {
     public interface IDbQueryable<T>
     {
+        IModel Model { get; }
         IDbQueryable<T> Set<TResult>(Expression<Func<T, TResult>> column, TResult value, bool flag = true);
         IDbQueryable<T> Set<TResult>(Expression<Func<T, TResult>> column, Expression<Func<T, TResult>> expression, bool flag = true);
         IDbQueryable<T> FromSql(SqlToken sql, bool flag = true);

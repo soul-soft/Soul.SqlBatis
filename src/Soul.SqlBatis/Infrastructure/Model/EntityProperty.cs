@@ -13,6 +13,7 @@ namespace Soul.SqlBatis.Infrastructure
         bool IsNotMapped { get; }
         PropertyInfo Property { get; }
         string ColumnName { get; }
+        string CSharpName { get; }
         IReadOnlyCollection<object> Metadata { get; }
     }
 

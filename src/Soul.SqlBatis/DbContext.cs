@@ -13,7 +13,7 @@ namespace Soul.SqlBatis
     {
         private readonly Model _model;
 
-        public Model Model => _model;
+        public IModel Model => _model;
 
         private IDbConnection _connection;
 

@@ -12,5 +12,10 @@
         public static explicit operator string(SqlToken syntax) => syntax.Raw;
 
         public static implicit operator SqlToken(string raw) => new SqlToken(raw);
+
+        public override string ToString()
+        {
+            return Raw;
+        }
     }
 }
