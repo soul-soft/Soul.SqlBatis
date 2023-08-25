@@ -23,9 +23,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Generator\MyDbContext.Design.tt">
+    <None Update="Generator\MyDbContext.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>MyDbContext.Design.cs</LastGenOutput>
+      <LastGenOutput>MyDbContext.cs</LastGenOutput>
     </None>
     <None Update="Generator\Entities.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -43,10 +43,10 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Entities.tt</DependentUpon>
     </Compile>
-    <Compile Update="Generator\MyDbContext.Design.cs">
+    <Compile Update="Generator\MyDbContext.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>MyDbContext.Design.tt</DependentUpon>
+      <DependentUpon>MyDbContext.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 
