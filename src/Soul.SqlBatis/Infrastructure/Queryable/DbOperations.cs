@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Soul.SqlBatis
 {
-    public class DbOperations
+    public static class DbOperations
     {
         public static bool Between<T1, T2, T3>(T1 column, T2 start, T3 end)
         {
@@ -45,7 +45,7 @@ namespace Soul.SqlBatis
             throw new NotImplementedException();
         }
 
-        public static T Raw<T>(DbSql syntax)
+        public static T Raw<T>(string sql)
         {
             throw new NotImplementedException();
         }

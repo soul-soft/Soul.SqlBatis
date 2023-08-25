@@ -5,12 +5,12 @@ namespace Soul.SqlBatis
 {
     public interface IDbQueryable<T>
 	{
-		IDbQueryable<T> FromSql(DbSql sql, bool flag = true);
-		IDbQueryable<TResult> Select<TResult>(DbSql sql, bool flag = true);
-		IDbQueryable<T> Where(DbSql sql, object param = null, bool flag = true);
-		IDbQueryable<T> Having(DbSql sql, object param = null, bool flag = true);
-		IDbQueryable<T> GroupBy(DbSql sql, bool flag = true);
-		IDbQueryable<T> OrderBy(DbSql sql, bool flag = true);
+		IDbQueryable<T> FromSql(DbSqlExpression sql, bool flag = true);
+		IDbQueryable<TResult> Select<TResult>(DbSqlExpression sql, bool flag = true);
+		IDbQueryable<T> Where(DbSqlExpression sql, object param = null, bool flag = true);
+		IDbQueryable<T> Having(DbSqlExpression sql, object param = null, bool flag = true);
+		IDbQueryable<T> GroupBy(DbSqlExpression sql, bool flag = true);
+		IDbQueryable<T> OrderBy(DbSqlExpression sql, bool flag = true);
 		IDbQueryable<TResult> Select<TResult>(Expression<Func<T, TResult>> expression, bool flag = true);
 		IDbQueryable<T> Where(Expression<Func<T, bool>> expression, bool flag = true);
 		IDbQueryable<T> Having(Expression<Func<T, bool>> expression, bool flag = true);

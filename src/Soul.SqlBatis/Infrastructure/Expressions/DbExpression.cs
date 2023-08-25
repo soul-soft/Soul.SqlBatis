@@ -2,26 +2,26 @@
 
 namespace Soul.SqlBatis.Infrastructure
 {
-	public class DbExpression
-	{
-		public Expression Expression { get; }
+    public class DbExpression
+    {
+        public Expression Expression { get; }
 
-		public DbExpressionType ExpressionType { get; }
+        public DbExpressionType ExpressionType { get; }
 
-		private DbExpression(Expression expression, DbExpressionType expressionType)
-		{
-			Expression = expression;
-			ExpressionType = expressionType;
-		}
+        private DbExpression(Expression expression, DbExpressionType expressionType)
+        {
+            Expression = expression;
+            ExpressionType = expressionType;
+        }
 
-		public static DbExpression FromDbSql(DbSql sql, DbExpressionType expressionType)
-		{
-			return new DbExpression(Expression.Constant(sql), expressionType);
-		}
+        public static DbExpression FromSqlExpression(DbSqlExpression sql, DbExpressionType expressionType)
+        {
+            return new DbExpression(Expression.Constant(sql), expressionType);
+        }
 
-		public static DbExpression FromExpression(Expression expression, DbExpressionType expressionType)
-		{
-			return new DbExpression(expression, expressionType);
-		}
-	}
+        public static DbExpression FromLambdaExpression(Expression expression, DbExpressionType expressionType)
+        {
+            return new DbExpression(expression, expressionType);
+        }
+    }
 }
