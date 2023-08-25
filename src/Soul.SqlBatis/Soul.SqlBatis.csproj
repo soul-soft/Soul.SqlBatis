@@ -3,10 +3,15 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<Copyright>MIT</Copyright>
+		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/soul-soft/Soul.SqlBatis</RepositoryUrl>
 		<PackageProjectUrl>https://github.com/soul-soft/Soul.SqlBatis</PackageProjectUrl>
+		<IncludeSymbols>true</IncludeSymbols>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<NoWarn>1701;1702;1591</NoWarn>
 		<Version>1.1.0-beta017</Version>
-		<PackageReleaseNotes>预览版本</PackageReleaseNotes>
+		<PackageReleaseNotes>Preview Version</PackageReleaseNotes>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<Description>Supports Linq, entity tracking, dynamic SQL.The universe's invincible orm framework does not accept any refutation!!! </Description>
 		<Company>Soul</Company>
