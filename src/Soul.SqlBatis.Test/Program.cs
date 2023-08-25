@@ -2,6 +2,8 @@
 using Microsoft.Extensions.Logging;
 using MySqlConnector;
 using Soul.SqlBatis;
+using Soul.SqlBatis.Entities;
+using Soul.SqlBatis.Infrastructure;
 using Soul.SqlBatis.Test;
 
 var context = new MyDbContext(new DbContextOptions
@@ -16,14 +18,13 @@ var context = new MyDbContext(new DbContextOptions
 var json = "{\"Orders\":{\"Id\":1,\"Name\":1}}";
 
 var model = JsonSerializer.Deserialize<QueryModel>(json);
-var list = context.Students
-    .GroupBy(a => a.Name)
-    .Select(s => new
-    {
-        s.Name,
-        Count = DbFunctions.Count("*"),
-    })
-    .ToList();
-
+var student = context.Students
+    .AsTracking()
+    .First();
+student.Address = new Address
+{
+    P = "浙江",
+    C = "宁波"
+};
 var row = await context.SaveChangesAsync();
 Console.WriteLine();

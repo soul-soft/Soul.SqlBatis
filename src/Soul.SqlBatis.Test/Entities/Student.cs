@@ -8,14 +8,14 @@ namespace Soul.SqlBatis.Entities
 	/// <summary>
     /// 
     /// </summary>
-	[Table("students")]
-	public partial class Students
+	[Table("student")]
+	public partial class Student
 	{
 		/// <summary>
 		/// 
 		/// </summary>
 		[Column("Address")]
-		public string Address { get; set; }
+		public Address Address { get; set; }
 		/// <summary>
 		/// 
 		/// </summary>
