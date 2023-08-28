@@ -73,7 +73,7 @@ class MysqlManager
                 var columnDescription = item.ColumnComment;
                 var columnIsPrimaryKey = item.ColumnKey == "PRI";
                 var property = entity?.GetProperty(columnName);
-                var columnType = GetCSharpType(item.ColumnType, item.IsNullable == "YES", property);
+                var columnType = GetCSharpType(item.DataType, item.IsNullable == "YES", property);
                 var column = new Column(columnName, item.ColumnName, columnType, columnDescription, columnIsPrimaryKey);
                 table.Columns.Add(column);
             }            
@@ -92,8 +92,8 @@ class MysqlManager
             case "longtext": type = "string"; break;
             case "char": type = "string"; break;
             case "bit": type = "bool"; break;
-            case "tinyint": type = "int"; break;
-            case "smallint": type = "int"; break;
+            case "tinyint": type = "short"; break;
+            case "smallint": type = "short"; break;
             case "int": type = "int"; break;
             case "integer": type = "int"; break;
             case "bigint": type = "long"; break;
@@ -122,7 +122,7 @@ class MysqlManager
         var list = new List<string>();
         foreach (var item in name.Split('_').Where(a => !string.IsNullOrEmpty(a)))
         {
-            var names = item.ToArray();
+            var names = item.ToArray().Select(s => char.ToLower(s)).ToArray();
             names[0] = char.ToUpper(names[0]);
             list.Add(new string(names));
         }

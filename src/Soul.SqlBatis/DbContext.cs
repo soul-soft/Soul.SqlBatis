@@ -31,7 +31,7 @@ namespace Soul.SqlBatis
         {
             Options = options;
             _model = ModelCreating();
-            _connection = options.ConnecionProvider();
+            _connection = options.DbConnection;
             _changeTracker = new ChangeTracker(_model);
         }
      
