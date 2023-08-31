@@ -286,7 +286,7 @@ var students = context.Students
     .Select(s => new 
     {
         s.FirstName,
-        DbFunctions.Count(s.Id)        
+        Count = DbFunctions.Count(s.Id)        
     });
 ```
 
