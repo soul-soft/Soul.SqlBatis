@@ -12,7 +12,7 @@ var context = new MyDbContext(new DbContextOptions
     {
         logging.AddConsole();
     }),
-    ConnecionProvider = () => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test")
+    DbConnection = new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test")
 });
 
 var json = "{\"Orders\":{\"Id\":1,\"Name\":1}}";

@@ -10,7 +10,7 @@ var context = new MyDbContext(new DbContextOptions
     {
         logging.AddConsole();
     }),
-    ConnecionProvider = () => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test")
+    DbConnection = new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test")
 });
 ```
 
@@ -104,7 +104,7 @@ var context = new MyDbContext(new DbContextOptions
   //状态被标记为UnChanged，并且永不改变，此时SqlBatis会和原始值进行比对，如果字段被修改则只更新修改的字段
   var student1 = context.Students
   	.Where(a => a.Id == 1)
-      .AsTracking()
+    .AsTracking()
   	.First();
   student1.Name = "cw";
   var student2 = new Student
