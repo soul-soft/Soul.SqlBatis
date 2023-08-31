@@ -134,37 +134,11 @@ var context = new MyDbContext(new DbContextOptions
   2. 由于SqlBatis是基于内存地址进行更改跟踪的，对于引用类型将失效。json对象建议使用结构体或者record（这符合值对象设计原则）或者你可以实现INotifyPropertyChanged接口
 
   ```C#
-  //使用值类型，值类型clr采用值复制的方式，禁用属性更改功能
-  [JsonValue]//如果作为JsonArray的泛型参数，无需此标记
-  public struct Address
+  //必须遵循值类型原则
+  [JsonValue]
+  public record Address
   {
       public string City { get; set; }
-  }
-  //不推荐
-  [JsonValue]//如果作为JsonArray的泛型参数，无需此标记
-  public class Address : INotifyPropertyChanged
-  {
-      private string _city;
-      
-      public string City 
-      { 
-          get
-          {
-              return _city;
-          }
-          set
-          {
-              _city = value;
-              NotifyPropertyChanged();
-          }
-      }
-      
-      public event PropertyChangedEventHandler PropertyChanged;
-  
-      private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
-      {
-          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-      }
   }
   
   [Table("students")]
