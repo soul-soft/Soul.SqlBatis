@@ -82,13 +82,15 @@
 - 查询转换
 
   ```C#
+    //如果context中存在，则直接返回，否则查询数据库，并加入跟踪
+    var studentCache = context.Find<Student>(1);
+   
+   //只跟踪不读缓存
     var student = context.Students
-    .Where(a => a.Id == 1)
-    .AsTracking()
-    .First();
+        .Where(a => a.Id == 1)
+        .AsTracking()
+        .First();
     student.Name = "zs";
-    //Find方法会先从上下文开始查找，如果存在key则，否则发起数据查询，并跟踪实体，对于一些重量级的对象，跨组件查询非常有用
-    var student2 = context.Find<Student>(1);
     context.SaveChanges();		
   ```
 
@@ -103,22 +105,24 @@
     student1.Name = "cw";
     var student2 = new Student
     {
-    Name = "zs"    
+        Name = "zs"    
     };
     //实体被标记为Added，保存之后返回自增id
     context.Add(student2);
     var student3 = new Student
     {
         Id = 2,
-    Name = "zs"    
+        Name = "zs"    
     };
     //实体被标记为Modified，由于数据上下文没有对student3进行跟踪，无法知道它的原始值，无法判断哪些字段被修改了，此时将执行全量字段更新（考虑到查询一次对数据一样有压力）
     context.Update(student3);
     //实体被标记为Deleted
     context.Delete(new 
     {
-    Id = 3    
+        Id = 3    
     });
+    //查询跟踪状态    
+    var entry = context.Entry(student3);
   ```
 
 - json
@@ -150,8 +154,8 @@
 - 基本查询
 
   ```C#
-  var student = context.Students.Where(a=>a.Id == 20).First();
-  var students = context.Students.Skip(10).Take(10).ToList();
+    var student = context.Students.Where(a=>a.Id == 20).First();
+    var students = context.Students.Skip(10).Take(10).ToList(); 
   ```
 
 - fromSql
