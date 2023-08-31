@@ -1,5 +1,5 @@
 # Soul.SqlBatis
-这款ORM设计思想以查询性能为主极低的配置代价，支持动态实体、实体变更跟踪、动态sql查询、Linq查询、sql+Linq混合查询。
+这款ORM设计思想以查询性能为主极低的配置代价，支持动态实体配置、实体变更跟踪、动态sql查询、Linq查询、sql+Linq混合查询。
 
 ## DbContext配置
 
