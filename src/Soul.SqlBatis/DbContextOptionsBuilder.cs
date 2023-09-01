@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using Microsoft.Extensions.Logging;
 
 namespace Soul.SqlBatis
 {
@@ -23,9 +24,15 @@ namespace Soul.SqlBatis
             return this;
         }
 
-        public DbContextOptionsBuilder UseConnection(IDbConnection connection)
+        public DbContextOptionsBuilder UseMySql(IDbConnection connection)
         {
             _options.DbConnection = connection;
+            return this;
+        }
+
+        public DbContextOptionsBuilder UseLoggerFactory(ILoggerFactory loggerFactory)
+        {
+            _options.LoggerFactory = loggerFactory;
             return this;
         }
 

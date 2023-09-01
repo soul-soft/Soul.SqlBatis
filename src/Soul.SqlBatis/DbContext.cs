@@ -27,11 +27,8 @@ namespace Soul.SqlBatis
 
         public ChangeTracker ChangeTracker => _changeTracker;
 
-        public DbContext(Action<DbContextOptionsBuilder> configure)
+        public DbContext(DbContextOptions options)
         {
-            var builder = new DbContextOptionsBuilder();
-            configure(builder);
-            var options = builder.Build();
             _connection = options.DbConnection;
             _loggerFactory = options.LoggerFactory;
             _model = ModelCreating();
@@ -279,7 +276,7 @@ namespace Soul.SqlBatis
 
         protected virtual void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-
+            optionsBuilder.Build();
         }
 
         public virtual List<T> Query<T>(string sql, object param = null)
