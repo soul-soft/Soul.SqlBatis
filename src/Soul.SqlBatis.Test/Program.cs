@@ -1,5 +1,4 @@
-﻿using System.Data.Common;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using MySqlConnector;
 using Soul.SqlBatis;
 using Soul.SqlBatis.Infrastructure;
