@@ -1,16 +1,21 @@
 ﻿using Microsoft.Extensions.Logging;
-using MySqlConnector;
 using Soul.SqlBatis;
 using Soul.SqlBatis.Infrastructure;
-
-var context = new MyDbContext(configure =>
+DbContextOptionsBuilder.AddConnectionFactory(ConnectionProvider.MySql, connectionString =>
 {
-    configure.UseLoggerFactory(LoggerFactory.Create(logging =>
-    {
-        logging.AddConsole();
-    }));
-    configure.UseMySql(new MySqlConnection("Server=192.168.0.155;Port=3306;User ID=root;Password=1024;Database=test"));
+    return new MySql.Data.MySqlClient.MySqlConnection(connectionString);
 });
+var options = new DbContextOptionsBuilder()
+    .EnableTracking()
+    .UseMySql("Server=127.0.0.1;Port=3306;User ID=root;Password=1024;Database=test")
+    .UseLoggerFactory(LoggerFactory.Create(configure =>
+    {
+        configure.AddConsole();
+    }))
+    .Build();
+
+var context = new MyDbContext(options);
+var context1 = new MyDbContext(options);
 var list = new List<int>()
 {
 

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Soul.SqlBatis.Infrastructure;
@@ -17,7 +16,7 @@ namespace Soul.SqlBatis
 
         private IDbConnection _connection;
 
-        private ILoggerFactory _loggerFactory;
+        private readonly DbContextOptions _options;
 
         private IDbContextTransaction _currentTransaction;
 
@@ -27,14 +26,25 @@ namespace Soul.SqlBatis
 
         public ChangeTracker ChangeTracker => _changeTracker;
 
-        public DbContext(DbContextOptions options)
+        public DbContext()
         {
-            _connection = options.DbConnection;
-            _loggerFactory = options.LoggerFactory;
+            var options = new DbContextOptions();
+            var buiilder = new DbContextOptionsBuilder(options);
+            OnConfiguring(buiilder);
+            _options = options;
             _model = ModelCreating();
+            _connection = _options.CreateDbConnection();
             _changeTracker = new ChangeTracker(_model);
         }
-     
+
+        public DbContext(DbContextOptions options)
+        {
+            _options = options;
+            _model = ModelCreating();
+            _connection = _options.CreateDbConnection();
+            _changeTracker = new ChangeTracker(_model);
+        }
+
         public DbSet<T> Set<T>()
             where T : class
         {
@@ -276,7 +286,6 @@ namespace Soul.SqlBatis
 
         protected virtual void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-             optionsBuilder.Build();
         }
 
         public virtual List<T> Query<T>(string sql, object param = null)
@@ -335,11 +344,11 @@ namespace Soul.SqlBatis
 
         protected virtual void Logging(string sql)
         {
-            if (_loggerFactory == null)
+            if (_options.LoggerFactory == null)
             {
                 return;
             }
-            var logger = _loggerFactory.CreateLogger<DbContext>();
+            var logger = _options.LoggerFactory.CreateLogger<DbContext>();
             logger.LogInformation(sql);
         }
 

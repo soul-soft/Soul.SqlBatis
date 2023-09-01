@@ -2,8 +2,8 @@
 {
     public partial class MyDbContext : DbContext
 	{
-		public MyDbContext(Action<DbContextOptionsBuilder> configure)
-			: base(configure)
+		public MyDbContext(DbContextOptions options)
+			: base(options)
 		{
 
 		}

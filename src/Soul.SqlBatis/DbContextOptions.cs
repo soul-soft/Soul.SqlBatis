@@ -1,5 +1,4 @@
-﻿using System;
-using System.Data;
+﻿using System.Data;
 using Microsoft.Extensions.Logging;
 
 namespace Soul.SqlBatis
@@ -8,11 +7,20 @@ namespace Soul.SqlBatis
     {
         internal DbContextOptions()
         {
-            
+
         }
 
-        public bool Tracking { get; set; }
-        public ILoggerFactory LoggerFactory { get; set; }
-        public IDbConnection DbConnection { get; set; }
+        public bool EnableTracking { get; internal set; }
+        
+        public ILoggerFactory LoggerFactory { get; internal set; }
+        
+        public string ConnectionString { get; internal set; }
+        
+        public ConnectionFactory ConnectionFactory { get; internal set; }
+
+        internal IDbConnection CreateDbConnection()
+        {
+            return ConnectionFactory(ConnectionString);
+        }
     }
 }
