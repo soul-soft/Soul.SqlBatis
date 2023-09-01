@@ -276,7 +276,7 @@ namespace Soul.SqlBatis
 
         protected virtual void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.Build();
+             optionsBuilder.Build();
         }
 
         public virtual List<T> Query<T>(string sql, object param = null)
