@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Soul.SqlBatis", "Soul.SqlBa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Soul.SqlBatis.Test", "Soul.SqlBatis.Test\Soul.SqlBatis.Test.csproj", "{8D950427-D8F6-4A05-A848-179406E1B534}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlBatis.Entityframework", "SqlBatis.Entityframework\SqlBatis.Entityframework.csproj", "{118A91F3-B19A-4947-BF7E-27F9E90743DF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlBatis.Entityframework", "SqlBatis.Entityframework\SqlBatis.Entityframework.csproj", "{118A91F3-B19A-4947-BF7E-27F9E90743DF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

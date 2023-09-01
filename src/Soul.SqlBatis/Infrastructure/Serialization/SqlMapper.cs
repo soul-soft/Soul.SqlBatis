@@ -129,13 +129,13 @@ namespace Soul.SqlBatis
                 var func = TypeSerializer.CreateDeserializer(param.GetType());
                 foreach (var item in func(param))
                 {
-                    if (Regex.IsMatch(command.CommandText, $@"@{item.Key}"))
-                    {
-                        command.AddParameter(item.Key, item.Value);
-                    }
                     if (item.Value != null && item.Value is IEnumerable && item.Value.GetType() != typeof(string))
                     {
                         command.SplitArrayParameter(item.Key, item.Value);
+                    }
+                    else if (Regex.IsMatch(command.CommandText, $@"@{item.Key}"))
+                    {
+                        command.AddParameter(item.Key, item.Value);
                     }
                 }
             }
