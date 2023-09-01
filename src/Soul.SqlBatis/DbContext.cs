@@ -17,7 +17,7 @@ namespace Soul.SqlBatis
 
         private IDbConnection _connection;
 
-        public DbContextOptions Options { get; }
+        private ILoggerFactory _loggerFactory;
 
         private IDbContextTransaction _currentTransaction;
 
@@ -27,11 +27,14 @@ namespace Soul.SqlBatis
 
         public ChangeTracker ChangeTracker => _changeTracker;
 
-        public DbContext(DbContextOptions options)
+        public DbContext(Action<DbContextOptionsBuilder> configure)
         {
-            Options = options;
-            _model = ModelCreating();
+            var builder = new DbContextOptionsBuilder();
+            configure(builder);
+            var options = builder.Build();
             _connection = options.DbConnection;
+            _loggerFactory = options.LoggerFactory;
+            _model = ModelCreating();
             _changeTracker = new ChangeTracker(_model);
         }
      
@@ -335,11 +338,11 @@ namespace Soul.SqlBatis
 
         protected virtual void Logging(string sql)
         {
-            if (Options.LoggerFactory == null)
+            if (_loggerFactory == null)
             {
                 return;
             }
-            var logger = Options.LoggerFactory.CreateLogger<DbContext>();
+            var logger = _loggerFactory.CreateLogger<DbContext>();
             logger.LogInformation(sql);
         }
 
