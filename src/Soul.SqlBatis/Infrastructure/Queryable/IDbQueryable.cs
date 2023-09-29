@@ -7,6 +7,7 @@ namespace Soul.SqlBatis
 	public interface IDbQueryable<T>
 	{
 		IModel Model { get; }
+		SqlBuilder Build(DynamicParameters parameters);
 		IDbQueryable<T> FromSql(RawSql sql, DynamicParameters parameters = null);
 		IDbQueryable<T> Set<TResult>(Expression<Func<T, TResult>> column, TResult value, bool flag = true);
 		IDbQueryable<T> Set<TResult>(Expression<Func<T, TResult>> column, Expression<Func<T, TResult>> expression, bool flag = true);

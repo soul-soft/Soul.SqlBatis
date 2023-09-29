@@ -15,7 +15,7 @@ namespace Soul.SqlBatis.Infrastructure
 		/// <summary>
 		/// 
 		/// </summary>
-		public DbSet<StudentScore> StudentScores => Set<StudentScore>();
+		public DbSet<StudentByScore> StudentScores => Set<StudentByScore>();
 	}
 }
 

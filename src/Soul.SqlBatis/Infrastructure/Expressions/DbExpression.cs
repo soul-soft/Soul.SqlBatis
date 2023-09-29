@@ -29,7 +29,7 @@ namespace Soul.SqlBatis.Infrastructure
             return new DbSqlExpression(token, expressionType);
         }
 
-        public static DbExpression FromLambdaExpression(Expression expression, DbExpressionType expressionType)
+        public static DbExpression FromExpression(Expression expression, DbExpressionType expressionType)
         {
             return new DbExpression(expression, expressionType);
         }
@@ -47,6 +47,7 @@ namespace Soul.SqlBatis.Infrastructure
     public class DbSetExpression : DbExpression
     {
         public Expression Value { get; }
+
         public DbSetExpression(Expression expression, Expression value)
         {
             Value = value;
