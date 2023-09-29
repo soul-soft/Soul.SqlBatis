@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace SqlBatis.Entityframework
 {
@@ -18,5 +17,6 @@ namespace SqlBatis.Entityframework
             this.Find<Student>();
             //this.Set<Student>().AsNoTracking;
 		}
+
 	}
 }

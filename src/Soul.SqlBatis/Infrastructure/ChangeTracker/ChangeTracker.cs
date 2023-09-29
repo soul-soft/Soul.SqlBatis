@@ -20,11 +20,6 @@ namespace Soul.SqlBatis.Infrastructure
             return _entryReferences.Values;
         }
 
-        public bool HasEntry(object entry)
-        {
-            return _entryReferences.Keys.Any(a => ReferenceEquals(a, entry));
-        }
-
         public IEnumerable<EntityEntry<T>> Entries<T>()
         {
             return _entryReferences.Values
@@ -32,13 +27,24 @@ namespace Soul.SqlBatis.Infrastructure
                 .Select(s => new EntityEntry<T>(s));
         }
 
-        public EntityEntry Find(Type type, object key)
+		public bool HasEntry(object entry)
+		{
+			return _entryReferences.Keys.Any(a => ReferenceEquals(a, entry));
+		}
+
+		public EntityEntry Find(Type type, object key)
         {
-            var property = _model.GetEntityType(type).Properties.Where(a => a.IsKey).Select(s => s.Property).First();
+            var property = _model.GetEntityType(type).Properties
+                .Where(a => a.IsKey)
+                .Select(s => s.Property)
+                .First();
             var changeKey = Convert.ChangeType(key, property.PropertyType);
             foreach (var entry in _entryReferences.Values.Where(a => a.Type == type))
             {
-                var cacheKey = entry.Properties.Where(a => a.IsKey).Select(s => s.OriginalValue).First();
+                var cacheKey = entry.Properties
+                    .Where(a => a.IsKey)
+                    .Select(s => s.OriginalValue)
+                    .First();
                 if (cacheKey.Equals(changeKey))
                 {
                     return entry;

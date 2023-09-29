@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Soul.SqlBatis", "Soul.SqlBa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Soul.SqlBatis.Test", "Soul.SqlBatis.Test\Soul.SqlBatis.Test.csproj", "{8D950427-D8F6-4A05-A848-179406E1B534}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlBatis.Entityframework", "SqlBatis.Entityframework\SqlBatis.Entityframework.csproj", "{118A91F3-B19A-4947-BF7E-27F9E90743DF}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,10 +21,6 @@ Global
 		{8D950427-D8F6-4A05-A848-179406E1B534}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8D950427-D8F6-4A05-A848-179406E1B534}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8D950427-D8F6-4A05-A848-179406E1B534}.Release|Any CPU.Build.0 = Release|Any CPU
-		{118A91F3-B19A-4947-BF7E-27F9E90743DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{118A91F3-B19A-4947-BF7E-27F9E90743DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{118A91F3-B19A-4947-BF7E-27F9E90743DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{118A91F3-B19A-4947-BF7E-27F9E90743DF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

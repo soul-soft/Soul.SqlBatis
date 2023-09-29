@@ -8,10 +8,3 @@ namespace Soul.SqlBatis.Infrastructure
 {
 	public partial class MyDbContext : DbContext
 	{
-		/// <summary>
-		/// 
-		/// </summary>
-		public DbSet<Student> Students => Set<Student>();
-	}
-}
-

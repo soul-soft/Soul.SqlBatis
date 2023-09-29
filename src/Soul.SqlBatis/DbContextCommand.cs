@@ -172,7 +172,6 @@ namespace Soul.SqlBatis.Infrastructure
             return 1;
         }
 
-
         private int ExecuteUpdate(EntityEntry entityEntry)
         {
             var (sql, values) = BuildUpdateSql(entityEntry);

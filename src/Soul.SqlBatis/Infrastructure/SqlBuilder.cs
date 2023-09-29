@@ -8,7 +8,6 @@ namespace Soul.SqlBatis
 	{
 		private List<Token> _tokens = new List<Token>();
 
-		
 		public SqlBuilder Set(string sql, bool flag = true)
 		{
 			if (flag)

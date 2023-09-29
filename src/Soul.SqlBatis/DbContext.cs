@@ -2,408 +2,413 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Soul.SqlBatis.Infrastructure;
 
 namespace Soul.SqlBatis
 {
-    public abstract class DbContext : IDisposable
-    {
-        private readonly Model _model;
+	public abstract class DbContext : IDisposable
+	{
+		private Model _model;
 
-        public IModel Model => _model;
+		public IModel Model => _model;
 
-        private IDbConnection _connection;
+		private IDbConnection _connection;
 
-        public DbContextOptions Options { get; }
+		public DbContextOptions Options { get; }
 
-        private IDbContextTransaction _currentTransaction;
+		private IDbContextTransaction _currentTransaction;
 
-        public IDbContextTransaction CurrentTransaction => _currentTransaction;
+		public IDbContextTransaction CurrentTransaction => _currentTransaction;
 
-        private readonly ChangeTracker _changeTracker;
+		private ChangeTracker _changeTracker;
 
-        public ChangeTracker ChangeTracker => _changeTracker;
+		public ChangeTracker ChangeTracker => _changeTracker;
+		public DbContext()
+		{
+			var builder = new DbContextOptionsBuilder();
+			OnConfiguring(builder);
+			Options = builder.Build();
+			Initialize();
+		}
 
-        public DbContext(DbContextOptions options)
-        {
-            Options = options;
-            _model = ModelCreating();
-            _connection = options.ConnecionProvider();
-            _changeTracker = new ChangeTracker(_model);
-        }
-     
-        public DbSet<T> Set<T>()
-            where T : class
-        {
-            return new DbSet<T>(this);
-        }
+		public DbContext(DbContextOptions options)
+		{
+			Options = options;
+			Initialize();
+		}
 
-        public IDbQueryable<T> FromSql<T>(string fromSql)
-            where T : class
-        {
-            return new DbSet<T>(this).FromSql(fromSql);
-        }
+		private void Initialize()
+		{
+			_model = ModelCreating();
+			_connection = Options.ConnectionFactory.Create();
+			_changeTracker = new ChangeTracker(_model);
+		}
 
-        public EntityEntry<T> Entry<T>(T entity)
-            where T : class
-        {
-            return _changeTracker.TrackGraph(entity);
-        }
+		public DbSet<T> Set<T>()
+			where T : class
+		{
+			return new DbSet<T>(this);
+		}
 
-        public T Find<T>(object key)
-        {
-            var entityEntry = ChangeTracker.Find(typeof(T), key);
-            if (entityEntry != null)
-            {
-                return (T)entityEntry.Entity;
-            }
-            return new DbContextCommand(this).Find<T>(key);
-        }
+		public IDbQueryable<T> FromSql<T>(string fromSql, DynamicParameters parameters = null)
+			where T : class
+		{
+			return new DbSet<T>(this).FromSql(fromSql, parameters);
+		}
 
-        public async Task<T> FindAsync<T>(object[] key)
-        {
-            var entityEntry = ChangeTracker.Find(typeof(T), key);
-            if (entityEntry != null)
-            {
-                return (T)entityEntry.Entity;
-            }
-            return await new DbContextCommand(this).FindAsync<T>(key);
-        }
+		public EntityEntry<T> Entry<T>(T entity)
+			where T : class
+		{
+			return _changeTracker.TrackGraph(entity);
+		}
 
-        public void Add<T>(T entity)
-            where T : class
-        {
-            Entry(entity).State = EntityState.Added;
-        }
+		public T Find<T>(object key)
+		{
+			var entityEntry = ChangeTracker.Find(typeof(T), key);
+			if (entityEntry != null)
+			{
+				return (T)entityEntry.Entity;
+			}
+			return new DbContextCommand(this).Find<T>(key);
+		}
 
-        public void Add(object entity)
-        {
-            Entry(entity).State = EntityState.Added;
-        }
+		public async Task<T> FindAsync<T>(object[] key)
+		{
+			var entityEntry = ChangeTracker.Find(typeof(T), key);
+			if (entityEntry != null)
+			{
+				return (T)entityEntry.Entity;
+			}
+			return await new DbContextCommand(this).FindAsync<T>(key);
+		}
 
-        public void AddRange<T>(IEnumerable<T> entities)
-            where T : class
-        {
-            foreach (var entity in entities)
-            {
-                Add(entity);
-            }
-        }
+		public void Add<T>(T entity)
+			where T : class
+		{
+			Entry(entity).State = EntityState.Added;
+		}
 
-        public void AddRange(IEnumerable<object> entities)
-        {
-            foreach (var entity in entities)
-            {
-                Add(entity);
-            }
-        }
+		public void Add(object entity)
+		{
+			Entry(entity).State = EntityState.Added;
+		}
 
-        public void Update<T>(T entity)
-            where T : class
-        {
-            if (ChangeTracker.HasEntry(entity))
-            {
-                return;
-            }
-            Entry(entity).State = EntityState.Modified;
-        }
+		public void AddRange<T>(IEnumerable<T> entities)
+			where T : class
+		{
+			foreach (var entity in entities)
+			{
+				Add(entity);
+			}
+		}
 
-        public void Update(object entity)
-        {
-            if (ChangeTracker.HasEntry(entity))
-            {
-                return;
-            }
-            Entry(entity).State = EntityState.Modified;
-        }
+		public void AddRange(IEnumerable<object> entities)
+		{
+			foreach (var entity in entities)
+			{
+				Add(entity);
+			}
+		}
 
-        public void UpdateRange<T>(IEnumerable<T> entities)
-            where T : class
-        {
-            foreach (var entity in entities)
-            {
-                Update(entity);
-            }
-        }
+		public void Update<T>(T entity)
+			where T : class
+		{
+			if (ChangeTracker.HasEntry(entity))
+			{
+				return;
+			}
+			Entry(entity).State = EntityState.Modified;
+		}
 
-        public void UpdateRange(IEnumerable<object> entities)
-        {
-            foreach (var entity in entities)
-            {
-                Update(entity);
-            }
-        }
+		public void Update(object entity)
+		{
+			if (ChangeTracker.HasEntry(entity))
+			{
+				return;
+			}
+			Entry(entity).State = EntityState.Modified;
+		}
 
-        public void Remove<T>(T entity)
-            where T : class
-        {
-            Entry(entity).State = EntityState.Deleted;
-        }
+		public void UpdateRange<T>(IEnumerable<T> entities)
+			where T : class
+		{
+			foreach (var entity in entities)
+			{
+				Update(entity);
+			}
+		}
 
-        public void Remove(object entity)
-        {
-            Entry(entity).State = EntityState.Deleted;
-        }
+		public void UpdateRange(IEnumerable<object> entities)
+		{
+			foreach (var entity in entities)
+			{
+				Update(entity);
+			}
+		}
 
-        public void RemoveRange<T>(IEnumerable<T> entities)
-            where T : class
-        {
-            foreach (var entity in entities)
-            {
-                Remove(entity);
-            }
-        }
+		public void Remove<T>(T entity)
+			where T : class
+		{
+			Entry(entity).State = EntityState.Deleted;
+		}
 
-        public void RemoveRange(IEnumerable<object> entities)
-        {
-            foreach (var entity in entities)
-            {
-                Remove(entity);
-            }
-        }
+		public void Remove(object entity)
+		{
+			Entry(entity).State = EntityState.Deleted;
+		}
 
-        public int SaveChanges()
-        {
-            return new DbContextCommand(this).SaveChanges();
-        }
+		public void RemoveRange<T>(IEnumerable<T> entities)
+			where T : class
+		{
+			foreach (var entity in entities)
+			{
+				Remove(entity);
+			}
+		}
 
-        public Task<int> SaveChangesAsync()
-        {
-            return new DbContextCommand(this).SaveChangesAsync();
-        }
+		public void RemoveRange(IEnumerable<object> entities)
+		{
+			foreach (var entity in entities)
+			{
+				Remove(entity);
+			}
+		}
+
+		public int SaveChanges()
+		{
+			return new DbContextCommand(this).SaveChanges();
+		}
+
+		public Task<int> SaveChangesAsync()
+		{
+			return new DbContextCommand(this).SaveChangesAsync();
+		}
 
 
-        public IDbConnection GetDbConnection()
-        {
-            return _connection;
-        }
+		public IDbConnection GetDbConnection()
+		{
+			return _connection;
+		}
 
-        public IDbTransaction GetDbTransaction()
-        {
-            return CurrentTransaction?.DbTransaction;
-        }
+		public IDbTransaction GetDbTransaction()
+		{
+			return CurrentTransaction?.DbTransaction;
+		}
 
-        public void OpenDbConnection()
-        {
-            if (_connection.State == ConnectionState.Closed)
-            {
-                _connection.Open();
-            }
-        }
+		public void OpenDbConnection()
+		{
+			if (_connection.State == ConnectionState.Closed)
+			{
+				_connection.Open();
+			}
+		}
 
-        public async Task OpenDbConnectionAsync()
-        {
-            if (_connection.State == ConnectionState.Closed)
-            {
-                if (_connection is DbConnection connection)
-                {
-                    await connection.OpenAsync();
-                }
-                else
-                {
-                    _connection.Open();
-                }
-            }
-        }
+		public async Task OpenDbConnectionAsync()
+		{
+			if (_connection.State == ConnectionState.Closed)
+			{
+				if (_connection is DbConnection connection)
+				{
+					await connection.OpenAsync();
+				}
+				else
+				{
+					_connection.Open();
+				}
+			}
+		}
 
-        public void ColseDbConnection()
-        {
-            if (_connection.State != ConnectionState.Closed)
-            {
-                CurrentTransaction?.Dispose();
-                _connection.Close();
-            }
-        }
+		public void ColseDbConnection()
+		{
+			if (_connection.State != ConnectionState.Closed)
+			{
+				CurrentTransaction?.Dispose();
+				_connection.Close();
+			}
+		}
 
-        public Task ColseDbConnectionAsync()
-        {
-            ColseDbConnection();
-            return Task.CompletedTask;
-        }
+		public Task ColseDbConnectionAsync()
+		{
+			ColseDbConnection();
+			return Task.CompletedTask;
+		}
 
-        public IDbContextTransaction BeginTransaction(IDbTransaction transaction = null)
-        {
-            var autoCloase = false;
-            if (_connection.State == ConnectionState.Closed)
-            {
-                OpenDbConnection();
-                autoCloase = true;
-            }
-            transaction = transaction ?? _connection.BeginTransaction();
-            _currentTransaction = new DbContextTransaction(transaction, () =>
-            {
-                _currentTransaction = null;
-                if (autoCloase)
-                {
-                    ColseDbConnection();
-                }
-            });
-            return CurrentTransaction;
-        }
+		public IDbContextTransaction BeginTransaction(IDbTransaction transaction = null)
+		{
+			var autoCloase = false;
+			if (_connection.State == ConnectionState.Closed)
+			{
+				OpenDbConnection();
+				autoCloase = true;
+			}
+			transaction = transaction ?? _connection.BeginTransaction();
+			_currentTransaction = new DbContextTransaction(transaction, () =>
+			{
+				_currentTransaction = null;
+				if (autoCloase)
+				{
+					ColseDbConnection();
+				}
+			});
+			return CurrentTransaction;
+		}
 
-        public async Task<IDbContextTransaction> BeginTransactionAsync(IDbTransaction transaction = null)
-        {
-            var autoCloase = false;
-            if (_connection.State == ConnectionState.Closed)
-            {
-                await OpenDbConnectionAsync();
-                autoCloase = true;
-            }
-            transaction = transaction ?? _connection.BeginTransaction();
-            _currentTransaction = new DbContextTransaction(transaction, () =>
-            {
-                _currentTransaction = null;
-                if (autoCloase)
-                {
-                    ColseDbConnection();
-                }
-            });
-            return CurrentTransaction;
-        }
+		public async Task<IDbContextTransaction> BeginTransactionAsync(IDbTransaction transaction = null)
+		{
+			var autoCloase = false;
+			if (_connection.State == ConnectionState.Closed)
+			{
+				await OpenDbConnectionAsync();
+				autoCloase = true;
+			}
+			transaction = transaction ?? _connection.BeginTransaction();
+			_currentTransaction = new DbContextTransaction(transaction, () =>
+			{
+				_currentTransaction = null;
+				if (autoCloase)
+				{
+					ColseDbConnection();
+				}
+			});
+			return CurrentTransaction;
+		}
 
-        private Model ModelCreating()
-        {
-            return ModelBuilder.CreateDbContextModel(GetType(), OnModelCreating);
-        }
+		private Model ModelCreating()
+		{
+			return ModelBuilder.CreateDbContextModel(GetType(), OnModelCreating);
+		}
 
-        protected virtual void OnModelCreating(ModelBuilder builder)
-        {
+		protected virtual void OnModelCreating(ModelBuilder builder)
+		{
 
-        }
+		}
 
-        protected virtual void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
+		protected virtual void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+		{
 
-        }
+		}
 
-        public virtual List<T> Query<T>(string sql, object param = null)
-        {
-            return AutoOpenConnectionStrategy(() =>
-            {
-                Logging(sql);
-                return _connection.Query<T>(sql, param, GetDbTransaction());
-            });
-        }
+		public virtual List<T> Query<T>(string sql, object param = null)
+		{
+			return AutoOpenConnectionStrategy(() =>
+			{
+				Logging(sql, param);
+				return _connection.Query<T>(sql, param, GetDbTransaction());
+			});
+		}
 
-        public virtual async Task<List<T>> QueryAsync<T>(string sql, object param = null)
-        {
-            return await AutoOpenConnectionStrategyAsync(async () =>
-            {
-                Logging(sql);
-                return await _connection.QueryAsync<T>(sql, param, GetDbTransaction());
-            });
-        }
+		public virtual async Task<List<T>> QueryAsync<T>(string sql, object param = null)
+		{
+			return await AutoOpenConnectionStrategyAsync(async () =>
+			{
+				Logging(sql, param);
+				return await _connection.QueryAsync<T>(sql, param, GetDbTransaction());
+			});
+		}
 
-        public virtual int Execute(string sql, object param = null)
-        {
-            return AutoOpenConnectionStrategy(() =>
-            {
-                Logging(sql);
-                return _connection.Execute(sql, param, GetDbTransaction());
-            });
-        }
+		public virtual int Execute(string sql, object param = null)
+		{
+			return AutoOpenConnectionStrategy(() =>
+			{
+				Logging(sql, param);
+				return _connection.Execute(sql, param, GetDbTransaction());
+			});
+		}
 
-        public virtual Task<int> ExecuteAsync(string sql, object param = null)
-        {
-            return AutoOpenConnectionStrategyAsync(() =>
-            {
-                Logging(sql);
-                return _connection.ExecuteAsync(sql, param, GetDbTransaction());
-            });
-        }
+		public virtual Task<int> ExecuteAsync(string sql, object param = null)
+		{
+			return AutoOpenConnectionStrategyAsync(() =>
+			{
+				Logging(sql, param);
+				return _connection.ExecuteAsync(sql, param, GetDbTransaction());
+			});
+		}
 
-        public virtual T ExecuteScalar<T>(string sql, object param = null)
-        {
-            return AutoOpenConnectionStrategy(() =>
-            {
-                Logging(sql);
-                return _connection.ExecuteScalar<T>(sql, param, GetDbTransaction());
-            });
-        }
+		public virtual T ExecuteScalar<T>(string sql, object param = null)
+		{
+			return AutoOpenConnectionStrategy(() =>
+			{
+				Logging(sql, param);
+				return _connection.ExecuteScalar<T>(sql, param, GetDbTransaction());
+			});
+		}
 
-        public virtual Task<T> ExecuteScalarAsync<T>(string sql, object param = null)
-        {
-            return AutoOpenConnectionStrategyAsync(() =>
-            {
-                Logging(sql);
-                return _connection.ExecuteScalarAsync<T>(sql, param, GetDbTransaction());
-            });
-        }
+		public virtual Task<T> ExecuteScalarAsync<T>(string sql, object param = null)
+		{
+			return AutoOpenConnectionStrategyAsync(() =>
+			{
+				Logging(sql, param);
+				return _connection.ExecuteScalarAsync<T>(sql, param, GetDbTransaction());
+			});
+		}
 
-        protected virtual void Logging(string sql)
-        {
-            if (Options.LoggerFactory == null)
-            {
-                return;
-            }
-            var logger = Options.LoggerFactory.CreateLogger<DbContext>();
-            logger.LogInformation(sql);
-        }
+		protected virtual void Logging(string sql, object param)
+		{
+			
+		}
 
-        private T AutoOpenConnectionStrategy<T>(Func<T> func)
-        {
-            var autoCloase = false;
-            try
-            {
-                if (_connection.State == ConnectionState.Closed)
-                {
-                    OpenDbConnection();
-                    autoCloase = true;
-                }
-                return func();
-            }
-            finally
-            {
-                if (autoCloase)
-                {
-                    ColseDbConnection();
-                }
-            }
-        }
+		private T AutoOpenConnectionStrategy<T>(Func<T> func)
+		{
+			var autoCloase = false;
+			try
+			{
+				if (_connection.State == ConnectionState.Closed)
+				{
+					OpenDbConnection();
+					autoCloase = true;
+				}
+				return func();
+			}
+			finally
+			{
+				if (autoCloase)
+				{
+					ColseDbConnection();
+				}
+			}
+		}
 
-        private async Task<T> AutoOpenConnectionStrategyAsync<T>(Func<Task<T>> func)
-        {
-            var autoCloase = false;
-            try
-            {
-                if (_connection.State == ConnectionState.Closed)
-                {
-                    await OpenDbConnectionAsync();
-                    autoCloase = true;
-                }
-                return await func();
-            }
-            finally
-            {
-                if (autoCloase)
-                {
-                    await ColseDbConnectionAsync();
-                }
-            }
-        }
+		private async Task<T> AutoOpenConnectionStrategyAsync<T>(Func<Task<T>> func)
+		{
+			var autoCloase = false;
+			try
+			{
+				if (_connection.State == ConnectionState.Closed)
+				{
+					await OpenDbConnectionAsync();
+					autoCloase = true;
+				}
+				return await func();
+			}
+			finally
+			{
+				if (autoCloase)
+				{
+					await ColseDbConnectionAsync();
+				}
+			}
+		}
 
-        public void Dispose()
-        {
-            try
-            {
-                _currentTransaction?.Dispose();
-            }
-            finally
-            {
-                _currentTransaction = null;
-                try
-                {
-                    _connection?.Close();
-                    _connection?.Dispose();
-                }
-                finally
-                {
-                    _connection = null;
-                }
-            }
-        }
-    }
+		public void Dispose()
+		{
+			try
+			{
+				_currentTransaction?.Dispose();
+			}
+			finally
+			{
+				_currentTransaction = null;
+				try
+				{
+					_connection?.Close();
+					_connection?.Dispose();
+				}
+				finally
+				{
+					_connection = null;
+				}
+			}
+		}
+	}
 }
