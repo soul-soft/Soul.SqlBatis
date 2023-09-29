@@ -31,14 +31,14 @@ namespace Soul.SqlBatis
 
 		private DynamicParameters _parameters;
 
-		protected DynamicParameters Parameters { get=> _parameters; set => _parameters = value; }
+		protected DynamicParameters Parameters { get => _parameters; set => _parameters = value; }
 
 		public DbQueryable(DbContext context, Type type)
 		{
 			_type = type;
 			_context = context;
 			IsTracking = context.Options.IsTracking;
-		} 
+		}
 
 		public DbQueryable(DbContext context, Type type, List<DbExpression> expressions, DynamicParameters parameters)
 		{
@@ -238,7 +238,7 @@ namespace Soul.SqlBatis
 
 		public IDbQueryable<T> FromSql(SqlToken sql, DynamicParameters parameters = null)
 		{
-			if (parameters!=null)
+			if (parameters != null)
 			{
 				Parameters = parameters;
 			}

@@ -24,6 +24,7 @@ namespace Soul.SqlBatis
 		private ChangeTracker _changeTracker;
 
 		public ChangeTracker ChangeTracker => _changeTracker;
+		
 		public DbContext()
 		{
 			var builder = new DbContextOptionsBuilder();
@@ -35,12 +36,17 @@ namespace Soul.SqlBatis
         public DbContext(DbContextOptions options)
         {
             Options = options;
-            _model = ModelCreating();
-            _connection = options.ConnecionProvider();
-            _changeTracker = new ChangeTracker(_model);
+			Initialize();
         }
-     
-        public DbSet<T> Set<T>()
+
+		private void Initialize()
+		{
+			_model = ModelCreating();
+			_changeTracker = new ChangeTracker(_model);
+			_connection = Options.ConnectionFactory.Create();
+		}
+
+		public DbSet<T> Set<T>()
             where T : class
         {
             return new DbSet<T>(this);
@@ -338,14 +344,9 @@ namespace Soul.SqlBatis
 			});
 		}
 
-        protected virtual void Logging(string sql)
+        protected virtual void Logging(string sql,object param)
         {
-            if (Options.LoggerFactory == null)
-            {
-                return;
-            }
-            var logger = Options.LoggerFactory.CreateLogger<DbContext>();
-            logger.LogInformation(sql);
+           
         }
 
 		private T AutoOpenConnectionStrategy<T>(Func<T> func)

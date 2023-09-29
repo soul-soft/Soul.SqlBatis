@@ -1,10 +1,15 @@
-﻿using System.Data;
-
-namespace Soul.SqlBatis
+﻿namespace Soul.SqlBatis
 {
-    public class DbContextOptions
+	public class DbContextOptions
     {
-        public ILoggerFactory LoggerFactory { get; set; }
-        public Func<IDbConnection> ConnecionProvider { get; set; }
-    }
+        public bool IsTracking { get; set; }
+      
+		public IDbConnectionFactory ConnectionFactory { get; set; }
+
+		public DbContextOptions(bool isTracking, IDbConnectionFactory connectionFactory)
+		{
+			IsTracking = isTracking;
+			ConnectionFactory = connectionFactory;
+		}
+	}
 }
