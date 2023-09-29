@@ -15,7 +15,7 @@ namespace Soul.SqlBatis
 
 		private IDbConnection _connection;
 
-		public DbContextOptions Options { get; }
+        public DbContextOptions Options { get; }
 
 		private IDbContextTransaction _currentTransaction;
 
@@ -32,24 +32,19 @@ namespace Soul.SqlBatis
 			Initialize();
 		}
 
-		public DbContext(DbContextOptions options)
-		{
-			Options = options;
-			Initialize();
-		}
-
-		private void Initialize()
-		{
-			_model = ModelCreating();
-			_connection = Options.ConnectionFactory.Create();
-			_changeTracker = new ChangeTracker(_model);
-		}
-
-		public DbSet<T> Set<T>()
-			where T : class
-		{
-			return new DbSet<T>(this);
-		}
+        public DbContext(DbContextOptions options)
+        {
+            Options = options;
+            _model = ModelCreating();
+            _connection = options.ConnecionProvider();
+            _changeTracker = new ChangeTracker(_model);
+        }
+     
+        public DbSet<T> Set<T>()
+            where T : class
+        {
+            return new DbSet<T>(this);
+        }
 
 		public IDbQueryable<T> FromSql<T>(string fromSql, DynamicParameters parameters = null)
 			where T : class
@@ -284,10 +279,10 @@ namespace Soul.SqlBatis
 
 		}
 
-		protected virtual void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-		{
+        protected virtual void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
 
-		}
+        }
 
 		public virtual List<T> Query<T>(string sql, object param = null)
 		{
@@ -343,10 +338,15 @@ namespace Soul.SqlBatis
 			});
 		}
 
-		protected virtual void Logging(string sql, object param)
-		{
-			
-		}
+        protected virtual void Logging(string sql)
+        {
+            if (Options.LoggerFactory == null)
+            {
+                return;
+            }
+            var logger = Options.LoggerFactory.CreateLogger<DbContext>();
+            logger.LogInformation(sql);
+        }
 
 		private T AutoOpenConnectionStrategy<T>(Func<T> func)
 		{

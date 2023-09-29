@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
@@ -33,14 +34,9 @@ namespace Soul.SqlBatis.Infrastructure
             return node;
         }
 
-        protected string BuildDbOperation(Expression expression)
-        {
-            return new OperationDbExpressionVisitor(Model, Parameters).Build(expression);
-        }
-
         protected override Expression VisitUnary(UnaryExpression node)
         {
-            if(node.NodeType == ExpressionType.Not)
+            if (node.NodeType == ExpressionType.Not)
             {
                 SetNot();
                 SetBlank();
@@ -57,8 +53,8 @@ namespace Soul.SqlBatis.Infrastructure
 
         protected override Expression VisitBinary(BinaryExpression node)
         {
-			SetLeftInclude();
-			if (IsNullExpression(node))
+            SetLeftInclude();
+            if (IsNullExpression(node))
             {
                 var memberExpression = IsParameterMemberExpression(node.Left) ? node.Left : node.Right;
                 Visit(memberExpression);
@@ -99,18 +95,51 @@ namespace Soul.SqlBatis.Infrastructure
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
-            var function = new FunctionDbExpressionVisitor(Model, Parameters).Build(node);
-            SetSql(function);
+            if (IsDbDbOperation(node))
+            {
+                var expression = new OperationDbExpressionVisitor(Model, Parameters).Build(node);
+                SetSql(expression);
+            }
+            else if (IsDbFunction(node))
+            {
+                var expression = new FunctionDbExpressionVisitor(Model, Parameters).Build(node);
+                SetSql(expression);
+            }
+            else
+            {
+                SetParameter(node);
+            }
             return node;
         }
+
         protected bool IsNullExpression(BinaryExpression expression)
         {
             return (expression.NodeType == ExpressionType.Equal) && ((expression.Left is ConstantExpression leftExpression && leftExpression.Value == null) || (expression.Right is ConstantExpression rightExpression && rightExpression.Value == null));
         }
+
         protected bool IsNotNullExpression(BinaryExpression expression)
         {
             return (expression.NodeType == ExpressionType.NotEqual) && ((expression.Left is ConstantExpression leftExpression && leftExpression.Value == null) || (expression.Right is ConstantExpression rightExpression && rightExpression.Value == null));
         }
+
+        protected bool IsDbFunction(MethodCallExpression expression)
+        {
+            if (expression.Method.CustomAttributes.Any(a => a.AttributeType == typeof(DbFunctionAttribute)))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        protected bool IsDbDbOperation(MethodCallExpression expression)
+        {
+            if (expression.Method.DeclaringType == typeof(DbOperations))
+            {
+                return true;
+            }
+            return false;
+        }
+
         protected bool IsParameterMemberExpression(Expression expression)
         {
             if (!(expression is MemberExpression))
@@ -124,69 +153,84 @@ namespace Soul.SqlBatis.Infrastructure
             }
             return false;
         }
+
         protected void SetLeftInclude()
         {
             _buffer.Append('(');
         }
-		protected void SetRightInclude()
-		{
-			_buffer.Append(')');
-		}
-		protected void SetSql(string sql)
+
+        protected void SetRightInclude()
+        {
+            _buffer.Append(')');
+        }
+
+        protected void SetSql(string sql)
         {
             _buffer.Append(sql);
         }
+
         protected void SetIn()
         {
             _buffer.Append("IN");
         }
-		protected void SetNot()
-		{
-			_buffer.Append("NOT");
-		}
-		protected void SetLike()
+
+        protected void SetNot()
+        {
+            _buffer.Append("NOT");
+        }
+
+        protected void SetLike()
         {
             _buffer.Append("LIKE");
         }
+
         protected void SetBetween()
         {
             _buffer.Append("BETWEEN");
         }
+
         protected void SetIsNULL()
         {
             _buffer.Append("IS NULL");
         }
+
         protected void SetIsNotNULL()
         {
             _buffer.Append("IS NOT NULL");
         }
+
         protected void SetBlank()
         {
             _buffer.Append(' ');
         }
+
         protected void SetColumn(MemberInfo member)
         {
             var column = GetColumn(member);
             _buffer.Append(column);
         }
+
         protected string GetColumn(MemberInfo member)
         {
             var entity = Model.GetEntityType(member.DeclaringType);
             var property = entity.GetProperty(member)
                 ?? throw new ModelException(string.Format("'{0}.{1}' is not mapped", member.DeclaringType.Name, member.Name)); ;
-           
+
             return property.ColumnName;
         }
+
         protected virtual void SetParameter(Expression expression)
         {
             var value = GetParameter(expression);
             var name = Parameters.AddAnonymous(value);
             _buffer.Append($"@{name}");
         }
+
         public void SetBinaryType(ExpressionType expressionType)
         {
             _buffer.Append(GetBinaryType(expressionType));
         }
+
         protected object GetParameter(Expression expression)
         {
             object value = null;
@@ -218,6 +262,7 @@ namespace Soul.SqlBatis.Infrastructure
 
             return value;
         }
+
         protected string GetBinaryType(ExpressionType expressionType)
         {
             string result = string.Empty;
@@ -425,6 +470,7 @@ namespace Soul.SqlBatis.Infrastructure
             }
             return result;
         }
+
         public virtual string Build(Expression expression)
         {
             if (expression is ConstantExpression constantExpression && constantExpression.Value is SqlToken sql)
@@ -437,6 +483,7 @@ namespace Soul.SqlBatis.Infrastructure
             }
             return _buffer.ToString();
         }
+
         protected string Build(string text)
         {
             _buffer.Append(text);

@@ -1,17 +1,18 @@
 # Soul.SqlBatis
-这款ORM设计思想以查询性能为主极低的配置代价，支持动态实体、实体变更跟踪、动态sql查询、Linq查询、sql+Linq混合查询。
+这款ORM设计思想以查询性能为主极低的配置代价，支持动态实体配置、实体变更跟踪、动态sql查询、Linq查询、sql+Linq混合查询。
 
 ## DbContext配置
 
 ```C#
-var context = new MyDbContext(new DbContextOptions
-{
-    LoggerFactory = LoggerFactory.Create(logging =>
+    var context = new MyDbContext(new DbContextOptions
     {
-        logging.AddConsole();
-    }),
-    ConnecionProvider = () => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test")
-});
+        //可选
+        LoggerFactory = LoggerFactory.Create(logging =>
+        {
+            logging.AddConsole();
+        }),
+        DbConnection = new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test")
+    });
 ```
 
 ## 实体配置
@@ -25,46 +26,39 @@ var context = new MyDbContext(new DbContextOptions
 - ### attribute
 
   ```C#
-  [Table("students")]
-  public class Student
-  {
-      [Key]
-      [Identity]
-      public uint Id { get; set; }
+    [Table("students")]
+    public class Student
+    {
+        [Key]
+        [Identity]
+        public uint Id { get; set; }
       
-      public string Name { get; set; }
-      [Column("first_name")]
+        public string Name { get; set; }
+        [Column("first_name")]
 
-      public string FirstName { get; set; }
+        public string FirstName { get; set; }
   
-      public DateTime CreationTime { get; set; }
-  }
+        public DateTime CreationTime { get; set; }
+    }
   ```
 
 - ### fluent api
 
   ```C#
-  public class MyDbContext : DbContext
-  {
-  	public MyDbContext(DbContextOptions options)
-  		: base(options)
-  	{
+    public class MyDbContext : DbContext
+    {
+    public DbSet<Student> Students => Set<Student>();
   
-  	}
-  
-  	public DbSet<Student> Students => Set<Student>();
-  
-  	protected override void OnModelCreating(ModelBuilder builder)
-  	{
-  		//忽略字段
-  		builder.Entity<Student>().Igonre(a=>a.FirstName);
-  		//移除默认的自增规则
-  		builder.Entity<Student>().Property(a=>a.Id).ValueGeneratedNever();
-  		builder.Entity<Student>().HasKey(a => a.Id);
-  		builder.Entity<Student>().Property(a => a.FirstName).HasColumnName("FirstName");
-  	}
-  }
-  
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+  	    //忽略字段
+  	    builder.Entity<Student>().Igonre(a=>a.FirstName);
+  	    //移除默认的自增规则
+  	    builder.Entity<Student>().Property(a=>a.Id).ValueGeneratedNever();
+  	    builder.Entity<Student>().HasKey(a => a.Id);
+  	    builder.Entity<Student>().Property(a => a.FirstName).HasColumnName("FirstName");
+    }
+    }
   ```
 
 ## 更改跟踪
@@ -74,57 +68,61 @@ var context = new MyDbContext(new DbContextOptions
 - 主动告知
 
   ```C#
-  var student = new Student()
-  {
-      Name="SqlBatis"
-  };
-  context.Entry(student).State = EntityState.Added;
-  //Or
-  context.Add(student);
-  //提交成功之后，清除当前上下文跟踪的所有实体的引用
-  context.SaveChanges();
+    var student = new Student()
+    {
+        Name="SqlBatis"
+    };
+    context.Entry(student).State = EntityState.Added;
+    //Or
+    context.Add(student);
+    //提交成功之后，清除当前上下文跟踪的所有实体的引用
+    context.SaveChanges();
   ```
 
 - 查询转换
 
   ```C#
-  var student = context.Students
-  	.Where(a => a.Id == 1)
-  	.AsTracking()
-  	.First();
-  student.Name = "zs";
-  //Find方法会先从上下文开始查找，如果存在key则，否则发起数据查询，并跟踪实体，对于一些重量级的对象，跨组件查询非常有用
-  var student2 = context.Find<Student>(1);
-  context.SaveChanges();		
+    //如果context中存在，则直接返回，否则查询数据库，并加入跟踪
+    var studentCache = context.Find<Student>(1);
+   
+   //只跟踪不读缓存
+    var student = context.Students
+        .Where(a => a.Id == 1)
+        .AsTracking()
+        .First();
+    student.Name = "zs";
+    context.SaveChanges();		
   ```
 
 - 实体状态
 
   ```c#
-  //状态被标记为UnChanged，并且永不改变，此时SqlBatis会和原始值进行比对，如果字段被修改则只更新修改的字段
-  var student1 = context.Students
-  	.Where(a => a.Id == 1)
-      .AsTracking()
-  	.First();
-  student1.Name = "cw";
-  var student2 = new Student
-  {
-  	Name = "zs"    
-  };
-  //实体被标记为Added，保存之后返回自增id
-  context.Add(student2);
-  var student3 = new Student
-  {
-      Id = 2,
-  	Name = "zs"    
-  };
-  //实体被标记为Modified，由于数据上下文没有对student3进行跟踪，无法知道它的原始值，无法判断哪些字段被修改了，此时将执行全量字段更新（考虑到查询一次对数据一样有压力）
-  context.Update(student3);
-  //实体被标记为Deleted
-  context.Delete(new 
-  {
-  	Id = 3    
-  });
+    //状态被标记为UnChanged，并且永不改变，此时SqlBatis会和原始值进行比对，如果字段被修改则只更新修改的字段
+    var student1 = context.Students
+    .Where(a => a.Id == 1)
+    .AsTracking()
+    .First();
+    student1.Name = "cw";
+    var student2 = new Student
+    {
+        Name = "zs"    
+    };
+    //实体被标记为Added，保存之后返回自增id
+    context.Add(student2);
+    var student3 = new Student
+    {
+        Id = 2,
+        Name = "zs"    
+    };
+    //实体被标记为Modified，由于数据上下文没有对student3进行跟踪，无法知道它的原始值，无法判断哪些字段被修改了，此时将执行全量字段更新（考虑到查询一次对数据一样有压力）
+    context.Update(student3);
+    //实体被标记为Deleted
+    context.Delete(new 
+    {
+        Id = 3    
+    });
+    //查询跟踪状态    
+    var entry = context.Entry(student3);
   ```
 
 - json
@@ -134,74 +132,12 @@ var context = new MyDbContext(new DbContextOptions
   2. 由于SqlBatis是基于内存地址进行更改跟踪的，对于引用类型将失效。json对象建议使用结构体或者record（这符合值对象设计原则）或者你可以实现INotifyPropertyChanged接口
 
   ```C#
-  //使用值类型，值类型clr采用值复制的方式，禁用属性更改功能
-  [JsonValue]//如果作为JsonArray的泛型参数，无需此标记
-  public struct Address
-  {
-      public string City { get; set; }
-  }
-  //不推荐
-  [JsonValue]//如果作为JsonArray的泛型参数，无需此标记
-  public class Address : INotifyPropertyChanged
-  {
-      private string _city;
-      
-      public string City 
-      { 
-          get
-          {
-              return _city;
-          }
-          set
-          {
-              _city = value;
-              NotifyPropertyChanged();
-          }
-      }
-      
-      public event PropertyChangedEventHandler PropertyChanged;
-  
-      private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
-      {
-          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-      }
-  }
-  
-  [Table("students")]
-  public class Student
-  {
-      public uint Id { get; set; }
-  
-      public string Name { get; set; }
-  
-      public string FirstName { get; set; }
-  
-      public DateTime CreationTime { get; set; }
-      
-      //Address类型上必须使用JsonValue进行标记
-      public Address Address { get; set; }
-      
-      //Address类型上无需使用JsonValue进行标记
-      public JsonArray<Address> Addresses { get; set; }
-  
-      public override bool Equals(object? obj)
-      {
-          if (obj == null || !(obj is Student))
-              return false;
-          if (ReferenceEquals(this, obj))
-          {
-              return true;
-          }
-          var other = (Student)obj;
-          return Id == other.Id;
-      }
-  
-      public override int GetHashCode()
-      {
-          return Id.GetHashCode();
-      }
-  }
-  
+    //必须遵循值类型原则
+    [JsonValue]
+    public record Address
+    {
+        public string City { get; set; }
+    }
   ```
 
   
@@ -218,8 +154,8 @@ var context = new MyDbContext(new DbContextOptions
 - 基本查询
 
   ```C#
-  var student = context.Students.Where(a=>a.Id == 20).First();
-  var students = context.Students.Skip(10).Take(10).ToList();
+    var student = context.Students.Where(a=>a.Id == 20).First();
+    var students = context.Students.Skip(10).Take(10).ToList(); 
   ```
 
 - fromSql
@@ -286,7 +222,7 @@ var students = context.Students
     .Select(s => new 
     {
         s.FirstName,
-        DbFunctions.Count(s.Id)        
+        Count = DbFunctions.Count(s.Id)        
     });
 ```
 

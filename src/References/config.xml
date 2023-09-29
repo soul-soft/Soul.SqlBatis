@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<database connectionString="Server=localhost;Port=3306;User ID=root;Password=1024;Database=test"/>
+	<entities>
+		<entity name="Student">
+			<properties>
+				<property name="Address" type="Address" />
+			</properties>
+		</entity>
+	</entities>
+</config>

@@ -35,6 +35,11 @@ namespace Soul.SqlBatis
             throw new NotImplementedException();
         }
 
+        public static bool In<T1, T2>(T1 column, params T2[] values)
+        {
+            throw new NotImplementedException();
+        }
+
         public static bool IsNull<T>(T column)
         {
             throw new NotImplementedException();

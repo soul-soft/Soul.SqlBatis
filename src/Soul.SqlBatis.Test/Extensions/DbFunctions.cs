@@ -29,5 +29,11 @@ namespace Soul.SqlBatis.Test
         {
             throw new NotImplementedException();
         }
+
+        [DbFunction(Name = "DATE")]
+        internal static DateTime Date(DateTime? creationTime)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
