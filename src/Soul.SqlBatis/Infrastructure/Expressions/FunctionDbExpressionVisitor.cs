@@ -38,7 +38,7 @@ namespace Soul.SqlBatis.Infrastructure
             SetLeftInclude();
             foreach (var item in node.Arguments)
             {
-                if (item.Type == typeof(SqlToken))
+                if (item.Type == typeof(RawSql))
                 {
                     var value = GetParameter(item);
                     SetSql(value.ToString());

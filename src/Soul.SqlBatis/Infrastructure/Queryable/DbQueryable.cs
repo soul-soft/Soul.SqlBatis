@@ -236,7 +236,7 @@ namespace Soul.SqlBatis
 			return query;
 		}
 
-		public IDbQueryable<T> FromSql(SqlToken sql, DynamicParameters parameters = null)
+		public IDbQueryable<T> FromSql(RawSql sql, DynamicParameters parameters = null)
 		{
 			if (parameters != null)
 			{
@@ -246,7 +246,7 @@ namespace Soul.SqlBatis
 			return this;
 		}
 
-		public IDbQueryable<T> GroupBy(SqlToken sql, bool flag = true)
+		public IDbQueryable<T> GroupBy(RawSql sql, bool flag = true)
 		{
 			if (flag)
 				AddExpression(DbExpression.FromSqlExpression(sql, DbExpressionType.GroupBy));
@@ -260,7 +260,7 @@ namespace Soul.SqlBatis
 			return this;
 		}
 
-		public IDbQueryable<T> Having(SqlToken sql, object param = null, bool flag = true)
+		public IDbQueryable<T> Having(RawSql sql, object param = null, bool flag = true)
 		{
 			if (flag)
 			{
@@ -277,7 +277,7 @@ namespace Soul.SqlBatis
 			return this;
 		}
 
-		public IDbQueryable<T> OrderBy(SqlToken sql, bool flag = true)
+		public IDbQueryable<T> OrderBy(RawSql sql, bool flag = true)
 		{
 			if (flag)
 				AddExpression(DbExpression.FromSqlExpression(sql, DbExpressionType.OrderBy));
@@ -298,7 +298,7 @@ namespace Soul.SqlBatis
 			return this;
 		}
 
-		public IDbQueryable<TResult> Select<TResult>(SqlToken sql, bool flag = true)
+		public IDbQueryable<TResult> Select<TResult>(RawSql sql, bool flag = true)
 		{
 			if (flag)
 				AddExpression(DbExpression.FromSqlExpression(sql, DbExpressionType.Select));
@@ -340,7 +340,7 @@ namespace Soul.SqlBatis
 			return this;
 		}
 
-		public IDbQueryable<T> Where(SqlToken sql, object param = null, bool flag = true)
+		public IDbQueryable<T> Where(RawSql sql, object param = null, bool flag = true)
 		{
 			if (flag)
 			{

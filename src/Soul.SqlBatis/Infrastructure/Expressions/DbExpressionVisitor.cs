@@ -23,7 +23,7 @@ namespace Soul.SqlBatis.Infrastructure
 
         protected override Expression VisitConstant(ConstantExpression node)
         {
-            if (node.Value is SqlToken raw)
+            if (node.Value is RawSql raw)
             {
                 SetSql(raw.Raw);
             }
@@ -473,7 +473,7 @@ namespace Soul.SqlBatis.Infrastructure
 
         public virtual string Build(Expression expression)
         {
-            if (expression is ConstantExpression constantExpression && constantExpression.Value is SqlToken sql)
+            if (expression is ConstantExpression constantExpression && constantExpression.Value is RawSql sql)
             {
                 _buffer.Append(sql.Raw);
             }
