@@ -1,29 +1,29 @@
-﻿using System.Text.Json;
-using Microsoft.Extensions.Logging;
-using MySqlConnector;
+﻿using MySql.Data.MySqlClient;
 using Soul.SqlBatis;
 using Soul.SqlBatis.Infrastructure;
-using Soul.SqlBatis.Test;
 
-var context = new MyDbContext(new DbContextOptions
-{
-    LoggerFactory = LoggerFactory.Create(logging =>
-    {
-        logging.AddConsole();
-    }),
-    ConnecionProvider = () => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test")
-});
-
-var json = "{\"Orders\":{\"Id\":1,\"Name\":1}}";
-
+var options = new DbContextOptionsBuilder()
+    .AsTracking()
+    .UseConnectionFactory(() => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test"))
+    .Build();
 var context = new MyDbContext(options);
-var context1 = new MyDbContext(options);
-var list = new List<int>()
-{
 
-};
-var students = context.Students
-    .Where(a => a.CreationTime > DateTime.Now)
+
+var sb = new SqlBuilder();
+sb.Where("id > @Id");
+var view = $@"
+SELECT
+    group_concat(id) Ids,
+    Name,
+    Count(*) count
+FROM
+    student
+{sb.WhereSql}
+GROUP BY
+    student.Name
+";
+var param = new DynamicParameters();
+param.Add("Id", 18968);
+var list = context.FromSql<StudentByName>(view,param)
     .ToList();
-var row = await context.SaveChangesAsync();
 Console.WriteLine();

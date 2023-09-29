@@ -9,6 +9,12 @@ namespace Soul.SqlBatis
 
 		private IDbConnectionFactory ConnectionFactory;
 
+		public DbContextOptionsBuilder AsTracking()
+		{
+			IsTracking = true;
+			return this;
+		}
+
 		public DbContextOptionsBuilder UseConnectionFactory(Func<IDbConnection> provider)
 		{
 			ConnectionFactory = new DelegateDbConnectionFactory(provider);
@@ -25,5 +31,6 @@ namespace Soul.SqlBatis
 		{
 			return new DbContextOptions(IsTracking, ConnectionFactory);
 		}
+
 	}
 }

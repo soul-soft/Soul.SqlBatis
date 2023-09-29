@@ -73,36 +73,11 @@ namespace Soul.SqlBatis
 			return Limit((row - 1) * size, size);
 		}
 
+		public string WhereSql => Build("/**where**/");
 
 		public string Build(string format)
 		{
-			var tokens = GetGroupTokens(_tokens);
-			return Regex.Replace(format, @"/\*\*(?<token>\w+)\*\*/", match =>
-			{
-				var token = match.Groups["token"].Value.ToUpper();
-				var value = match.Value;
-				var key = GetTokenType(token);
-				if (key.HasValue && tokens.ContainsKey(key.Value))
-				{
-					return tokens[key.Value];
-				}
-				return string.Empty;
-			}, RegexOptions.IgnoreCase);
-		}
-
-		public SqlBuilder Clone()
-		{
-			var sb = new SqlBuilder();
-			foreach (var item in _tokens)
-			{
-				sb._tokens.Add(item);
-			}
-			return sb;
-		}
-
-		private static Dictionary<TokenType, string> GetGroupTokens(IEnumerable<Token> tokens)
-		{
-			return tokens
+			var tokens = _tokens
 				.Where(a => a.Type != TokenType.From)
 				.GroupBy(a => a.Type)
 				.OrderBy(s => s.Key)
@@ -142,8 +117,28 @@ namespace Soul.SqlBatis
 					return new KeyValuePair<TokenType, string>(s.Key, values);
 				})
 				.ToDictionary(s => s.Key, s => s.Value);
+			return Regex.Replace(format, @"/\*\*(?<token>\w+)\*\*/", match =>
+			{
+				var token = match.Groups["token"].Value.ToUpper();
+				var value = match.Value;
+				var key = GetTokenType(token);
+				if (key.HasValue && tokens.ContainsKey(key.Value))
+				{
+					return tokens[key.Value];
+				}
+				return string.Empty;
+			}, RegexOptions.IgnoreCase);
 		}
 
+		public SqlBuilder Clone()
+		{
+			var sb = new SqlBuilder();
+			foreach (var item in _tokens)
+			{
+				sb._tokens.Add(item);
+			}
+			return sb;
+		}
 
 		private static TokenType? GetTokenType(string token)
 		{

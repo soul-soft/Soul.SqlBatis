@@ -19,13 +19,18 @@ namespace Soul.SqlBatis.Entities
 		/// <summary>
 		/// 
 		/// </summary>
+		[Column("Age")]
+		public int? Age { get; set; }
+		/// <summary>
+		/// 
+		/// </summary>
 		[Column("CreationTime")]
-		public DateTime? CreationTime { get; set; }
+		public DateTime? Creationtime { get; set; }
 		/// <summary>
 		/// 
 		/// </summary>
 		[Column("FirstName")]
-		public string FirstName { get; set; }
+		public string Firstname { get; set; }
 		/// <summary>
 		/// 
 		/// </summary>
