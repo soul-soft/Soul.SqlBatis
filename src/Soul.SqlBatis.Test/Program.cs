@@ -10,6 +10,7 @@ var context = new MyDbContext(options);
 
 
 var sb = new SqlBuilder();
+//分组之前过率
 sb.Where("id > @Id");
 var view = $@"
 SELECT
@@ -24,6 +25,8 @@ GROUP BY
 ";
 var param = new DynamicParameters();
 param.Add("Id", 18968);
+//视图过滤
 var list = context.FromSql<StudentByName>(view, param)
+	.Where(a => a.Count > 1)
 	.ToList();
 Console.WriteLine();

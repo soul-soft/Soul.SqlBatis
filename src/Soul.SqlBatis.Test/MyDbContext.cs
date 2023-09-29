@@ -10,7 +10,7 @@
 
 		protected override void Logging(string sql, object param)
 		{
-			base.Logging(sql, param);
+			Console.WriteLine(sql);
 		}
 	}
 }
