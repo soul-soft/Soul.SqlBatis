@@ -37,8 +37,10 @@ namespace Soul.SqlBatis
 		{
 			_type = type;
 			_context = context;
+			_parameters = new DynamicParameters();
 			IsTracking = context.Options.IsTracking;
-		}
+
+        }
 
 		public DbQueryable(DbContext context, Type type, List<DbExpression> expressions, DynamicParameters parameters)
 		{

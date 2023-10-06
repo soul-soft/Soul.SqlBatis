@@ -68,7 +68,7 @@ namespace Soul.SqlBatis.Infrastructure
                 var value = GetParameter(valueExpression);
                 SetParameter(Expression.Constant($"{value}%"));
             }
-            else if (node.Method.Name == nameof(DbOperations.StartsWith))
+            else if (node.Method.Name == nameof(DbOperations.EndsWith))
             {
                 Expression columnExpression = null;
                 Expression valueExpression = null;
