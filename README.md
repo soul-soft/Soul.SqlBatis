@@ -9,14 +9,15 @@
 	.UseConnectionFactory(() => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test"))
 	.Build();
 var context = new MyDbContext(options);
-//or
+```
+``` C#
 public partial class MyDbContext : DbContext
 {
     protected override void Logging(string sql, object param)
     {
         Console.WriteLine(sql);
     }
-
+    //调用无参构造器时执行	
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.UseConnectionFactory(() => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test"));
