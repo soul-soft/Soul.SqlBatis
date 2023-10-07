@@ -205,20 +205,11 @@ namespace Soul.SqlBatis
 			}
 		}
 
-		public async Task OpenDbConnectionAsync()
+		public Task OpenDbConnectionAsync()
 		{
-			if (_connection.State == ConnectionState.Closed)
-			{
-				if (_connection is DbConnection connection)
-				{
-					await connection.OpenAsync();
-				}
-				else
-				{
-					_connection.Open();
-				}
-			}
-		}
+			OpenDbConnection();
+			return Task.CompletedTask;
+        }
 
 		public void ColseDbConnection()
 		{
@@ -292,7 +283,7 @@ namespace Soul.SqlBatis
 
 		public virtual List<T> Query<T>(string sql, object param = null)
 		{
-			return AutoOpenConnectionStrategy(() =>
+			return ExecuteDbCommandStrategy(() =>
 			{
 				Logging(sql, param);
 				return _connection.Query<T>(sql, param, GetDbTransaction());
@@ -301,7 +292,7 @@ namespace Soul.SqlBatis
 
 		public virtual async Task<List<T>> QueryAsync<T>(string sql, object param = null)
 		{
-			return await AutoOpenConnectionStrategyAsync(async () =>
+			return await ExecuteDbCommandStrategyAsync(async () =>
 			{
 				Logging(sql, param);
 				return await _connection.QueryAsync<T>(sql, param, GetDbTransaction());
@@ -310,7 +301,7 @@ namespace Soul.SqlBatis
 
 		public virtual int Execute(string sql, object param = null)
 		{
-			return AutoOpenConnectionStrategy(() =>
+			return ExecuteDbCommandStrategy(() =>
 			{
 				Logging(sql, param);
 				return _connection.Execute(sql, param, GetDbTransaction());
@@ -319,7 +310,7 @@ namespace Soul.SqlBatis
 
 		public virtual Task<int> ExecuteAsync(string sql, object param = null)
 		{
-			return AutoOpenConnectionStrategyAsync(() =>
+			return ExecuteDbCommandStrategyAsync(() =>
 			{
 				Logging(sql, param);
 				return _connection.ExecuteAsync(sql, param, GetDbTransaction());
@@ -328,7 +319,7 @@ namespace Soul.SqlBatis
 
 		public virtual T ExecuteScalar<T>(string sql, object param = null)
 		{
-			return AutoOpenConnectionStrategy(() =>
+			return ExecuteDbCommandStrategy(() =>
 			{
 				Logging(sql, param);
 				return _connection.ExecuteScalar<T>(sql, param, GetDbTransaction());
@@ -337,7 +328,7 @@ namespace Soul.SqlBatis
 
 		public virtual Task<T> ExecuteScalarAsync<T>(string sql, object param = null)
 		{
-			return AutoOpenConnectionStrategyAsync(() =>
+			return ExecuteDbCommandStrategyAsync(() =>
 			{
 				Logging(sql, param);
 				return _connection.ExecuteScalarAsync<T>(sql, param, GetDbTransaction());
@@ -349,7 +340,7 @@ namespace Soul.SqlBatis
            
         }
 
-		private T AutoOpenConnectionStrategy<T>(Func<T> func)
+		private T ExecuteDbCommandStrategy<T>(Func<T> func)
 		{
 			var autoCloase = false;
 			try
@@ -370,7 +361,7 @@ namespace Soul.SqlBatis
 			}
 		}
 
-		private async Task<T> AutoOpenConnectionStrategyAsync<T>(Func<Task<T>> func)
+		private async Task<T> ExecuteDbCommandStrategyAsync<T>(Func<Task<T>> func)
 		{
 			var autoCloase = false;
 			try
