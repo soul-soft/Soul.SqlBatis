@@ -4,15 +4,24 @@
 ## DbContext配置
 
 ```C#
-    var context = new MyDbContext(new DbContextOptions
+  var options = new DbContextOptionsBuilder()
+	.AsTracking()
+	.UseConnectionFactory(() => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test"))
+	.Build();
+var context = new MyDbContext(options);
+//or
+public partial class MyDbContext : DbContext
+{
+    protected override void Logging(string sql, object param)
     {
-        //可选
-        LoggerFactory = LoggerFactory.Create(logging =>
-        {
-            logging.AddConsole();
-        }),
-        DbConnection = new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test")
-    });
+        Console.WriteLine(sql);
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder.UseConnectionFactory(() => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test"));
+    }
+}
 ```
 
 ## 实体配置
