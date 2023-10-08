@@ -8,24 +8,19 @@ namespace Soul.SqlBatis.Entities
 	/// <summary>
     /// 
     /// </summary>
-	[Table("student")]
-	public partial class Student
+	[Table("staff")]
+	public partial class Staff
 	{
 		/// <summary>
 		/// 
 		/// </summary>
-		[Column("Address")]
-		public Address Address { get; set; }
+		[Column("Company")]
+		public string Company { get; set; }
 		/// <summary>
 		/// 
 		/// </summary>
-		[Column("CreationTime")]
-		public DateTime? Creationtime { get; set; }
-		/// <summary>
-		/// 
-		/// </summary>
-		[Column("FirstName")]
-		public string Firstname { get; set; }
+		[Column("Grade")]
+		public string Grade { get; set; }
 		/// <summary>
 		/// 
 		/// </summary>

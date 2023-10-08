@@ -6,6 +6,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Soul.SqlBatis
@@ -26,10 +27,10 @@ namespace Soul.SqlBatis
                 return list;
             }
         }
-        public static async Task<List<dynamic>> QueryAsync(this IDbConnection connection, string sql, object parameter = null, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null)
+        public static async Task<List<dynamic>> QueryAsync(this IDbConnection connection, string sql, object parameter = null, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null, CancellationToken? cancellationToken = default)
         {
             using (var cmd = connection.CreateDbCommand(sql, parameter, transaction, commandTimeout, commandType) as DbCommand)
-            using (var reader = await cmd.ExecuteReaderAsync())
+            using (var reader = await (cancellationToken == null ? cmd.ExecuteReaderAsync() : cmd.ExecuteReaderAsync(cancellationToken.Value)))
             {
                 var list = new List<dynamic>();
                 var func = TypeSerializer.CreateSerializer();
@@ -54,10 +55,10 @@ namespace Soul.SqlBatis
                 return list;
             }
         }
-        public static async Task<List<T>> QueryAsync<T>(this IDbConnection connection, string sql, object parameter = null, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null)
+        public static async Task<List<T>> QueryAsync<T>(this IDbConnection connection, string sql, object parameter = null, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null, CancellationToken? cancellationToken = default)
         {
             using (var cmd = connection.CreateDbCommand(sql, parameter, transaction, commandTimeout, commandType) as DbCommand)
-            using (var reader = await cmd.ExecuteReaderAsync())
+            using (var reader = await (cancellationToken == null ? cmd.ExecuteReaderAsync() : cmd.ExecuteReaderAsync(cancellationToken.Value)))
             {
                 var list = new List<T>();
                 var func = TypeSerializer.CreateSerializer<T>(reader);
@@ -75,11 +76,11 @@ namespace Soul.SqlBatis
                 return cmd.ExecuteNonQuery();
             }
         }
-        public static async Task<int> ExecuteAsync(this IDbConnection connection, string sql, object parameter = null, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null)
+        public static async Task<int> ExecuteAsync(this IDbConnection connection, string sql, object parameter = null, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null, CancellationToken? cancellationToken = default)
         {
             using (var cmd = connection.CreateDbCommand(sql, parameter, transaction, commandTimeout, commandType) as DbCommand)
             {
-                return await cmd.ExecuteNonQueryAsync();
+                return await (cancellationToken == null ? cmd.ExecuteNonQueryAsync() : cmd.ExecuteNonQueryAsync(cancellationToken.Value));
             }
         }
         public static object ExecuteScalar(this IDbConnection connection, string sql, object parameter = null, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null)
@@ -102,11 +103,11 @@ namespace Soul.SqlBatis
                 return ChangeType<T>(result);
             }
         }
-        public static async Task<T> ExecuteScalarAsync<T>(this IDbConnection connection, string sql, object parameter = null, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null)
+        public static async Task<T> ExecuteScalarAsync<T>(this IDbConnection connection, string sql, object parameter = null, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null, CancellationToken? cancellationToken = default)
         {
             using (var cmd = connection.CreateDbCommand(sql, parameter, transaction, commandTimeout, commandType) as DbCommand)
             {
-                var result = await cmd.ExecuteScalarAsync();
+                var result = await (cancellationToken == null ? cmd.ExecuteScalarAsync() : cmd.ExecuteScalarAsync(cancellationToken.Value));
                 return ChangeType<T>(result);
             }
         }
@@ -116,11 +117,11 @@ namespace Soul.SqlBatis
             var command = connection.CreateCommand();
             command.Transaction = transaction;
             command.CommandText = sql;
-            if (commandTimeout.HasValue)
+            if (commandTimeout != null)
             {
                 command.CommandTimeout = commandTimeout.Value;
             }
-            if (commandType.HasValue)
+            if (commandType != null)
             {
                 command.CommandType = commandType.Value;
             }

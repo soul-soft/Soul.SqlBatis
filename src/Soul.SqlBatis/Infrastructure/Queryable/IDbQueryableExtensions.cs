@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Soul.SqlBatis
@@ -26,12 +27,12 @@ namespace Soul.SqlBatis
             return result.First();
         }
 
-        public static async Task<T> FirstAsync<T>(this IDbQueryable<T> queryable)
+        public static async Task<T> FirstAsync<T>(this IDbQueryable<T> queryable, CancellationToken? cancellationToken = null)
         {
             queryable.Take(1);
             var query = queryable.AsQuery();
             var (sql, param) = query.BuildSelect();
-            var result = await query.QueryAsync<T>(sql, param);
+            var result = await query.QueryAsync<T>(sql, param, cancellationToken);
             return result.First();
         }
 
@@ -44,12 +45,12 @@ namespace Soul.SqlBatis
             return result.FirstOrDefault();
         }
 
-        public static async Task<T> FirstOrDefaultAsync<T>(this IDbQueryable<T> queryable)
+        public static async Task<T> FirstOrDefaultAsync<T>(this IDbQueryable<T> queryable, CancellationToken? cancellationToken = null)
         {
             queryable.Take(1);
             var query = queryable.AsQuery();
             var (sql, param) = query.BuildSelect();
-            var result = await query.QueryAsync<T>(sql, param);
+            var result = await query.QueryAsync<T>(sql, param, cancellationToken);
             return result.FirstOrDefault();
         }
 
@@ -61,27 +62,27 @@ namespace Soul.SqlBatis
             return result;
         }
 
-        public static async Task<List<T>> ToListAsync<T>(this IDbQueryable<T> queryable)
+        public static async Task<List<T>> ToListAsync<T>(this IDbQueryable<T> queryable, CancellationToken? cancellationToken = null)
         {
             var query = queryable.AsQuery();
             var (sql, param) = query.BuildSelect();
-            var result = await query.QueryAsync<T>(sql, param);
+            var result = await query.QueryAsync<T>(sql, param, cancellationToken);
             return result;
         }
 
-        public static (List<T>, int) ToPageList<T>(this IDbQueryable<T> queryable,int page,int size)
+        public static (List<T>, int) ToPageList<T>(this IDbQueryable<T> queryable, int page, int size)
         {
-            var offset = (page-1) * size;
+            var offset = (page - 1) * size;
             var list = queryable.Take(size).Skip(offset).ToList();
             var count = queryable.Count();
             return (list, count);
         }
 
-        public static async Task<(List<T>, int)> ToPageListAsync<T>(this IDbQueryable<T> queryable, int page, int size)
+        public static async Task<(List<T>, int)> ToPageListAsync<T>(this IDbQueryable<T> queryable, int page, int size, CancellationToken? cancellationToken = null)
         {
             var offset = (page - 1) * size;
-            var list = await queryable.Take(size).Skip(offset).ToListAsync();
-            var count = await queryable.CountAsync();
+            var list = await queryable.Take(size).Skip(offset).ToListAsync(cancellationToken);
+            var count = await queryable.CountAsync(cancellationToken);
             return (list, count);
         }
 
@@ -92,11 +93,11 @@ namespace Soul.SqlBatis
             return query.ExecuteScalar<int>(sql, param);
         }
 
-        public static async Task<int> CountAsync<T>(this IDbQueryable<T> queryable)
+        public static async Task<int> CountAsync<T>(this IDbQueryable<T> queryable, CancellationToken? cancellationToken = null)
         {
             var query = queryable.AsQuery();
             var (sql, param) = query.BuildCount();
-            return await query.ExecuteScalarAsync<int>(sql, param);
+            return await query.ExecuteScalarAsync<int>(sql, param, cancellationToken);
         }
 
         public static long LongCount<T>(this IDbQueryable<T> queryable)
@@ -106,11 +107,11 @@ namespace Soul.SqlBatis
             return query.ExecuteScalar<long>(sql, param);
         }
 
-        public static async Task<long> LongCountAsync<T>(this IDbQueryable<T> queryable)
+        public static async Task<long> LongCountAsync<T>(this IDbQueryable<T> queryable, CancellationToken? cancellationToken = null)
         {
             var query = queryable.AsQuery();
             var (sql, param) = query.BuildCount();
-            return await query.ExecuteScalarAsync<long>(sql, param);
+            return await query.ExecuteScalarAsync<long>(sql, param, cancellationToken);
         }
 
         public static int Count<T, TProperty>(this IDbQueryable<T> queryable, Expression<Func<T, TProperty>> expression)
@@ -121,12 +122,12 @@ namespace Soul.SqlBatis
             return query.ExecuteScalar<int>(sql, param);
         }
 
-        public static async Task<int> CountAsync<T, TProperty>(this IDbQueryable<T> queryable, Expression<Func<T, TProperty>> expression)
+        public static async Task<int> CountAsync<T, TProperty>(this IDbQueryable<T> queryable, Expression<Func<T, TProperty>> expression, CancellationToken? cancellationToken = null)
         {
             queryable.Select(expression);
             var query = queryable.AsQuery();
             var (sql, param) = query.BuildCount();
-            return await query.ExecuteScalarAsync<int>(sql, param);
+            return await query.ExecuteScalarAsync<int>(sql, param, cancellationToken);
         }
 
         public static TProperty Sum<T, TProperty>(this IDbQueryable<T> queryable, Expression<Func<T, TProperty>> expression)
@@ -137,12 +138,12 @@ namespace Soul.SqlBatis
             return query.ExecuteScalar<TProperty>(sql, param);
         }
 
-        public static async Task<TProperty> SumAsync<T, TProperty>(this IDbQueryable<T> queryable, Expression<Func<T, TProperty>> expression)
+        public static async Task<TProperty> SumAsync<T, TProperty>(this IDbQueryable<T> queryable, Expression<Func<T, TProperty>> expression, CancellationToken? cancellationToken = null)
         {
             queryable.Select(expression);
             var query = queryable.AsQuery();
             var (sql, param) = query.BuildSum();
-            return await query.ExecuteScalarAsync<TProperty>(sql, param);
+            return await query.ExecuteScalarAsync<TProperty>(sql, param, cancellationToken);
         }
 
         public static TProperty Average<T, TProperty>(this IDbQueryable<T> queryable, Expression<Func<T, TProperty>> expression)
@@ -153,12 +154,12 @@ namespace Soul.SqlBatis
             return query.ExecuteScalar<TProperty>(sql, param);
         }
 
-        public static async Task<TProperty> Averagesync<T, TProperty>(this IDbQueryable<T> queryable, Expression<Func<T, TProperty>> expression)
+        public static async Task<TProperty> Averagesync<T, TProperty>(this IDbQueryable<T> queryable, Expression<Func<T, TProperty>> expression, CancellationToken? cancellationToken = null)
         {
             queryable.Select(expression);
             var query = queryable.AsQuery();
             var (sql, param) = query.BuildAverage();
-            return await query.ExecuteScalarAsync<TProperty>(sql, param);
+            return await query.ExecuteScalarAsync<TProperty>(sql, param, cancellationToken);
         }
 
         public static TProperty Max<T, TProperty>(this IDbQueryable<T> queryable, Expression<Func<T, TProperty>> expression)
@@ -169,12 +170,12 @@ namespace Soul.SqlBatis
             return query.ExecuteScalar<TProperty>(sql, param);
         }
 
-        public static async Task<TProperty> MaxAsync<T, TProperty>(this IDbQueryable<T> queryable, Expression<Func<T, TProperty>> expression)
+        public static async Task<TProperty> MaxAsync<T, TProperty>(this IDbQueryable<T> queryable, Expression<Func<T, TProperty>> expression, CancellationToken? cancellationToken = null)
         {
             queryable.Select(expression);
             var query = queryable.AsQuery();
             var (sql, param) = query.BuildMax();
-            return await query.ExecuteScalarAsync<TProperty>(sql, param);
+            return await query.ExecuteScalarAsync<TProperty>(sql, param, cancellationToken);
         }
 
         public static TProperty Min<T, TProperty>(this IDbQueryable<T> queryable, Expression<Func<T, TProperty>> expression)
@@ -185,12 +186,12 @@ namespace Soul.SqlBatis
             return query.ExecuteScalar<TProperty>(sql, param);
         }
 
-        public static async Task<TProperty> MinAsync<T, TProperty>(this IDbQueryable<T> queryable, Expression<Func<T, TProperty>> expression)
+        public static async Task<TProperty> MinAsync<T, TProperty>(this IDbQueryable<T> queryable, Expression<Func<T, TProperty>> expression, CancellationToken? cancellationToken = null)
         {
             queryable.Select(expression);
             var query = queryable.AsQuery();
             var (sql, param) = query.BuildMin();
-            return await query.ExecuteScalarAsync<TProperty>(sql, param);
+            return await query.ExecuteScalarAsync<TProperty>(sql, param, cancellationToken);
         }
 
         public static bool Any<T>(this IDbQueryable<T> queryable, Expression<Func<T, bool>> expression)
@@ -201,12 +202,12 @@ namespace Soul.SqlBatis
             return query.ExecuteScalar<bool>(sql, param);
         }
 
-        public static Task<bool> AnyAsync<T>(this IDbQueryable<T> queryable, Expression<Func<T, bool>> expression)
+        public static Task<bool> AnyAsync<T>(this IDbQueryable<T> queryable, Expression<Func<T, bool>> expression, CancellationToken? cancellationToken = null)
         {
             queryable.Where(expression);
             var query = queryable.AsQuery();
             var (sql, param) = query.BuildAny();
-            return query.ExecuteScalarAsync<bool>(sql, param);
+            return query.ExecuteScalarAsync<bool>(sql, param, cancellationToken);
         }
 
         public static int ExecuteUpdate<T>(this IDbQueryable<T> queryable)
@@ -216,11 +217,11 @@ namespace Soul.SqlBatis
             return query.Execute(sql, param);
         }
 
-        public static Task<int> ExecuteUpdateAsync<T>(this IDbQueryable<T> queryable)
+        public static Task<int> ExecuteUpdateAsync<T>(this IDbQueryable<T> queryable, CancellationToken? cancellationToken = null)
         {
             var query = queryable.AsQuery();
             var (sql, param) = query.BuildUpdate();
-            return query.ExecuteAsync(sql, param);
+            return query.ExecuteAsync(sql, param, cancellationToken: cancellationToken);
         }
 
         public static int ExecuteDelete<T>(this IDbQueryable<T> queryable)
@@ -230,11 +231,11 @@ namespace Soul.SqlBatis
             return query.Execute(sql, param);
         }
 
-        public static Task<int> ExecuteDeleteAsync<T>(this IDbQueryable<T> queryable)
+        public static Task<int> ExecuteDeleteAsync<T>(this IDbQueryable<T> queryable, CancellationToken? cancellationToken = null)
         {
             var query = queryable.AsQuery();
             var (sql, param) = query.BuildDelete();
-            return query.ExecuteAsync(sql, param);
+            return query.ExecuteAsync(sql, param, cancellationToken: cancellationToken);
         }
 
         private static DbQueryable AsQuery<T>(this IDbQueryable<T> queryable)

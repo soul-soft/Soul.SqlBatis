@@ -1,6 +1,5 @@
 ﻿using MySql.Data.MySqlClient;
 using Soul.SqlBatis;
-using Soul.SqlBatis.Entities;
 using Soul.SqlBatis.Infrastructure;
 
 var options = new DbContextOptionsBuilder()
@@ -9,8 +8,15 @@ var options = new DbContextOptionsBuilder()
 	.Build();
 var context = new MyDbContext(options);
 
+try
+{
+    var param1 = new DynamicParameters();
+    var sb1 = await context.Students
+        .ToListAsync();
+}
+catch (Exception ex)
+{
 
-var param1 = new DynamicParameters();
-var sb1 = context.Students
-	.Where(a=>DbOperations.In(a.Id,1,2,3))
-	.ToList();
+	throw;
+}
+

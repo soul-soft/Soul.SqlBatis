@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Soul.SqlBatis.Infrastructure
@@ -59,7 +60,7 @@ namespace Soul.SqlBatis.Infrastructure
             return row;
         }
 
-        public async Task<int> SaveChangesAsync()
+        public async Task<int> SaveChangesAsync(CancellationToken? cancellationToken = default)
         {
             var row = 0;
             if (!HasChanges())
@@ -76,15 +77,15 @@ namespace Soul.SqlBatis.Infrastructure
                 {
                     if (entry.State == EntityState.Added)
                     {
-                        row += await ExecuteInsertAsync(entry);
+                        row += await ExecuteInsertAsync(entry, cancellationToken);
                     }
                     else if (entry.State == EntityState.Modified || entry.State == EntityState.Unchanged)
                     {
-                        row += await ExecuteUpdateAsync(entry);
+                        row += await ExecuteUpdateAsync(entry, cancellationToken);
                     }
                     else if (entry.State == EntityState.Deleted)
                     {
-                        row += await ExecuteDeleteAsync(entry);
+                        row += await ExecuteDeleteAsync(entry, cancellationToken);
                     }
                 }
                 if (!hasActiveDbTransaction)
@@ -160,12 +161,12 @@ namespace Soul.SqlBatis.Infrastructure
             return 1;
         }
 
-        private async Task<int> ExecuteInsertAsync(EntityEntry entry)
+        private async Task<int> ExecuteInsertAsync(EntityEntry entry, CancellationToken? cancellationToken = default)
         {
             var (sql, values) = BuildInsertSql(entry);
             if (!entry.Properties.Any(a => a.IsIdentity))
             {
-                return await _context.ExecuteAsync(sql, values);
+                return await _context.ExecuteAsync(sql, values, cancellationToken: cancellationToken);
             }
             var id = await _context.ExecuteScalarAsync<long>(sql, values);
             SetIdentityPropertyValue(entry, id);
@@ -178,10 +179,10 @@ namespace Soul.SqlBatis.Infrastructure
             return _context.Execute(sql, values);
         }
 
-        private Task<int> ExecuteUpdateAsync(EntityEntry entityEntry)
+        private Task<int> ExecuteUpdateAsync(EntityEntry entityEntry, CancellationToken? cancellationToken = default)
         {
             var (sql, values) = BuildUpdateSql(entityEntry);
-            return _context.ExecuteAsync(sql, values);
+            return _context.ExecuteAsync(sql, values, cancellationToken: cancellationToken);
         }
 
         private int ExecuteDelete(EntityEntry entityEntry)
@@ -190,10 +191,10 @@ namespace Soul.SqlBatis.Infrastructure
             return _context.Execute(sql, values);
         }
 
-        private Task<int> ExecuteDeleteAsync(EntityEntry entityEntry)
+        private Task<int> ExecuteDeleteAsync(EntityEntry entityEntry, CancellationToken? cancellationToken = default)
         {
             var (sql, values) = BuildDeleteSql(entityEntry);
-            return _context.ExecuteAsync(sql, values);
+            return _context.ExecuteAsync(sql, values, cancellationToken: cancellationToken);
         }
 
         private static (string, object) BuildInsertSql(EntityEntry entityEntry)
