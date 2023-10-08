@@ -9,7 +9,7 @@ namespace Soul.SqlBatis
 
 		private IDbConnectionFactory ConnectionFactory;
 
-		public DbContextOptionsBuilder AsTracking()
+		public DbContextOptionsBuilder EnableQueryTracking()
 		{
 			IsTracking = true;
 			return this;

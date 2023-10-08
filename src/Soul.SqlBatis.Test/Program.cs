@@ -3,7 +3,7 @@ using Soul.SqlBatis;
 using Soul.SqlBatis.Infrastructure;
 
 var options = new DbContextOptionsBuilder()
-	.AsTracking()
+	.EnableQueryTracking()
 	.UseConnectionFactory(() => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test"))
 	.Build();
 var context = new MyDbContext(options);
