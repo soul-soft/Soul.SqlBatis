@@ -30,7 +30,7 @@ public partial class MyDbContext : DbContext
 }
 
 var options = new DbContextOptionsBuilder()
-	.AsTracking()
+	.EnableQueryTracking()//默认启用实体更改跟踪
 	.UseConnectionFactory(() => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test"))
 	.Build();
 var context = new MyDbContext(options);
