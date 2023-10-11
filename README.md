@@ -183,19 +183,25 @@ var context = new MyDbContext(options);
 - fromSql
 
   ```C#
+  var sb = new SqlBuilder();
+  //model是请求模型
+  var param = new DynamicParameters(model);
+  sb.Where("schools.Math > @MathMin " ,  model.MathMin);
+  var whereSql = sb.Build("/**where**/");
   //告别视图
-  var view = @"
+  var view = $@"
   SELECT 
   	SchoolName,
   	FirstName,
   	COUNT(*) Count,
   FROM 
   	students join schools ON students.SchoolId = schools.Id
+  {whereSql}
   GROUP BY
   	SchoolName,
   	FirstName
   ";
-  var student = context.FromSql<StudentGroup>(view)
+  var student = context.FromSql<StudentGroup>(view, param)
   	.Where(a => DbOperations.Contains(a.FirstName, "王"))
     .Take(10).Skip(0)//分页  
   	.ToList();
