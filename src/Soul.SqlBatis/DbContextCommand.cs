@@ -22,7 +22,6 @@ namespace Soul.SqlBatis.Infrastructure
             {
                 return row;
             }
-
             IDbContextTransaction transaction = null;
             var hasActiveDbTransaction = _context.CurrentTransaction != null;
             try

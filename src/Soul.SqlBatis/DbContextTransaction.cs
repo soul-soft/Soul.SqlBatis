@@ -21,9 +21,9 @@ namespace Soul.SqlBatis
         private IDbTransaction _transaction;
 
         public IDbTransaction DbTransaction => _transaction;
-        
+
         public event Action OnTransactionCommitted;
-       
+
         public event Action OnTransactionRollback;
 
         internal DbContextTransaction(IDbTransaction transaction)
@@ -34,14 +34,17 @@ namespace Soul.SqlBatis
         public void Dispose()
         {
             RollbackTransaction();
-		}
+        }
 
         public void RollbackTransaction()
         {
-            _transaction?.Rollback();
-            _transaction?.Dispose();
-            _transaction = null;
-            OnTransactionRollback?.Invoke();
+            if (_transaction != null)
+            {
+                _transaction?.Rollback();
+                _transaction?.Dispose();
+                _transaction = null;
+                OnTransactionRollback?.Invoke();
+            }
         }
 
         public Task RollbackTransactionAsync()
@@ -52,11 +55,14 @@ namespace Soul.SqlBatis
 
         public void CommitTransaction()
         {
-            _transaction?.Commit();
-            _transaction?.Dispose();
-            _transaction = null;
-            OnTransactionCommitted?.Invoke();
-		}
+            if (_transaction != null)
+            {
+                _transaction?.Commit();
+                _transaction?.Dispose();
+                _transaction = null;
+                OnTransactionCommitted?.Invoke();
+            }
+        }
 
         public Task CommitTransactionAsync()
         {

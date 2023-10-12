@@ -11,8 +11,9 @@ var context = new MyDbContext(options);
 try
 {
     var param1 = new DynamicParameters();
-    var sb1 = await context.Students
-        .ToListAsync();
+	var student = await context.Students.FirstAsync();
+	student.Firstname = "zz";
+	context.SaveChanges();
 }
 catch (Exception ex)
 {
