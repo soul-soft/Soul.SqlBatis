@@ -9,9 +9,9 @@ namespace Soul.SqlBatis.Infrastructure
 {
 	public class EntityTypeBuilder
 	{
-		private EntityType _entityType;
+		private IEntityType _entityType;
 
-		internal EntityTypeBuilder(EntityType entityType)
+		internal EntityTypeBuilder(IEntityType entityType)
 		{
 			_entityType = entityType;
 		}
@@ -154,7 +154,7 @@ namespace Soul.SqlBatis.Infrastructure
 	public class EntityTypeBuilder<T> : EntityTypeBuilder
 		where T : class
 	{
-		internal EntityTypeBuilder(EntityType target) 
+		internal EntityTypeBuilder(IEntityType target) 
 			: base(target)
 		{
 		}

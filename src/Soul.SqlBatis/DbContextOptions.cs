@@ -1,15 +1,18 @@
 ﻿namespace Soul.SqlBatis
 {
-	public class DbContextOptions
+    public class DbContextOptions
     {
-        public bool IsTracking { get; set; }
-      
-		public IDbConnectionFactory ConnectionFactory { get; set; }
+        public bool EnableQueryTracking { get; set; }
 
-		public DbContextOptions(bool isTracking, IDbConnectionFactory connectionFactory)
-		{
-			IsTracking = isTracking;
-			ConnectionFactory = connectionFactory;
-		}
-	}
+        public IModelProvider ModelProvider { get; set; }
+
+        public IDbConnectionFactory ConnectionFactory { get; set; }
+
+        internal DbContextOptions(bool enableQueryTracking, IDbConnectionFactory connectionFactory, IModelProvider modelProvider)
+        {
+            ModelProvider = modelProvider;
+            ConnectionFactory = connectionFactory;
+            EnableQueryTracking = enableQueryTracking;
+        }
+    }
 }

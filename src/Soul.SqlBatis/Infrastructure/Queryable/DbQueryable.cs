@@ -39,7 +39,7 @@ namespace Soul.SqlBatis
             _type = type;
             _context = context;
             _parameters = new DynamicParameters();
-            IsTracking = context.Options.IsTracking;
+            IsTracking = context.Options.EnableQueryTracking;
 
         }
 

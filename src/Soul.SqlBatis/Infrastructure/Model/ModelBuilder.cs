@@ -5,10 +5,8 @@ namespace Soul.SqlBatis.Infrastructure
 {
     public class ModelBuilder
 	{
-		private readonly ConcurrentDictionary<Type, EntityType> _entityTypes
-			= new ConcurrentDictionary<Type, EntityType>();
-
-		private static ConcurrentDictionary<Type, Model> _contextModels = new ConcurrentDictionary<Type, Model>();
+		private readonly ConcurrentDictionary<Type, IEntityType> _entityTypes
+			= new ConcurrentDictionary<Type, IEntityType>();
 
 		public EntityTypeBuilder Entity(Type type)
 		{
@@ -21,30 +19,16 @@ namespace Soul.SqlBatis.Infrastructure
 			return new EntityTypeBuilder<T>(GetEntityType(typeof(T)));
 		}
 
-		public Model Build()
+		public ConcurrentDictionary<Type, IEntityType> Build()
 		{
-			return new Model(_entityTypes.Values);
+			return _entityTypes;
 		}
 
-		private EntityType GetEntityType(Type type)
+		private IEntityType GetEntityType(Type type)
 		{
 			return _entityTypes.GetOrAdd(type, key =>
 			{
 				return new EntityType(key);
-			});
-		}
-
-		public static Model CreateModel(Type type, Action<ModelBuilder> configure)
-		{
-			if (!typeof(DbContext).IsAssignableFrom(type))
-			{
-				throw new InvalidCastException(string.Format("{0} must derive from DbContext", type.Name));
-			}
-			return _contextModels.GetOrAdd(type, key =>
-			{
-				var modelBuilder = new ModelBuilder();
-				configure(modelBuilder);
-				return modelBuilder.Build();
 			});
 		}
 	}

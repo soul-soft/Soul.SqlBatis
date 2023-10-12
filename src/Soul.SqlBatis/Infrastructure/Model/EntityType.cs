@@ -14,6 +14,7 @@ namespace Soul.SqlBatis.Infrastructure
         IReadOnlyCollection<object> Metadata { get; }
         IReadOnlyCollection<IEntityProperty> Properties { get; }
         IEntityProperty GetProperty(MemberInfo member);
+        void HasAnnotation(object annotation);
     }
 
     internal class EntityType : IEntityType

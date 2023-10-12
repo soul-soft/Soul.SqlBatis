@@ -28,9 +28,7 @@ namespace Soul.SqlBatis
 
         public DbContext()
         {
-            var builder = new DbContextOptionsBuilder();
-            OnConfiguring(builder);
-            Options = builder.Build();
+            Options = BuildDbContextOptions();
             Initialize();
         }
 
@@ -42,9 +40,22 @@ namespace Soul.SqlBatis
 
         private void Initialize()
         {
-            _model = ModelCreating();
+            _model = CreateModel(Options.ModelProvider);
             _changeTracker = new ChangeTracker(_model);
             _connection = Options.ConnectionFactory.Create();
+        }
+
+        private IModel CreateModel(IModelProvider modelProvider)
+        {
+            var builder = new ModelBuilder();
+            return modelProvider.Create(GetType(), OnModelCreating);
+        }
+
+        private DbContextOptions BuildDbContextOptions()
+        {
+            var builder = new DbContextOptionsBuilder();
+            OnConfiguring(builder);
+            return builder.Build();
         }
 
         public DbSet<T> Set<T>()
@@ -273,11 +284,6 @@ namespace Soul.SqlBatis
             _currentTransaction.OnTransactionRollback += transactionAction;
             _currentTransaction.OnTransactionCommitted += transactionAction;
             return CurrentTransaction;
-        }
-
-        private IModel ModelCreating()
-        {
-            return ModelBuilder.CreateModel(GetType(), OnModelCreating);
         }
 
         protected virtual void OnModelCreating(ModelBuilder builder)

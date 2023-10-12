@@ -3,34 +3,47 @@ using System.Data;
 
 namespace Soul.SqlBatis
 {
-	public class DbContextOptionsBuilder
-	{
-		private bool IsTracking;
+    public class DbContextOptionsBuilder
+    {
+        private bool _enableQueryTracking;
 
-		private IDbConnectionFactory ConnectionFactory;
+        private IModelProvider _modelProvider;
 
-		public DbContextOptionsBuilder EnableQueryTracking()
-		{
-			IsTracking = true;
-			return this;
-		}
+        private IDbConnectionFactory _connectionFactory;
 
-		public DbContextOptionsBuilder UseConnectionFactory(Func<IDbConnection> provider)
-		{
-			ConnectionFactory = new DelegateDbConnectionFactory(provider);
-			return this;
-		}
+        public DbContextOptionsBuilder()
+        {
+            _modelProvider = new DefaultModelProvider();
+        }
 
-		public DbContextOptionsBuilder UseConnectionFactory(IDbConnectionFactory connectionFactory)
-		{
-			ConnectionFactory = connectionFactory;
-			return this;
-		}
+        public DbContextOptionsBuilder EnableQueryTracking()
+        {
+            _enableQueryTracking = true;
+            return this;
+        }
 
-		public DbContextOptions Build() 
-		{
-			return new DbContextOptions(IsTracking, ConnectionFactory);
-		}
+        public DbContextOptionsBuilder UseConnectionFactory(Func<IDbConnection> provider)
+        {
+            _connectionFactory = new DelegateDbConnectionFactory(provider);
+            return this;
+        }
 
-	}
+        public DbContextOptionsBuilder UserModelProvider(IModelProvider modelProvider)
+        {
+            _modelProvider = modelProvider;
+            return this;
+        }
+
+        public DbContextOptionsBuilder UseConnectionFactory(IDbConnectionFactory connectionFactory)
+        {
+            _connectionFactory = connectionFactory;
+            return this;
+        }
+
+        public DbContextOptions Build()
+        {
+            return new DbContextOptions(_enableQueryTracking, _connectionFactory, _modelProvider);
+        }
+
+    }
 }
