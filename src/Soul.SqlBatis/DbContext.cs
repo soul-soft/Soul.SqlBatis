@@ -10,7 +10,7 @@ namespace Soul.SqlBatis
 {
     public abstract class DbContext : IDisposable
     {
-        private Model _model;
+        private IModel _model;
 
         public IModel Model => _model;
 
@@ -275,9 +275,9 @@ namespace Soul.SqlBatis
             return CurrentTransaction;
         }
 
-        private Model ModelCreating()
+        private IModel ModelCreating()
         {
-            return ModelBuilder.CreateDbContextModel(GetType(), OnModelCreating);
+            return ModelBuilder.CreateModel(GetType(), OnModelCreating);
         }
 
         protected virtual void OnModelCreating(ModelBuilder builder)

@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Linq;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-	public class ModelBuilder
+    public class ModelBuilder
 	{
 		private readonly ConcurrentDictionary<Type, EntityType> _entityTypes
 			= new ConcurrentDictionary<Type, EntityType>();
@@ -35,7 +34,7 @@ namespace Soul.SqlBatis.Infrastructure
 			});
 		}
 
-		public static Model CreateDbContextModel(Type type, Action<ModelBuilder> configure)
+		public static Model CreateModel(Type type, Action<ModelBuilder> configure)
 		{
 			if (!typeof(DbContext).IsAssignableFrom(type))
 			{

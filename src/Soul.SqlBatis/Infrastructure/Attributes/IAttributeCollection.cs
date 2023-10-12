@@ -24,6 +24,11 @@ namespace Soul.SqlBatis.Infrastructure
             return _metadata.OfType<T>().FirstOrDefault();
         }
 
+        public bool Any<T>()
+        {
+            return _metadata.OfType<T>().Any();
+        }
+
         public IEnumerator<object> GetEnumerator()
         {
             return _metadata.GetEnumerator();

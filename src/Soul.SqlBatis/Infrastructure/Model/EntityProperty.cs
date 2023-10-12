@@ -22,9 +22,9 @@ namespace Soul.SqlBatis.Infrastructure
         public PropertyInfo Property { get; }
 
         private AttributeCollection _attributes;
-        
+
         public IReadOnlyCollection<object> Metadata => _attributes.Metadata;
-        
+
         public bool IsKey
         {
             get
@@ -73,7 +73,10 @@ namespace Soul.SqlBatis.Infrastructure
             if (string.Equals(Property.Name, "Id", System.StringComparison.OrdinalIgnoreCase))
             {
                 SetAnnotation(new KeyAttribute());
-                SetAnnotation(new IdentityAttribute());
+                if (!_attributes.Any<ValueGeneratedNeverAttribute>())
+                {
+                    SetAnnotation(new IdentityAttribute());
+                }
             }
         }
 

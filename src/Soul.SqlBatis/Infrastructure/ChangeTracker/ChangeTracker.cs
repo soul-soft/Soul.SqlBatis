@@ -6,11 +6,11 @@ namespace Soul.SqlBatis.Infrastructure
 {
     public class ChangeTracker
     {
-        private readonly Model _model;
+        private readonly IModel _model;
 
         private readonly Dictionary<object, EntityEntry> _entryReferences = new Dictionary<object, EntityEntry>();
 
-        public ChangeTracker(Model model)
+        public ChangeTracker(IModel model)
         {
             _model = model;
         }
