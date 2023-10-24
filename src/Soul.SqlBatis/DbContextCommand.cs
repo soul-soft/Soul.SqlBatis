@@ -34,7 +34,7 @@ namespace Soul.SqlBatis.Infrastructure
                     {
                         row += ExecuteInsert(entry);
                     }
-                    else if (entry.State == EntityState.Modified || entry.State == EntityState.Unchanged)
+                    else if (entry.State == EntityState.Modified || (entry.State == EntityState.Unchanged && entry.Properties.Any(a => a.IsModified)))
                     {
                         row += ExecuteUpdate(entry);
                     }
@@ -78,7 +78,7 @@ namespace Soul.SqlBatis.Infrastructure
                     {
                         row += await ExecuteInsertAsync(entry, cancellationToken);
                     }
-                    else if (entry.State == EntityState.Modified || entry.State == EntityState.Unchanged)
+                    else if (entry.State == EntityState.Modified || (entry.State == EntityState.Unchanged && entry.Properties.Any(a => a.IsModified)))
                     {
                         row += await ExecuteUpdateAsync(entry, cancellationToken);
                     }

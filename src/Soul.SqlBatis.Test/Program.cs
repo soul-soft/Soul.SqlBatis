@@ -12,8 +12,10 @@ try
 {
     var param1 = new DynamicParameters();
 	var student = await context.Students.FirstAsync();
-	student.Firstname = "zz";
-	context.SaveChanges();
+	student.Firstname = "zz122";
+	var list = context.Staffs.ToList();
+
+    context.SaveChanges();
 }
 catch (Exception ex)
 {

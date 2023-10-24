@@ -11,6 +11,7 @@ namespace SqlBatis.Entityframework
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            this.Entry(null).State
             modelBuilder.Entity<Student>().ToTable(nameof(Student));        
         }
 		
