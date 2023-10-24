@@ -61,7 +61,7 @@ namespace Soul.SqlBatis.Infrastructure
 
 		public object OriginalValue { get; }
 
-		public bool IsModified
+		internal bool IsModified
 		{
 			get
 			{

@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-    public class DbExpressionVisitor : ExpressionVisitor
+    internal class DbExpressionVisitor : ExpressionVisitor
     {
         protected IModel Model { get; }
 

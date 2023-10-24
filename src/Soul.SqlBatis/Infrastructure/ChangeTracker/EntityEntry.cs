@@ -36,6 +36,11 @@ namespace Soul.SqlBatis.Infrastructure
         {
             return EntityType.GetProperty(member);
         }
+
+        public void HasAnnotation(object annotation)
+        {
+            EntityType.HasAnnotation(annotation);
+        }
     }
 
     public class EntityEntry<T> : EntityEntry

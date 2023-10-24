@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-    public class DbExpressionBuilder
+    internal class DbExpressionBuilder
     {
         private readonly IModel _model;
 

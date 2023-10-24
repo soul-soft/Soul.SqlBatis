@@ -202,9 +202,23 @@ namespace Soul.SqlBatis
             return query.ExecuteScalar<bool>(sql, param);
         }
 
+        public static bool Any<T>(this IDbQueryable<T> queryable)
+        {
+            var query = queryable.AsQuery();
+            var (sql, param) = query.BuildAny();
+            return query.ExecuteScalar<bool>(sql, param);
+        }
+
         public static Task<bool> AnyAsync<T>(this IDbQueryable<T> queryable, Expression<Func<T, bool>> expression, CancellationToken? cancellationToken = null)
         {
             queryable.Where(expression);
+            var query = queryable.AsQuery();
+            var (sql, param) = query.BuildAny();
+            return query.ExecuteScalarAsync<bool>(sql, param, cancellationToken);
+        }
+
+        public static Task<bool> AnyAsync<T>(this IDbQueryable<T> queryable, CancellationToken? cancellationToken = null)
+        {
             var query = queryable.AsQuery();
             var (sql, param) = query.BuildAny();
             return query.ExecuteScalarAsync<bool>(sql, param, cancellationToken);
