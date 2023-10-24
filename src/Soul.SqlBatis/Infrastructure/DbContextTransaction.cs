@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Data;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace Soul.SqlBatis
