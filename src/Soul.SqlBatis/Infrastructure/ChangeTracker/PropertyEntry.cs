@@ -12,7 +12,7 @@ namespace Soul.SqlBatis.Infrastructure
 
 		private readonly IEntityProperty _property;
 
-		private object _currentValue;
+		private object _currentValueCache;
 
 		private bool? _isModified;
 
@@ -46,20 +46,27 @@ namespace Soul.SqlBatis.Infrastructure
 			_isModified = true;
 		}
 
-		[DebuggerHidden]
 		public object CurrentValue
 		{
 			get
 			{
-				if (_currentValue == null)
-				{
-					_currentValue = _property.Property.GetValue(Entity);
-				}
-				return _currentValue;
+				return _property.Property.GetValue(Entity);
 			}
 		}
 
-		public object OriginalValue { get; }
+        internal object CurrentValueCache
+        {
+            get
+            {
+                if (_currentValueCache == null)
+                {
+                    _currentValueCache = _property.Property.GetValue(Entity);
+                }
+                return _currentValueCache;
+            }
+        }
+
+        public object OriginalValue { get; }
 
 		internal bool IsModified
 		{
@@ -69,18 +76,18 @@ namespace Soul.SqlBatis.Infrastructure
 				{
 					return _isModified.Value;
 				}
-				if (CurrentValue == null && OriginalValue == null)
+				if (CurrentValueCache == null && OriginalValue == null)
 				{
 					_isModified = false;
 					return false;
 				}
-				if (CurrentValue != null)
+				if (CurrentValueCache != null)
 				{
-					_isModified = !CurrentValue.Equals(OriginalValue);
+					_isModified = !CurrentValueCache.Equals(OriginalValue);
 				}
 				else
 				{
-					_isModified = !OriginalValue.Equals(CurrentValue);
+					_isModified = !OriginalValue.Equals(CurrentValueCache);
 				}
 				return _isModified.Value;
 			}

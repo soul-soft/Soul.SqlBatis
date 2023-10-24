@@ -221,7 +221,7 @@ namespace Soul.SqlBatis.Infrastructure
                 var properties = entityEntry.Properties
                     .Where(a => !a.IsNotMapped);
                 var columns = properties.Where(a => !a.IsKey).Select(s => $"{s.ColumnName} = @{s.Property.Name}");
-                var values = properties.ToDictionary(s => s.CSharpName, s => s.CurrentValue);
+                var values = properties.ToDictionary(s => s.CSharpName, s => s.CurrentValueCache);
                 var wheres = BuildWhereSql(entityEntry);
                 var sql = $"UPDATE {entityEntry.TableName} SET {string.Join(", ", columns)} WHERE {string.Join(" AND ", wheres)}";
                 return (sql, values);
@@ -232,7 +232,7 @@ namespace Soul.SqlBatis.Infrastructure
                     .Where(a => !a.IsNotMapped)
                     .Where(a => a.IsKey || a.IsModified);
                 var columns = properties.Where(a => !a.IsKey).Select(s => $"{s.ColumnName} = @{s.Property.Name}");
-                var values = properties.ToDictionary(s => s.CSharpName, s => s.CurrentValue);
+                var values = properties.ToDictionary(s => s.CSharpName, s => s.CurrentValueCache);
                 var wheres = BuildWhereSql(entityEntry);
                 var sql = $"UPDATE {entityEntry.TableName} SET {string.Join(", ", columns)} WHERE {string.Join(" AND ", wheres)}";
                 return (sql, values);
