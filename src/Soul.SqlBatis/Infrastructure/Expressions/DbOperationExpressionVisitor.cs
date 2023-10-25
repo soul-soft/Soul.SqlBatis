@@ -130,25 +130,6 @@ namespace Soul.SqlBatis.Infrastructure
                 Visit(node.Arguments[2]);
                 SetSql(" END)");
             }
-            else if (node.Method.Name == nameof(DbOperations.Switch))
-            {
-                SetSql("(CASE");
-                Visit(node.Arguments[0]);
-                SetSql(" ELSE ");
-                Visit(node.Arguments[1]);
-                SetSql(" END)");
-            }
-            else if (node.Method.Name == nameof(CaseEntry.Case))
-            {
-                if (node.Object is MethodCallExpression methodCallExpression && methodCallExpression.Method.DeclaringType == typeof(CaseEntry))
-                {
-                    Visit(node.Object);
-                }
-                SetSql(" WHEN ");
-                Visit(node.Arguments[0]);
-                SetSql(" THEN ");
-                Visit(node.Arguments[1]);
-            }
             return node;
         }
     }

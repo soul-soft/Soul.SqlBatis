@@ -95,7 +95,12 @@ namespace Soul.SqlBatis.Infrastructure
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
-            if (IsDbDbOperation(node))
+            if (IsDbSwitchCase(node))
+            {
+                var expression = new DbSwitchCaseExpressionVisitor(Model, Parameters).Build(node);
+                SetSql(expression);
+            }
+            else if (IsDbOperation(node))
             {
                 var expression = new DbOperationExpressionVisitor(Model, Parameters).Build(node);
                 SetSql(expression);
@@ -105,6 +110,7 @@ namespace Soul.SqlBatis.Infrastructure
                 var expression = new DbFunctionExpressionVisitor(Model, Parameters).Build(node);
                 SetSql(expression);
             }
+           
             else
             {
                 SetParameter(node);
@@ -131,9 +137,18 @@ namespace Soul.SqlBatis.Infrastructure
             return false;
         }
 
-        protected bool IsDbDbOperation(MethodCallExpression expression)
+        protected bool IsDbOperation(MethodCallExpression expression)
         {
             if (expression.Method.DeclaringType == typeof(DbOperations))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        protected bool IsDbSwitchCase(MethodCallExpression expression)
+        {
+            if (expression.Method.DeclaringType == typeof(DbSwitchCase))
             {
                 return true;
             }

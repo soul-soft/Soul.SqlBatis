@@ -61,17 +61,9 @@ namespace Soul.SqlBatis
             throw new NotImplementedException();
         }
 
-        public static T Switch<T>(Expression<Action<CaseEntry>> expression, T defaultValue)
+        public static DbSwitchCase Switch(object when, object then)
         {
             throw new NotImplementedException();
-        }
-
-    }
-    public class CaseEntry
-    {
-        public CaseEntry Case(object test, object value)
-        {
-            return this;
         }
     }
 }

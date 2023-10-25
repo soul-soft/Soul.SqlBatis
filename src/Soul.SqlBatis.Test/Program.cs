@@ -10,14 +10,14 @@ var context = new MyDbContext(options);
 
 try
 {
-
-    var param1 = new DynamicParameters();
     var list = context.Students
         .Select(s => new
-         {
-             Status = DbOperations.Switch(a => a.Case(s.State == 0, "初始").Case(s.State == 1, "正式"), "游客")
-         }).ToList();
-  
+        {
+            Fa = s.State,
+            Status = DbOperations.Switch(s.State == 0, "初始").Case(s.State == 1, "VIP").Default("游离")
+        })
+        .ToList();
+
     context.SaveChanges();
 }
 catch (Exception ex)

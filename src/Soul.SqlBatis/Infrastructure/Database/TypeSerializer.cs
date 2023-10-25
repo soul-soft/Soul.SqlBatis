@@ -187,7 +187,7 @@ namespace Soul.SqlBatis
 				generator.Emit(OpCodes.Ret);
 				return (Func<IDataRecord, T>)dynamicMethod.CreateDelegate(typeof(Func<IDataRecord, T>));
 			}
-			else if (GetNonParameterConstructor(entityType) != null)
+			else if (HasNonParameterConstructor(entityType))
 			{
 				var constructor = GetNonParameterConstructor(entityType);
 				var dynamicMethod = new DynamicMethod($"Adpt", entityType, new Type[] { typeof(IDataRecord) }, true);
@@ -234,7 +234,7 @@ namespace Soul.SqlBatis
 				{
 					var parameter = FindConstructorInfoParameter(constructor, item.Name);
 					int parameterIndex = parameters.IndexOf(parameter);
-					var converterMethod = ValueConverters.FindValueConverterMethod(item.Type);
+					var converterMethod = ValueConverters.FindValueConverterMethod(parameter.ParameterType);
 					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Ldc_I4, item.Ordinal);
 					if (converterMethod.IsVirtual)
@@ -340,9 +340,18 @@ namespace Soul.SqlBatis
 			return entityType.GetConstructor(flags, null, Type.EmptyTypes, null);
 		}
 		/// <summary>
-		/// IDataRecord信息
+		/// 是否存在无参构造
 		/// </summary>
-		class DataRecordField
+		/// <param name="entityType"></param>
+		/// <returns></returns>
+        private static bool HasNonParameterConstructor(Type entityType)
+        {
+            return GetNonParameterConstructor(entityType) != null;
+        }
+        /// <summary>
+        /// IDataRecord信息
+        /// </summary>
+        class DataRecordField
 		{
 			public string Name { get; }
 			public Type Type { get; }
