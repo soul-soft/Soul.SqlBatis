@@ -97,12 +97,12 @@ namespace Soul.SqlBatis.Infrastructure
         {
             if (IsDbDbOperation(node))
             {
-                var expression = new OperationDbExpressionVisitor(Model, Parameters).Build(node);
+                var expression = new DbOperationExpressionVisitor(Model, Parameters).Build(node);
                 SetSql(expression);
             }
             else if (IsDbFunction(node))
             {
-                var expression = new FunctionDbExpressionVisitor(Model, Parameters).Build(node);
+                var expression = new DbFunctionExpressionVisitor(Model, Parameters).Build(node);
                 SetSql(expression);
             }
             else

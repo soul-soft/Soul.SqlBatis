@@ -62,7 +62,7 @@ namespace Soul.SqlBatis.Infrastructure
             }
             if (expression.ExpressionType == DbExpressionType.OrderBy)
             {
-                var visitor = new OrderByDbExpressionVisitor(_model, _parameters);
+                var visitor = new DbOrderByExpressionVisitor(_model, _parameters);
                 return visitor.Build(expression.Expression);
             }
             if (expression.ExpressionType == DbExpressionType.Skip)
@@ -77,7 +77,7 @@ namespace Soul.SqlBatis.Infrastructure
             }
             if (expression.ExpressionType == DbExpressionType.GroupBy)
             {
-                var visitor = new GroupByDbExpressionVisitor(_model, _parameters);
+                var visitor = new DbGroupByExpressionVisitor(_model, _parameters);
                 return visitor.Build(expression.Expression);
             }
             if (expression.ExpressionType == DbExpressionType.Having)
@@ -87,12 +87,12 @@ namespace Soul.SqlBatis.Infrastructure
             }
             if (expression.ExpressionType == DbExpressionType.OrderByDescending)
             {
-                var visitor = new OrderByDbExpressionVisitor(_model, _parameters, true);
+                var visitor = new DbOrderByExpressionVisitor(_model, _parameters, true);
                 return visitor.Build(expression.Expression);
             }
             if (expression.ExpressionType == DbExpressionType.Select)
             {
-                var visitor = new SelectDbExpressionVisitor(_model, _parameters);
+                var visitor = new DbSelectExpressionVisitor(_model, _parameters);
                 return visitor.Build(expression.Expression);
             }
             if (expression.ExpressionType == DbExpressionType.Set)

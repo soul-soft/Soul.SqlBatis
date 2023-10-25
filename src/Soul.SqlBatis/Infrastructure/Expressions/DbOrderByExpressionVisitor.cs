@@ -3,11 +3,11 @@ using System.Linq.Expressions;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-    internal class OrderByDbExpressionVisitor : DbExpressionVisitor
+    internal class DbOrderByExpressionVisitor : DbExpressionVisitor
 	{
 		private readonly bool _desc;
 
-		public OrderByDbExpressionVisitor(IModel model, DynamicParameters parameters, bool desc = false)
+		public DbOrderByExpressionVisitor(IModel model, DynamicParameters parameters, bool desc = false)
 			: base(model, parameters)
 		{
 			_desc = desc;

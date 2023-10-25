@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Soul.SqlBatis
 {
-    internal static class DbConnectionExtensions
+    internal static class SqlMapper
     {
         public static List<dynamic> Query(this IDbConnection connection, string sql, object parameter = null, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null)
         {

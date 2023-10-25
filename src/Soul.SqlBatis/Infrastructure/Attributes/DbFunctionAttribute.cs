@@ -7,5 +7,6 @@ namespace Soul.SqlBatis
     {
         public string Name { get; set; }
         public string Scheme { get; set; }
+        public string Format { get; set; }
     }
 }

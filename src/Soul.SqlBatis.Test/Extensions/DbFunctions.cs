@@ -11,7 +11,7 @@ namespace Soul.SqlBatis.Test
             throw new NotImplementedException();
         }
 
-        [DbFunction(Name = "COUNT")]
+        [DbFunction(Name = "COUNT", Format = "DIDCOUNT {token}")]
         public static int Count(RawSql token)
         {
             throw new NotImplementedException();

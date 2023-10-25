@@ -3,11 +3,11 @@ using System.Linq.Expressions;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-    internal class SelectDbExpressionVisitor : DbExpressionVisitor
+    internal class DbSelectExpressionVisitor : DbExpressionVisitor
     {
         private readonly List<string> _columns = new List<string>();
 
-        public SelectDbExpressionVisitor(IModel model, DynamicParameters parameters)
+        public DbSelectExpressionVisitor(IModel model, DynamicParameters parameters)
             : base(model, parameters)
         {
         }

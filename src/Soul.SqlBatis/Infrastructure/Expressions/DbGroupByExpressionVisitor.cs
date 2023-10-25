@@ -4,10 +4,10 @@ using System.Linq.Expressions;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-    internal class GroupByDbExpressionVisitor : DbExpressionVisitor
+    internal class DbGroupByExpressionVisitor : DbExpressionVisitor
 	{
 
-		public GroupByDbExpressionVisitor(IModel model, DynamicParameters parameters)
+		public DbGroupByExpressionVisitor(IModel model, DynamicParameters parameters)
 			: base(model, parameters)
 		{
 		}
