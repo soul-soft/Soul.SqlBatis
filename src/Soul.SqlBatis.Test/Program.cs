@@ -14,6 +14,7 @@ try
         .Select(s => new
         {
             Fa = s.State,
+            Flag = DbOperations.IF(s.State > 0, "大于0", "小于0"),
             Status = DbOperations.Switch(s.State == 0, "初始").Case(s.State == 1, "VIP").Default("游离")
         })
         .ToList();
