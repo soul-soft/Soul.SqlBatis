@@ -11,13 +11,13 @@
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<NoWarn>1701;1702;1591</NoWarn>
-		<Version>1.1.0-beta026</Version>
+		<Version>1.1.0-beta027</Version>
 		<PackageReleaseNotes>Preview Version</PackageReleaseNotes>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<Description>Supports Linq, entity tracking, dynamic SQL.The universe's invincible orm framework does not accept any refutation!!! </Description>
 		<Company>Soul</Company>
 		<Authors>Soul</Authors>
-		<PackageTags>SqlBuilder;O/RM;Entity;EntityFramework</PackageTags>
+		<PackageTags>SqlBatis;O/RM;Entity;EntityFramework;ChangeTracker;ADO.NET</PackageTags>
 		<PackageIcon>soul.png</PackageIcon>
 	</PropertyGroup>
 

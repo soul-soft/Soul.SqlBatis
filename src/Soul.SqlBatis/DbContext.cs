@@ -249,9 +249,8 @@ namespace Soul.SqlBatis
                 OpenDbConnection();
                 autoCloase = true;
             }
-            transaction = transaction ?? _connection.BeginTransaction();
-            _currentTransaction = new DbContextTransaction(transaction);
-            Action transactionAction = () =>
+            var currentTransaction = new DbContextTransaction(transaction ?? _connection.BeginTransaction());
+            Action transactionEnd = () =>
             {
                 _currentTransaction = null;
                 if (autoCloase)
@@ -259,9 +258,10 @@ namespace Soul.SqlBatis
                     ColseDbConnection();
                 }
             };
-            _currentTransaction.OnTransactionRollback += transactionAction;
-            _currentTransaction.OnTransactionCommitted += transactionAction;
-            return CurrentTransaction;
+            _currentTransaction.OnTransactionCommitEnd += transactionEnd;
+            _currentTransaction.OnTransactionRollbackEnd += transactionEnd;
+            _currentTransaction = currentTransaction;
+            return _currentTransaction;
         }
 
         public async Task<IDbContextTransaction> BeginTransactionAsync(IDbTransaction transaction = null)
@@ -272,8 +272,8 @@ namespace Soul.SqlBatis
                 await OpenDbConnectionAsync();
                 autoCloase = true;
             }
-            transaction = transaction ?? _connection.BeginTransaction();
-            Action transactionAction = () =>
+            var currentTransaction = new DbContextTransaction(transaction ?? _connection.BeginTransaction());
+            Action transactionEnd = () =>
             {
                 _currentTransaction = null;
                 if (autoCloase)
@@ -281,9 +281,10 @@ namespace Soul.SqlBatis
                     ColseDbConnection();
                 }
             };
-            _currentTransaction.OnTransactionRollback += transactionAction;
-            _currentTransaction.OnTransactionCommitted += transactionAction;
-            return CurrentTransaction;
+            _currentTransaction.OnTransactionCommitEnd += transactionEnd;
+            _currentTransaction.OnTransactionRollbackEnd += transactionEnd;
+            _currentTransaction = currentTransaction;
+            return _currentTransaction;
         }
 
         protected virtual void OnModelCreating(ModelBuilder builder)
