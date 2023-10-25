@@ -219,29 +219,47 @@ var context = new MyDbContext(options);
 
 ## 函数映射
 
-编写一个静态类，给成员函数加上DbFunction即可
+编写一个静态类，给成员函数加上DbFunction即可，可以通过Name来映射名称，通过Format来映射参数
 
 ```C#
-public static class DbFunctions
-{
-    [DbFunction(Name = "NOW")]
-    public static DateTime Now()
+    public static class DbFunctions
     {
-        throw new NotImplementedException();
-    }
+        [DbFunction(Name = "NOW")]
+        public static DateTime Now()
+        {
+            throw new NotImplementedException();
+        }
 
-    [DbFunction(Name = "COUNT")]
-    public static long Count<T>(T column)
-    {
-        throw new NotImplementedException();
-    }
+        [DbFunction(Name = "COUNT", Format = "DISTINCT {column}")]
+        public static int CountDistinct(object column)
+        {
+            throw new NotImplementedException();
+        }
 
-    [DbFunction(Name = "AVG")]
-    public static decimal Avg<T>(T column)
-    {
-        throw new NotImplementedException();
+        [DbFunction(Name = "COUNT", Format = "*")]
+        public static int CountX()
+        {
+            throw new NotImplementedException();
+        }
+
+        [DbFunction(Name = "AVG")]
+        public static decimal Avg<T>(T column)
+        {
+            throw new NotImplementedException();
+        }
+
+        [DbFunction(Name = "JSON_EXTRACT")]
+        public static TPath JsonExtract<TPath>(object column, string path)
+        {
+            throw new NotImplementedException();
+        }
+
+        [DbFunction(Name = "DATE")]
+        internal static DateTime Date(DateTime? creationTime)
+        {
+            throw new NotImplementedException();
+        }
     }
-}
 ```
 
 ```C#
