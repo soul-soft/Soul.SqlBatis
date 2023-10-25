@@ -6,17 +6,17 @@ using System.Reflection;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-	public class PropertyEntry : IEntityProperty
+	public class EntityPropertyEntry : IEntityPropertyType
 	{
 		public object Entity { get; }
 
-		private readonly IEntityProperty _property;
+		private readonly IEntityPropertyType _property;
 
 		private object _currentValueCache;
 
 		private bool? _isModified;
 
-		public PropertyEntry(IEntityProperty property, object entity, object originalValue)
+		public EntityPropertyEntry(IEntityPropertyType property, object entity, object originalValue)
 		{
 			_property = property;
 			Entity = entity;
@@ -54,13 +54,16 @@ namespace Soul.SqlBatis.Infrastructure
 			}
 		}
 
+		private bool _hasCurrentValueCache = false;
+
         internal object CurrentValueCache
         {
             get
             {
-                if (_currentValueCache == null)
+                if (!_hasCurrentValueCache)
                 {
-                    _currentValueCache = _property.Property.GetValue(Entity);
+                    _currentValueCache = CurrentValue;
+					_hasCurrentValueCache = true;
                 }
                 return _currentValueCache;
             }

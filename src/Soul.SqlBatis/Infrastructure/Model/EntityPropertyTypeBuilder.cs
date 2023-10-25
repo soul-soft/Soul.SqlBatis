@@ -2,11 +2,11 @@
 
 namespace Soul.SqlBatis.Infrastructure
 {
-    public class EntityPropertyBuilder
+    public class EntityPropertyTypeBuilder
 	{
 		private readonly EntityPropertyType _property;
 
-		public EntityPropertyBuilder(IEntityProperty property)
+		public EntityPropertyTypeBuilder(IEntityPropertyType property)
 		{
 			_property = property as EntityPropertyType;
 		}
@@ -27,10 +27,10 @@ namespace Soul.SqlBatis.Infrastructure
 		}
 	}
 
-	public class EntityPropertyBuilder<T> : EntityPropertyBuilder
+	public class EntityPropertyBuilder<T> : EntityPropertyTypeBuilder
 		where T : class
 	{
-		public EntityPropertyBuilder(IEntityProperty property)
+		public EntityPropertyBuilder(IEntityPropertyType property)
 			: base(property)
 		{
 

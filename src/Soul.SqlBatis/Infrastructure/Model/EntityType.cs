@@ -12,8 +12,8 @@ namespace Soul.SqlBatis.Infrastructure
         string Schema { get; }
         string TableName { get; }
         IReadOnlyCollection<object> Metadata { get; }
-        IReadOnlyCollection<IEntityProperty> Properties { get; }
-        IEntityProperty GetProperty(MemberInfo member);
+        IReadOnlyCollection<IEntityPropertyType> Properties { get; }
+        IEntityPropertyType GetProperty(MemberInfo member);
         void HasAnnotation(object annotation);
     }
 
@@ -23,7 +23,7 @@ namespace Soul.SqlBatis.Infrastructure
 
         private AttributeCollection _attributes;
 
-        public IReadOnlyCollection<IEntityProperty> Properties { get; }
+        public IReadOnlyCollection<IEntityPropertyType> Properties { get; }
 
         public EntityType(Type type)
         {
@@ -59,7 +59,7 @@ namespace Soul.SqlBatis.Infrastructure
 
         }
 
-        public virtual IEntityProperty GetProperty(MemberInfo member)
+        public virtual IEntityPropertyType GetProperty(MemberInfo member)
         {
             return Properties.Where(a => a.Property.Name == member.Name).FirstOrDefault();
         }

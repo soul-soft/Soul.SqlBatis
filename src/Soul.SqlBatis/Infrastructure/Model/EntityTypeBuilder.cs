@@ -141,7 +141,7 @@ namespace Soul.SqlBatis.Infrastructure
 			return member;
 		}
 
-		protected IEntityProperty GetProperty(MemberInfo member)
+		protected IEntityPropertyType GetProperty(MemberInfo member)
 		{
 			if (member is PropertyInfo property)
 			{

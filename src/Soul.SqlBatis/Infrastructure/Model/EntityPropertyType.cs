@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-    public interface IEntityProperty
+    public interface IEntityPropertyType
     {
         bool IsKey { get; }
         bool IsIdentity { get; }
@@ -17,7 +17,7 @@ namespace Soul.SqlBatis.Infrastructure
         IReadOnlyCollection<object> Metadata { get; }
     }
 
-    internal class EntityProperty : IEntityProperty
+    internal class EntityPropertyType : IEntityPropertyType
     {
         public PropertyInfo Property { get; }
 
@@ -66,7 +66,7 @@ namespace Soul.SqlBatis.Infrastructure
 
         public string CSharpName => Property.Name;
 
-        public EntityProperty(MemberInfo member)
+        public EntityPropertyType(MemberInfo member)
         {
             Property = member as PropertyInfo;
             _attributes = new AttributeCollection(member.GetCustomAttributes());

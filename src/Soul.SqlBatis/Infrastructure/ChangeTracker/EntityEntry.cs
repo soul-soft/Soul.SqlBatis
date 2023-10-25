@@ -30,9 +30,9 @@ namespace Soul.SqlBatis.Infrastructure
 
         public IReadOnlyCollection<object> Metadata => EntityType.Metadata;
 
-        IReadOnlyCollection<IEntityProperty> IEntityType.Properties => EntityType.Properties;
+        IReadOnlyCollection<IEntityPropertyType> IEntityType.Properties => EntityType.Properties;
 
-        public IEntityProperty GetProperty(MemberInfo member)
+        public IEntityPropertyType GetProperty(MemberInfo member)
         {
             return EntityType.GetProperty(member);
         }
