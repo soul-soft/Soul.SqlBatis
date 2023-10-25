@@ -17,6 +17,14 @@ namespace Soul.SqlBatis
             return queryable;
         }
 
+        public static IDbQueryable<T> AsNoTracking<T>(this IDbQueryable<T> queryable)
+           where T : class
+        {
+            var query = queryable.AsQuery();
+            query.AsNoTracking();
+            return queryable;
+        }
+
         public static T First<T>(this IDbQueryable<T> queryable)
            where T : class
         {

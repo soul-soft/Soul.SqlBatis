@@ -11,8 +11,6 @@ namespace Soul.SqlBatis
         void RollbackTransaction();
         Task RollbackTransactionAsync();
         IDbTransaction DbTransaction { get; }
-        event Action OnTransactionCommitEnd;
-        event Action OnTransactionRollbackEnd;
     }
 
     internal class DbContextTransaction : IDbContextTransaction

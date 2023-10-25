@@ -11,8 +11,26 @@ namespace Soul.SqlBatis.Test
             throw new NotImplementedException();
         }
 
-        [DbFunction(Name = "COUNT", Format = "DISTINCT {token}, {age}")]
-        public static int CountDistinct(object token,object age)
+        [DbFunction(Name = "COUNT", Format = "DISTINCT {column}")]
+        public static int CountDistinct(object column)
+        {
+            throw new NotImplementedException();
+        }
+
+        [DbFunction(Name = "COUNT", Format = "*")]
+        public static int CountX()
+        {
+            throw new NotImplementedException();
+        }
+
+        [DbFunction(Name = "COUNT")]
+        public static int Count(object column)
+        {
+            throw new NotImplementedException();
+        }
+
+        [DbFunction(Name = "DISTINCT")]
+        public static T Distinct<T>(T column)
         {
             throw new NotImplementedException();
         }
@@ -35,5 +53,6 @@ namespace Soul.SqlBatis.Test
         {
             throw new NotImplementedException();
         }
+
     }
 }

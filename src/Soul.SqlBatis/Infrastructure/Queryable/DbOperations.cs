@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace Soul.SqlBatis
 {
@@ -53,6 +54,24 @@ namespace Soul.SqlBatis
         public static T Raw<T>(string sql)
         {
             throw new NotImplementedException();
+        }
+
+        public static T IF<T>(object test, T value1, T value2)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static T Switch<T>(Expression<Action<CaseEntry>> expression, T defaultValue)
+        {
+            throw new NotImplementedException();
+        }
+
+    }
+    public class CaseEntry
+    {
+        public CaseEntry Case(object test, object value)
+        {
+            return this;
         }
     }
 }

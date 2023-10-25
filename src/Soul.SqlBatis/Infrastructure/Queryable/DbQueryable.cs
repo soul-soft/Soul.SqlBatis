@@ -49,6 +49,7 @@ namespace Soul.SqlBatis
             _context = context;
             _expressions = expressions;
             _parameters = parameters;
+            IsTracking = false;
         }
 
         protected void AddParameters(object param)
@@ -83,6 +84,11 @@ namespace Soul.SqlBatis
         internal void AsTracking()
         {
             IsTracking = true;
+        }
+
+        internal void AsNoTracking()
+        {
+            IsTracking = false;
         }
 
         internal (string, object) BuildUpdate()

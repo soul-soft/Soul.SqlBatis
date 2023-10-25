@@ -258,8 +258,8 @@ namespace Soul.SqlBatis
                     ColseDbConnection();
                 }
             };
-            _currentTransaction.OnTransactionCommitEnd += transactionEnd;
-            _currentTransaction.OnTransactionRollbackEnd += transactionEnd;
+            currentTransaction.OnTransactionCommitEnd += transactionEnd;
+            currentTransaction.OnTransactionRollbackEnd += transactionEnd;
             _currentTransaction = currentTransaction;
             return _currentTransaction;
         }
@@ -281,8 +281,8 @@ namespace Soul.SqlBatis
                     ColseDbConnection();
                 }
             };
-            _currentTransaction.OnTransactionCommitEnd += transactionEndAction;
-            _currentTransaction.OnTransactionRollbackEnd += transactionEndAction;
+            currentTransaction.OnTransactionCommitEnd += transactionEndAction;
+            currentTransaction.OnTransactionRollbackEnd += transactionEndAction;
             _currentTransaction = currentTransaction;
             return _currentTransaction;
         }

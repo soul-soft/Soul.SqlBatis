@@ -1,7 +1,6 @@
 ﻿using MySql.Data.MySqlClient;
 using Soul.SqlBatis;
 using Soul.SqlBatis.Infrastructure;
-using Soul.SqlBatis.Test;
 
 var options = new DbContextOptionsBuilder()
     .EnableQueryTracking()
@@ -11,8 +10,14 @@ var context = new MyDbContext(options);
 
 try
 {
+
     var param1 = new DynamicParameters();
-    var list = context.Staffs.Where(a => DbFunctions.CountDistinct(a.Id, a.Grade) > 0).ToList();
+    var list = context.Students
+        .Select(s => new
+         {
+             Status = DbOperations.Switch(a => a.Case(s.State == 0, "初始").Case(s.State == 1, "正式"), "游客")
+         }).ToList();
+  
     context.SaveChanges();
 }
 catch (Exception ex)
