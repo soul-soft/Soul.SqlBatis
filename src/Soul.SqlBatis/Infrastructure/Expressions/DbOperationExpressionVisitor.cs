@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-    internal class OperationDbExpressionVisitor : DbExpressionVisitor
+    internal class DbOperationExpressionVisitor : DbExpressionVisitor
     {
-        public OperationDbExpressionVisitor(IModel model, DynamicParameters parameters)
+        public DbOperationExpressionVisitor(IModel model, DynamicParameters parameters)
             : base(model, parameters)
         {
 
