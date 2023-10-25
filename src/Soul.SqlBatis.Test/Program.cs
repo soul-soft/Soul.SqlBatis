@@ -14,7 +14,6 @@ try
 	var student = await context.Students.FirstAsync();
 	student.Firstname = "zz122";
 	var list = context.Staffs.ToList();
-	context.Staffs.Any();
 
     context.SaveChanges();
 }
