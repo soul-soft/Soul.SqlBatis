@@ -10,7 +10,7 @@ namespace Soul.SqlBatis.Infrastructure
 
         internal IEntityType EntityType { get; }
 
-        public EntityEntry(object entity, IEntityType entityType, IReadOnlyCollection<PropertyEntry> properties)
+        public EntityEntry(object entity, IEntityType entityType, IReadOnlyCollection<EntityPropertyEntry> properties)
         {
             Entity = entity;
             EntityType = entityType;
@@ -20,7 +20,7 @@ namespace Soul.SqlBatis.Infrastructure
 
         public virtual EntityState State { get; internal set; }
 
-        public virtual IReadOnlyCollection<PropertyEntry> Properties { get; }
+        public virtual IReadOnlyCollection<EntityPropertyEntry> Properties { get; }
 
         public Type Type => EntityType.Type;
 
@@ -51,7 +51,7 @@ namespace Soul.SqlBatis.Infrastructure
 
         public override EntityState State { get => _entry.State; internal set => _entry.State = value; }
 
-        public override IReadOnlyCollection<PropertyEntry> Properties => _entry.Properties;
+        public override IReadOnlyCollection<EntityPropertyEntry> Properties => _entry.Properties;
 
         internal EntityEntry(EntityEntry entry)
             : base(entry.Entity, entry.EntityType, entry.Properties)

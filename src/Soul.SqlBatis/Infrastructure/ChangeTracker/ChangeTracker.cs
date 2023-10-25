@@ -74,7 +74,7 @@ namespace Soul.SqlBatis.Infrastructure
             var func = TypeSerializer.CreateDeserializer(entity.GetType());
             var values = func(entity);
             var properties = entity.GetType().GetProperties()
-                .Select(property => new PropertyEntry(entityType.GetProperty(property), entity, values[property.Name]))
+                .Select(property => new EntityPropertyEntry(entityType.GetProperty(property), entity, values[property.Name]))
                 .ToList();
             var entry = new EntityEntry(entity, entityType, properties)
             {

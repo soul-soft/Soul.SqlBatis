@@ -4,11 +4,11 @@ namespace Soul.SqlBatis.Infrastructure
 {
     public class EntityPropertyBuilder
 	{
-		private readonly EntityProperty _property;
+		private readonly EntityPropertyType _property;
 
 		public EntityPropertyBuilder(IEntityProperty property)
 		{
-			_property = property as EntityProperty;
+			_property = property as EntityPropertyType;
 		}
 
 		public void HasColumnName(string name)

@@ -32,14 +32,14 @@ namespace Soul.SqlBatis.Infrastructure
 			}
 		}
 
-		public EntityPropertyBuilder Property(string propertyName)
+		public EntityPropertyTypeBuilder Property(string propertyName)
 		{
 			return Property(GetMember(propertyName));
 		}
 
-		public EntityPropertyBuilder Property(MemberInfo member)
+		public EntityPropertyTypeBuilder Property(MemberInfo member)
 		{
-			return new EntityPropertyBuilder(GetProperty(member));
+			return new EntityPropertyTypeBuilder(GetProperty(member));
 		}
 
 		public void HasKey(string[] propertyNames)

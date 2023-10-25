@@ -30,7 +30,7 @@ namespace Soul.SqlBatis.Infrastructure
             Type = type;
             _attributes = new AttributeCollection(type.GetCustomAttributes());
             Properties = type.GetProperties()
-                .Select(s => new EntityProperty(s))
+                .Select(s => new EntityPropertyType(s))
                 .ToList();
         }
 
