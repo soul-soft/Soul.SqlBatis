@@ -7,7 +7,9 @@
 ``` C#
 public partial class MyDbContext : DbContext
 {
-    public MyDbContext()
+    readonly ILogger _logger;
+
+    public MyDbContext()       
     {
         
     }
@@ -18,13 +20,21 @@ public partial class MyDbContext : DbContext
         
     }
 
-    protected override void Logging(string sql, object param)
-	{
-		Console.WriteLine(sql);
-	}
+    public MyDbContext(DbContextOptions options, ILogger<MyDbContext> logger)
+        :base(options)
+    {
+        _logger = logger;
+    }	
 
+    protected override void Logging(string sql, object param)
+    {
+	_logger?.LogInformation(sql);	
+    }
+
+	
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
+	//只有无参构造的DbContext才通过OnConfiguring来配置
         optionsBuilder.UseConnectionFactory(() => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test"));
     }
 }
@@ -85,7 +95,8 @@ var context = new MyDbContext(options);
 
 ## 更改跟踪
 
-要支持实体跟踪，请重写Entity的Equal和HashCode为主键字段，默认以实体的引用地址作为跟踪标识。【常识】，底层实现原理是这样的。TypeSerializer采用Emit技术动态创建一个解构器（会缓存），把实体转换成字典，记录此原始值。也就是说他是基于引用（内存地址）进行更改跟踪的。这有一个弊端，如果字段是一个引用类型，那么无法记录它的原生值，比如json类型。因此json类型建议使用值类型，或者更新时构造一个新的对象。
+调用数据库上下文的Add、Update、Delete操作实体更加安全，而且都是在内存中完成，如果启用了查询更改跟踪，对所有的值类型的更改，都会监听到。执行SaveChange时检测实体状态，如果是Add、或者Delete那么直接新增或者删除对象。如果是Update，则只更新更改的属性。
+注意：由于更改跟踪是基于内存地址比较的，对于json类型的字段，不能只更改json实体的属性，而且创建一个新的对象（ObjectValue设计原则）。
 
 - 主动告知
 
@@ -110,7 +121,10 @@ var context = new MyDbContext(options);
    //只跟踪不读缓存
     var student = context.Students
         .Where(a => a.Id == 1)
-        .AsTracking()
+	//主动跟踪
+  	.AsTracking()
+        //不进行跟踪
+  	.AsNoTracking()
         .First();
     student.Name = "zs";
     context.SaveChanges();		
@@ -164,12 +178,11 @@ var context = new MyDbContext(options);
 
   
 
-## 保存数据
+## 连接和事务
 
-- 如果DbContext存在事务（CurrentTransaction）调用SaveChanges，使用当前事务。如果DbContext不存在事务，则自动开启一个事务，自动提交。如果提交成功，清除当前DbContext实列跟踪的实体。
-
-
+- 如果DbContext存在事务（CurrentTransaction）调用SaveChanges，使用当前事务（CurrentTransaction）。如果DbContext不存在事务，则自动开启一个事务，自动提交。如果提交成功，清除当前DbContext实列跟踪的实体，并释放关闭事务。
 - 开启事务之前会自动判断是否开启数据库连接，如果未开启则自动开启提交或者回滚自动关闭。
+- 查询数据之前会判断当前连接是否开启，如果未开启则自动开启，查询完毕之后立即关闭。如果一个上下文实列涉及频繁查询，则将导致频繁开关数据库连接。建议使用AOP技术进行代理，在业务方法开始手动打开连接，业务方法结束手动关闭。
 
 ## 查询数据
 
@@ -186,7 +199,7 @@ var context = new MyDbContext(options);
   var sb = new SqlBuilder();
   //model是请求模型
   var param = new DynamicParameters(model);
-  sb.Where("schools.Math > @MathMin " ,  model.MathMin);
+  sb.Where("schools.Math > @MathMin " ,  model.MathMin != null);
   var whereSql = sb.Build("/**where**/");
   //告别视图
   var view = $@"
