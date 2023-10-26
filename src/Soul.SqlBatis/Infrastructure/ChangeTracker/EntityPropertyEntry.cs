@@ -12,6 +12,8 @@ namespace Soul.SqlBatis.Infrastructure
 
 		private readonly IEntityPropertyType _property;
 
+		private bool? _referenceIsModified = false;
+
 		public EntityPropertyEntry(IEntityPropertyType property, object entity, object originalValue)
 		{
 			_property = property;
@@ -34,12 +36,12 @@ namespace Soul.SqlBatis.Infrastructure
 
 		private void NotifyCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
-			_isModified = true;
+			_referenceIsModified = true;
 		}
 
 		private void NotifyPropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
-			_isModified = true;
+			_referenceIsModified = true;
 		}
 
 		public object CurrentValue
@@ -50,29 +52,28 @@ namespace Soul.SqlBatis.Infrastructure
 			}
 		}
 
-        public object OriginalValue { get; internal set; }
+		public object OriginalValue { get; internal set; }
 
 		public bool IsModified
 		{
 			get
 			{
+				if (_referenceIsModified == true)
+				{
+					return true;
+				}
 				if (CurrentValue == null && OriginalValue == null)
 				{
-					_isModified = false;
+					return false;
 				}
 				else if (CurrentValue != null)
 				{
-					_isModified = !CurrentValue.Equals(OriginalValue);
+					return !CurrentValue.Equals(OriginalValue);
 				}
 				else
 				{
-					_isModified = !OriginalValue.Equals(CurrentValue);
+					return !OriginalValue.Equals(CurrentValue);
 				}
-				return _isModified.Value;
-			}
-			set 
-			{
-				_isModified = value;
 			}
 		}
 
@@ -88,8 +89,8 @@ namespace Soul.SqlBatis.Infrastructure
 
 		public IReadOnlyCollection<object> Metadata => _property.Metadata;
 
-        public string CSharpName => _property.CSharpName;
+		public string CSharpName => _property.CSharpName;
 
-        public bool IsConcurrencyToken => _property.IsConcurrencyToken;
-    }
+		public bool IsConcurrencyToken => _property.IsConcurrencyToken;
+	}
 }

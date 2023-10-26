@@ -15,6 +15,8 @@ try
 	var state1 = context.Entry(student).State;
 	student.Name = "fa";
     var state2 = context.Entry(student).State;
+	//student.Name = "fa11";
+	var state3 = context.Entry(student).State;
 	context.Update(student);
     context.SaveChanges();
 }

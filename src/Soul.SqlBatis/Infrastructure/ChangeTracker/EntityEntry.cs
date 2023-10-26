@@ -28,6 +28,10 @@ namespace Soul.SqlBatis.Infrastructure
 				{
 					_state = EntityState.Modified;
 				}
+				else
+				{
+					_state = EntityState.Unchanged;
+				}
 				return _state;
 			}
 			set
