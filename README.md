@@ -7,7 +7,9 @@
 ``` C#
 public partial class MyDbContext : DbContext
 {
-    public MyDbContext()
+    readonly ILogger _logger;
+
+    public MyDbContext()       
     {
         
     }
@@ -18,13 +20,21 @@ public partial class MyDbContext : DbContext
         
     }
 
-    protected override void Logging(string sql, object param)
-	{
-		Console.WriteLine(sql);
-	}
+    public MyDbContext(DbContextOptions options, ILogger<MyDbContext> logger)
+        :base(options)
+    {
+        _logger = logger;
+    }	
 
+    protected override void Logging(string sql, object param)
+    {
+	_logger?.LogInformation(sql);	
+    }
+
+	
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
+	//只有无参构造的DbContext才通过OnConfiguring来配置
         optionsBuilder.UseConnectionFactory(() => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test"));
     }
 }
