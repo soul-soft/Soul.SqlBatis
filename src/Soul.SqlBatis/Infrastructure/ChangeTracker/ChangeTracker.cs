@@ -61,9 +61,13 @@ namespace Soul.SqlBatis.Infrastructure
 
         private EntityEntry GetOrCreateEntry(object entity)
         {
+            if (entity == null)
+            {
+                throw new InvalidOperationException("Unable to track null pointer");
+            }
             if (_entryReferences.ContainsKey(entity))
             {
-                return _entryReferences[entity];
+                throw new InvalidOperationException("The entity is being tracked");
             }
             return CreateEntry(entity);
         }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Soul.SqlBatis.Exceptions;
 
 namespace Soul.SqlBatis.Infrastructure
 {
@@ -110,18 +111,10 @@ namespace Soul.SqlBatis.Infrastructure
                .Any();
         }
 
-        public static void SetIdentityPropertyValue(EntityEntry entityEntry, object identity)
-        {
-            var property = entityEntry.Properties.Where(a => a.IsIdentity).First().Property;
-            var type = Nullable.GetUnderlyingType(property.PropertyType)
-                ?? property.PropertyType;
-            property.SetValue(entityEntry.Entity, Convert.ChangeType(identity, type));
-        }
-
         public T Find<T>(object key)
         {
             var entityType = _context.Model.GetEntityType(typeof(T));
-            var sql = BuildFindSql(entityType);
+            var sql = BuildFindCommand(entityType);
             var values = new Dictionary<string, object>();
             var keyProperty = entityType.Properties.Where(a => a.IsKey).First();
             values.Add(keyProperty.CSharpName, key);
@@ -136,7 +129,7 @@ namespace Soul.SqlBatis.Infrastructure
         public async Task<T> FindAsync<T>(object key)
         {
             var entityType = _context.Model.GetEntityType(typeof(T));
-            var sql = BuildFindSql(entityType);
+            var sql = BuildFindCommand(entityType);
             var values = new Dictionary<string, object>();
             var keyProperty = entityType.Properties.Where(a => a.IsKey).First();
             values.Add(keyProperty.CSharpName, key);
@@ -150,7 +143,7 @@ namespace Soul.SqlBatis.Infrastructure
 
         private int ExecuteInsert(EntityEntry entry)
         {
-            var (sql, values) = BuildInsertSql(entry);
+            var (sql, values) = BuildInsertCommand(entry);
             if (!entry.Properties.Any(a => a.IsIdentity))
             {
                 return _context.Execute(sql, values);
@@ -162,7 +155,7 @@ namespace Soul.SqlBatis.Infrastructure
 
         private async Task<int> ExecuteInsertAsync(EntityEntry entry, CancellationToken? cancellationToken = default)
         {
-            var (sql, values) = BuildInsertSql(entry);
+            var (sql, values) = BuildInsertCommand(entry);
             if (!entry.Properties.Any(a => a.IsIdentity))
             {
                 return await _context.ExecuteAsync(sql, values, cancellationToken: cancellationToken);
@@ -172,98 +165,125 @@ namespace Soul.SqlBatis.Infrastructure
             return 1;
         }
 
-        private int ExecuteUpdate(EntityEntry entityEntry)
+        private static void SetIdentityPropertyValue(EntityEntry entity, object identity)
         {
-            var (sql, values) = BuildUpdateSql(entityEntry);
+            var property = entity.Properties.Where(a => a.IsIdentity).First().Property;
+            var type = Nullable.GetUnderlyingType(property.PropertyType)
+                ?? property.PropertyType;
+            property.SetValue(entity.Entity, Convert.ChangeType(identity, type));
+        }
+
+        private int ExecuteUpdate(EntityEntry entity)
+        {
+            var (sql, values) = BuildUpdateCommand(entity);
+            var row = _context.Execute(sql, values);
+            if (row == 0)
+            {
+                throw new DbUpdateConcurrencyException("The data version is too old", entity);
+            }
+            return row;
+        }
+
+        private async Task<int> ExecuteUpdateAsync(EntityEntry entity, CancellationToken? cancellationToken = default)
+        {
+            var (sql, values) = BuildUpdateCommand(entity);
+            var row = await _context.ExecuteAsync(sql, values, cancellationToken: cancellationToken);
+            if (row == 0)
+            {
+                throw new DbUpdateConcurrencyException("The data version is too old", entity);
+            }
+            return row;
+        }
+
+        private int ExecuteDelete(EntityEntry entity)
+        {
+            var (sql, values) = BuildDeleteCommand(entity);
             return _context.Execute(sql, values);
         }
 
-        private Task<int> ExecuteUpdateAsync(EntityEntry entityEntry, CancellationToken? cancellationToken = default)
+        private Task<int> ExecuteDeleteAsync(EntityEntry entity, CancellationToken? cancellationToken = default)
         {
-            var (sql, values) = BuildUpdateSql(entityEntry);
+            var (sql, values) = BuildDeleteCommand(entity);
             return _context.ExecuteAsync(sql, values, cancellationToken: cancellationToken);
         }
 
-        private int ExecuteDelete(EntityEntry entityEntry)
+        private static (string, object) BuildInsertCommand(EntityEntry entity)
         {
-            var (sql, values) = BuildDeleteSql(entityEntry);
-            return _context.Execute(sql, values);
-        }
-
-        private Task<int> ExecuteDeleteAsync(EntityEntry entityEntry, CancellationToken? cancellationToken = default)
-        {
-            var (sql, values) = BuildDeleteSql(entityEntry);
-            return _context.ExecuteAsync(sql, values, cancellationToken: cancellationToken);
-        }
-
-        private static (string, object) BuildInsertSql(EntityEntry entityEntry)
-        {
-            var func = TypeSerializer.CreateDeserializer(entityEntry.Type);
-            var properties = entityEntry.Properties
+            var func = TypeSerializer.CreateDeserializer(entity.Type);
+            var properties = entity.Properties
                 .Where(a => !a.IsNotMapped)
                 .Where(a => !a.IsIdentity);
             var columns = properties.Select(s => s.ColumnName);
-            var values = func(entityEntry.Entity);
+            var values = func(entity.Entity);
             values = values.Where(a => properties.Any(p => p.CSharpName == a.Key)).ToDictionary(s => s.Key, s => s.Value);
             var parameters = properties.Select(s => $"@{s.CSharpName}");
-            var sql = $"INSERT INTO {entityEntry.TableName} ({string.Join(",", columns)}) VALUES ({string.Join(",", parameters)})";
-            if (entityEntry.Properties.Any(a => a.IsIdentity))
+            var sql = $"INSERT INTO {entity.TableName} ({string.Join(",", columns)}) VALUES ({string.Join(",", parameters)})";
+            if (entity.Properties.Any(a => a.IsIdentity))
             {
                 return ($"{sql};SELECT LAST_INSERT_ID();", values);
             }
             return (sql, values);
         }
 
-        private static (string, object) BuildUpdateSql(EntityEntry entityEntry)
+        private static (string, object) BuildUpdateCommand(EntityEntry entity)
         {
-            if (entityEntry.State == EntityState.Modified)
+            if (entity.State == EntityState.Modified)
             {
-                var properties = entityEntry.Properties
+                var properties = entity.Properties
                     .Where(a => !a.IsNotMapped);
                 var columns = properties.Where(a => !a.IsKey).Select(s => $"{s.ColumnName} = @{s.Property.Name}");
                 var values = properties.ToDictionary(s => s.CSharpName, s => s.CurrentValueCache);
-                var wheres = BuildWhereSql(entityEntry);
-                var sql = $"UPDATE {entityEntry.TableName} SET {string.Join(", ", columns)} WHERE {string.Join(" AND ", wheres)}";
+                foreach (var item in properties.Where(a => a.IsConcurrencyToken))
+                {
+                    values.Add($"Old{item.CSharpName}", item.OriginalValue);
+                }
+                var wheres = BuildWhereCommand(entity);
+                var sql = $"UPDATE {entity.TableName} SET {string.Join(", ", columns)} WHERE {string.Join(" AND ", wheres)}";
                 return (sql, values);
             }
             else
             {
-                var properties = entityEntry.Properties
+                var properties = entity.Properties
                     .Where(a => !a.IsNotMapped)
-                    .Where(a => a.IsKey || a.IsModified);
+                    .Where(a => a.IsKey || a.IsConcurrencyToken || a.IsModified);
                 var columns = properties.Where(a => !a.IsKey).Select(s => $"{s.ColumnName} = @{s.Property.Name}");
                 var values = properties.ToDictionary(s => s.CSharpName, s => s.CurrentValueCache);
-                var wheres = BuildWhereSql(entityEntry);
-                var sql = $"UPDATE {entityEntry.TableName} SET {string.Join(", ", columns)} WHERE {string.Join(" AND ", wheres)}";
+                foreach (var item in properties.Where(a => a.IsConcurrencyToken))
+                {
+                    values.Add($"Old{item.CSharpName}", item.OriginalValue);
+                }
+                var wheres = BuildWhereCommand(entity);
+                var sql = $"UPDATE {entity.TableName} SET {string.Join(", ", columns)} WHERE {string.Join(" AND ", wheres)}";
                 return (sql, values);
             }
         }
 
-        private static (string, object) BuildDeleteSql(EntityEntry entityEntry)
+        private static (string, object) BuildDeleteCommand(EntityEntry entity)
         {
-            var wheres = BuildWhereSql(entityEntry);
-            var properties = entityEntry.Properties
+            var wheres = BuildWhereCommand(entity);
+            var properties = entity.Properties
                 .Where(a => a.IsKey);
             var values = properties
                 .ToDictionary(s => s.Property.Name, s => s.OriginalValue);
-            var sql = $"DELETE FROM {entityEntry.TableName} WHERE {wheres}";
+            var sql = $"DELETE FROM {entity.TableName} WHERE {wheres}";
             return (sql, values);
         }
 
-        private static string BuildWhereSql(IEntityType entityEntry)
+        private static string BuildWhereCommand(IEntityType entity)
         {
-            var keys = entityEntry.Properties
-                .Where(a => a.IsKey);
+            var keys = entity.Properties
+                .Where(a => a.IsKey || a.IsConcurrencyToken)
+                .OrderByDescending(a => a.IsKey);
             if (!keys.Any())
             {
-                throw new ModelException(string.Format("Primary key not found in '{0}' type", entityEntry.Type.Name));
+                throw new ModelException(string.Format("Primary key not found in '{0}' type", entity.Type.Name));
             }
-            return string.Join(" AND ", keys.Select(s => $"{s.ColumnName} = @{s.CSharpName}"));
+            return string.Join(" AND ", keys.Select(s => $"{s.ColumnName} = @{(s.IsConcurrencyToken? "Old" + s.CSharpName : s.CSharpName)}"));
         }
 
-        private static string BuildFindSql(IEntityType entityType)
+        private static string BuildFindCommand(IEntityType entityType)
         {
-            var wheres = BuildWhereSql(entityType);
+            var wheres = BuildWhereCommand(entityType);
             var columns = entityType.Properties
                 .Where(a => !a.IsNotMapped)
                 .Select(s =>

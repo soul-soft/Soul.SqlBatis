@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Soul.SqlBatis.Infrastructure
+namespace Soul.SqlBatis.Exceptions
 {
 	public class ModelException : Exception
 	{

@@ -109,5 +109,7 @@ namespace Soul.SqlBatis.Infrastructure
 		public IReadOnlyCollection<object> Metadata => _property.Metadata;
 
         public string CSharpName => _property.CSharpName;
+
+        public bool IsConcurrencyToken => _property.IsConcurrencyToken;
     }
 }

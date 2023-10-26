@@ -18,7 +18,6 @@ namespace Soul.SqlBatis
         }
 
         public static IDbQueryable<T> AsNoTracking<T>(this IDbQueryable<T> queryable)
-           where T : class
         {
             var query = queryable.AsQuery();
             query.AsNoTracking();
@@ -26,13 +25,17 @@ namespace Soul.SqlBatis
         }
 
         public static T First<T>(this IDbQueryable<T> queryable)
-           where T : class
         {
             queryable.Take(1);
             var query = queryable.AsQuery();
             var (sql, param) = query.BuildSelect();
             var result = query.Query<T>(sql, param);
             return result.First();
+        }
+      
+        public static T Single<T>(this IDbQueryable<T> queryable)
+        {
+            return queryable.First();
         }
 
         public static async Task<T> FirstAsync<T>(this IDbQueryable<T> queryable, CancellationToken? cancellationToken = null)
@@ -42,6 +45,11 @@ namespace Soul.SqlBatis
             var (sql, param) = query.BuildSelect();
             var result = await query.QueryAsync<T>(sql, param, cancellationToken);
             return result.First();
+        }
+        
+        public static async Task<T> SingleAsync<T>(this IDbQueryable<T> queryable, CancellationToken? cancellationToken = null)
+        {
+            return await queryable.FirstAsync(cancellationToken);
         }
 
         public static T FirstOrDefault<T>(this IDbQueryable<T> queryable)
@@ -53,6 +61,11 @@ namespace Soul.SqlBatis
             return result.FirstOrDefault();
         }
 
+        public static T SingleOrDefault<T>(this IDbQueryable<T> queryable)
+        {
+            return queryable.FirstOrDefault();
+        }
+
         public static async Task<T> FirstOrDefaultAsync<T>(this IDbQueryable<T> queryable, CancellationToken? cancellationToken = null)
         {
             queryable.Take(1);
@@ -60,6 +73,11 @@ namespace Soul.SqlBatis
             var (sql, param) = query.BuildSelect();
             var result = await query.QueryAsync<T>(sql, param, cancellationToken);
             return result.FirstOrDefault();
+        }
+        
+        public static async Task<T> SingleOrDefaultAsync<T>(this IDbQueryable<T> queryable, CancellationToken? cancellationToken = null)
+        {
+            return await queryable.FirstOrDefaultAsync(cancellationToken);
         }
 
         public static List<T> ToList<T>(this IDbQueryable<T> queryable)

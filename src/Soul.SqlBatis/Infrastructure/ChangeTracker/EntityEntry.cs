@@ -17,8 +17,7 @@ namespace Soul.SqlBatis.Infrastructure
             Properties = properties;
         }
 
-
-        public virtual EntityState State { get; internal set; }
+        public virtual EntityState State { get; set; }
 
         public virtual IReadOnlyCollection<EntityPropertyEntry> Properties { get; }
 
@@ -49,7 +48,7 @@ namespace Soul.SqlBatis.Infrastructure
 
         public new T Entity => (T)_entry.Entity;
 
-        public override EntityState State { get => _entry.State; internal set => _entry.State = value; }
+        public override EntityState State { get => _entry.State; set => _entry.State = value; }
 
         public override IReadOnlyCollection<EntityPropertyEntry> Properties => _entry.Properties;
 

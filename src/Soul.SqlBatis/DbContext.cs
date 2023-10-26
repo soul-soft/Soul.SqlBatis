@@ -126,20 +126,12 @@ namespace Soul.SqlBatis
 
         public void Update<T>(T entity)
             where T : class
-        {
-            if (ChangeTracker.HasEntry(entity))
-            {
-                return;
-            }
+        {           
             Entry(entity).State = EntityState.Modified;
         }
 
         public void Update(object entity)
         {
-            if (ChangeTracker.HasEntry(entity))
-            {
-                return;
-            }
             Entry(entity).State = EntityState.Modified;
         }
 

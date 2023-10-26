@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using Soul.SqlBatis.Exceptions;
 
 namespace Soul.SqlBatis.Infrastructure
 {

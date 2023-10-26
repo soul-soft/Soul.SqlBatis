@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Soul.SqlBatis.Infrastructure
 {
@@ -16,16 +17,21 @@ namespace Soul.SqlBatis.Infrastructure
 			_property.SetAnnotation(new ColumnAttribute(name));
 		}
 
-		public void HasAnnotation(object annotation)
-		{
-			_property.SetAnnotation(annotation);
-		}
-
 		public void ValueGeneratedNever()
 		{
 			_property.RemoveAnnotation<IdentityAttribute>();
 		}
-	}
+
+		public void IsConcurrencyToken()
+		{
+			_property.SetAnnotation(new ConcurrencyCheckAttribute());
+		}
+
+        internal void HasAnnotation(object annotation)
+        {
+			_property.SetAnnotation(annotation);
+        }
+    }
 
 	public class EntityPropertyBuilder<T> : EntityPropertyTypeBuilder
 		where T : class

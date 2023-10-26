@@ -11,6 +11,7 @@ namespace Soul.SqlBatis.Infrastructure
         bool IsKey { get; }
         bool IsIdentity { get; }
         bool IsNotMapped { get; }
+        bool IsConcurrencyToken { get; }
         PropertyInfo Property { get; }
         string ColumnName { get; }
         string CSharpName { get; }
@@ -49,7 +50,13 @@ namespace Soul.SqlBatis.Infrastructure
             }
         }
 
-
+        public bool IsConcurrencyToken
+        {
+            get
+            {
+                return _attributes.Any(a => a is ConcurrencyCheckAttribute);
+            }
+        }
 
         public string ColumnName
         {

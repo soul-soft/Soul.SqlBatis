@@ -39,6 +39,11 @@ namespace Soul.SqlBatis.Entities
 		/// <summary>
 		/// 
 		/// </summary>
+		[Column("RowVersion")]
+		public string Rowversion { get; set; }
+		/// <summary>
+		/// 
+		/// </summary>
 		[Column("State")]
 		public int? State { get; set; }
 	}
