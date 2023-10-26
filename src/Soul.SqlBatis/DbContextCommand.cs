@@ -214,8 +214,7 @@ namespace Soul.SqlBatis.Infrastructure
 				.Where(a => !a.IsNotMapped)
 				.Where(a => !a.IsIdentity);
 			var columns = properties.Select(s => s.ColumnName);
-			var values = func(entity.Entity);
-			values = values.Where(a => properties.Any(p => p.CSharpName == a.Key)).ToDictionary(s => s.Key, s => s.Value);
+			var values = properties.ToDictionary(s => s.CSharpName, s => s.CurrentValue);
 			var parameters = properties.Select(s => $"@{s.CSharpName}");
 			var sql = $"INSERT INTO {entity.TableName} ({string.Join(",", columns)}) VALUES ({string.Join(",", parameters)})";
 			if (entity.Values.Any(a => a.IsIdentity))
