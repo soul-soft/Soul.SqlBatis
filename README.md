@@ -199,7 +199,7 @@ var context = new MyDbContext(options);
   var sb = new SqlBuilder();
   //model是请求模型
   var param = new DynamicParameters(model);
-  sb.Where("schools.Math > @MathMin " ,  model.MathMin);
+  sb.Where("schools.Math > @MathMin " ,  model.MathMin != null);
   var whereSql = sb.Build("/**where**/");
   //告别视图
   var view = $@"
