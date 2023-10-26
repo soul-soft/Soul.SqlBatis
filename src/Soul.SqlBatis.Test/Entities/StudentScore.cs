@@ -9,7 +9,7 @@ namespace Soul.SqlBatis.Entities
     /// 
     /// </summary>
 	[Table("student_score")]
-	public partial class StudentByScore
+	public partial class StudentScore
 	{
 		/// <summary>
 		/// 

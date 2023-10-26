@@ -96,7 +96,17 @@ namespace Soul.SqlBatis
             return await new DbContextCommand(this).FindAsync<T>(key);
         }
 
-        public void Add<T>(T entity)
+        public void Attach(object entity)
+        {
+			Entry(entity).State = EntityState.Unchanged;
+		}
+
+		public void Attach<T>(T entity)
+		{
+            Attach(entity);
+		}
+
+		public void Add<T>(T entity)
             where T : class
         {
             Entry(entity).State = EntityState.Added;
@@ -126,13 +136,21 @@ namespace Soul.SqlBatis
 
         public void Update<T>(T entity)
             where T : class
-        {           
+        {
+            if (ChangeTracker.HasEntry(entity))
+            {
+                return;
+            }
             Entry(entity).State = EntityState.Modified;
         }
 
         public void Update(object entity)
         {
-            Entry(entity).State = EntityState.Modified;
+			if (ChangeTracker.HasEntry(entity))
+			{
+				return;
+			}
+			Entry(entity).State = EntityState.Modified;
         }
 
         public void UpdateRange<T>(IEnumerable<T> entities)

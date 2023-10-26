@@ -172,7 +172,6 @@ namespace Soul.SqlBatis
                 foreach (var item in list)
                 {
                     var entry = ChangeTracker.TrackGraph(item);
-                    entry.State = EntityState.Unchanged;
                     result.Add(entry.Entity);
                 }
             }
@@ -188,7 +187,6 @@ namespace Soul.SqlBatis
                 foreach (var item in list)
                 {
                     var entry = ChangeTracker.TrackGraph(item);
-                    entry.State = EntityState.Unchanged;
                     result.Add(entry.Entity);
                 }
                 return result;

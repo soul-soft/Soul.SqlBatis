@@ -23,7 +23,7 @@ namespace Soul.SqlBatis.Infrastructure
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
-            builder.Entity<Student>().Property(a => a.Rowversion).IsConcurrencyToken();
+            //builder.Entity<Student>().Property(a => a.Rowversion).IsConcurrencyToken();
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

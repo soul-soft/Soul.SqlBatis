@@ -1,61 +1,93 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-    public class EntityEntry : IEntityType
-    {
-        public object Entity { get; }
+	public class EntityEntry : IEntityType
+	{
+		public object Entity { get; }
 
-        internal IEntityType EntityType { get; }
+		internal IEntityType EntityType { get; }
 
-        public EntityEntry(object entity, IEntityType entityType, IReadOnlyCollection<EntityPropertyEntry> properties)
-        {
-            Entity = entity;
-            EntityType = entityType;
-            Properties = properties;
-        }
+		public EntityEntry(IEntityType entityType, object entity, IReadOnlyCollection<EntityPropertyEntry> valus)
+		{
+			Entity = entity;
+			Values = valus;
+			EntityType = entityType;
+		}
 
-        public virtual EntityState State { get; set; }
+		private EntityState _state;
 
-        public virtual IReadOnlyCollection<EntityPropertyEntry> Properties { get; }
+		public virtual EntityState State
+		{
+			get
+			{
+				if (Values.Any(a => a.IsModified))
+				{
+					_state = EntityState.Modified;
+				}
+				return _state;
+			}
+			set
+			{
+				if (value == EntityState.Modified)
+				{
+					foreach (var item in Values)
+					{
+						if (item.IsKey)
+						{
+							continue;
+						}
+						if (item.IsConcurrencyToken)
+						{
+							continue;
+						}
+						item.OriginalValue = null;
+					}
+				}
+				_state = value;
+			}
+		}
 
-        public Type Type => EntityType.Type;
+		public virtual IReadOnlyCollection<EntityPropertyEntry> Values { get; }
 
-        public string Schema => EntityType.Schema;
+		public Type Type => EntityType.Type;
 
-        public string TableName => EntityType.TableName;
+		public string Schema => EntityType.Schema;
 
-        public IReadOnlyCollection<object> Metadata => EntityType.Metadata;
+		public string TableName => EntityType.TableName;
 
-        IReadOnlyCollection<IEntityPropertyType> IEntityType.Properties => EntityType.Properties;
+		public IReadOnlyCollection<object> Metadata => EntityType.Metadata;
 
-        public IEntityPropertyType GetProperty(MemberInfo member)
-        {
-            return EntityType.GetProperty(member);
-        }
+		public IReadOnlyCollection<IEntityPropertyType> Properties => EntityType.Properties;
 
-        public void HasAnnotation(object annotation)
-        {
-            EntityType.HasAnnotation(annotation);
-        }
-    }
+		public IEntityPropertyType GetProperty(MemberInfo member)
+		{
+			return EntityType.GetProperty(member);
+		}
 
-    public class EntityEntry<T> : EntityEntry
-    {
-        private readonly EntityEntry _entry;
+		public void HasAnnotation(object annotation)
+		{
+			EntityType.HasAnnotation(annotation);
+		}
+	}
 
-        public new T Entity => (T)_entry.Entity;
+	public class EntityEntry<T> : EntityEntry
+	{
+		private readonly EntityEntry _entry;
 
-        public override EntityState State { get => _entry.State; set => _entry.State = value; }
+		public new T Entity => (T)_entry.Entity;
 
-        public override IReadOnlyCollection<EntityPropertyEntry> Properties => _entry.Properties;
+		public override EntityState State { get => _entry.State; set => _entry.State = value; }
 
-        internal EntityEntry(EntityEntry entry)
-            : base(entry.Entity, entry.EntityType, entry.Properties)
-        {
-            _entry = entry;
-        }
-    }
+		public override IReadOnlyCollection<EntityPropertyEntry> Values => _entry.Values;
+
+		internal EntityEntry(EntityEntry entry)
+			: base(entry.EntityType, entry.Entity, entry.Values)
+		{
+			_entry = entry;
+		}
+	}
 }

@@ -12,10 +12,6 @@ namespace Soul.SqlBatis.Infrastructure
 
 		private readonly IEntityPropertyType _property;
 
-		private object _currentValueCache;
-
-		private bool? _isModified;
-
 		public EntityPropertyEntry(IEntityPropertyType property, object entity, object originalValue)
 		{
 			_property = property;
@@ -54,45 +50,29 @@ namespace Soul.SqlBatis.Infrastructure
 			}
 		}
 
-		private bool _hasCurrentValueCache = false;
+        public object OriginalValue { get; internal set; }
 
-        internal object CurrentValueCache
-        {
-            get
-            {
-                if (!_hasCurrentValueCache)
-                {
-                    _currentValueCache = CurrentValue;
-					_hasCurrentValueCache = true;
-                }
-                return _currentValueCache;
-            }
-        }
-
-        public object OriginalValue { get; }
-
-		internal bool IsModified
+		public bool IsModified
 		{
 			get
 			{
-				if (_isModified != null)
-				{
-					return _isModified.Value;
-				}
-				if (CurrentValueCache == null && OriginalValue == null)
+				if (CurrentValue == null && OriginalValue == null)
 				{
 					_isModified = false;
-					return false;
 				}
-				if (CurrentValueCache != null)
+				else if (CurrentValue != null)
 				{
-					_isModified = !CurrentValueCache.Equals(OriginalValue);
+					_isModified = !CurrentValue.Equals(OriginalValue);
 				}
 				else
 				{
-					_isModified = !OriginalValue.Equals(CurrentValueCache);
+					_isModified = !OriginalValue.Equals(CurrentValue);
 				}
 				return _isModified.Value;
+			}
+			set 
+			{
+				_isModified = value;
 			}
 		}
 
