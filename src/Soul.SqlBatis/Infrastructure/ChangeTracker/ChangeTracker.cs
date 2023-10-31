@@ -53,7 +53,7 @@ namespace Soul.SqlBatis.Infrastructure
 			return null;
 		}
 
-		public EntityEntry<T> TrackGraph<T>(T entity)
+		public IEntityEntry<T> TrackGraph<T>(T entity)
 		{
 			var entry = GetOrCreateEntry(entity);
 			return new EntityEntry<T>(entry);

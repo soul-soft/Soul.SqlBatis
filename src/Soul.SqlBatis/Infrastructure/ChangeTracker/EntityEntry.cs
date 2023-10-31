@@ -5,14 +5,7 @@ using System.Reflection;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-	public interface IEntityEntry: IEntityType
-	{
-		object Entity { get; }
-		EntityState State { get; set; }
-		IReadOnlyCollection<IEntityPropertyEntry> Values { get; }
-	}
-
-	public class EntityEntry : IEntityEntry
+	internal class EntityEntry : IEntityEntry
 	{
 		public object Entity { get; }
 
@@ -87,11 +80,11 @@ namespace Soul.SqlBatis.Infrastructure
 		}
 	}
 
-	public class EntityEntry<T> : IEntityEntry
+	internal class EntityEntry<T> : IEntityEntry<T>
 	{
 		private readonly IEntityEntry _entry;
 
-		public T Entity => (T)_entry.Entity;
+		T IEntityEntry<T>.Entity => (T)_entry.Entity;
 
 		object IEntityEntry.Entity => _entry.Entity;
 
@@ -122,45 +115,6 @@ namespace Soul.SqlBatis.Infrastructure
 		public void HasAnnotation(object annotation)
 		{
 			_entry.HasAnnotation(annotation);
-		}
-	}
-
-	internal class EntityEntryCache : IEntityEntry
-	{
-		private IEntityType _entityType;
-
-		public IReadOnlyCollection<IEntityPropertyEntry> Values { get; }
-
-		public object Entity { get; }
-
-		public EntityState State { get; set; }
-
-		public EntityEntryCache(IEntityType entityType,object entity,IReadOnlyCollection<IEntityPropertyEntry> values, EntityState state)
-		{
-			_entityType = entityType;
-			Entity = entity;
-			Values = values;
-			State = state;
-		}
-
-		public Type Type => _entityType.Type;
-
-		public string Schema => _entityType.Schema;
-
-		public string TableName => _entityType.TableName;
-
-		public IReadOnlyCollection<object> Metadata => _entityType.Metadata;
-
-		public IReadOnlyCollection<IEntityPropertyType> Properties => _entityType.Properties;
-
-		public IEntityPropertyType GetProperty(MemberInfo member)
-		{
-			return _entityType.GetProperty(member);
-		}
-
-		public void HasAnnotation(object annotation)
-		{
-			_entityType.HasAnnotation(annotation);
 		}
 	}
 }
