@@ -5,9 +5,9 @@ namespace Soul.SqlBatis.Exceptions
 {
     public class DbUpdateConcurrencyException : Exception
     {
-        public EntityEntry Entity { get; }
+        public IEntityEntry Entity { get; }
 
-        public DbUpdateConcurrencyException(string message, EntityEntry entity) 
+        public DbUpdateConcurrencyException(string message, IEntityEntry entity) 
             : base(message)
         {
             Entity = entity;

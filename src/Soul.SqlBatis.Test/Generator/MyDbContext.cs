@@ -11,11 +11,11 @@ namespace Soul.SqlBatis.Infrastructure
 		/// <summary>
 		/// 
 		/// </summary>
-		public DbSet<Staff> Staffs => Set<Staff>();
+		public DbSet<Student> Students => Set<Student>();
 		/// <summary>
 		/// 
 		/// </summary>
-		public DbSet<Student> Students => Set<Student>();
+		public DbSet<StudentScore> StudentScores => Set<StudentScore>();
 	}
 }
 

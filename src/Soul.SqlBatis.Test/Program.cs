@@ -11,12 +11,13 @@ var context = new MyDbContext(options);
 
 try
 {
-    var param = new DynamicParameters();
-    param.Add(new { Id = 23 });
-    var list = context.Set<Student>(param)
-        .Where(" id > @Id")
-        .ToList();
-    context.SaveChanges();
+    var student = context.Students.Where(a=>a.Id == 1).Single();
+    var state1 = context.Entry(student).State;
+    student.Name = "a";
+	var state2 = context.Entry(student).State;
+	student.Name = "fa";
+	var state3 = context.Entry(student).State;
+	context.SaveChanges();
 }
 catch (Exception ex)
 {

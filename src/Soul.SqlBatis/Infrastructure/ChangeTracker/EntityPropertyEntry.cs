@@ -1,14 +1,20 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Reflection;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-	public class EntityPropertyEntry : IEntityPropertyType
+	public interface IEntityPropertyEntry : IEntityPropertyType
 	{
-		public object Entity { get; }
+		object CurrentValue { get; }
+		object OriginalValue { get; }
+		bool IsModified { get; }
+	}
+
+	public class EntityPropertyEntry : IEntityPropertyEntry
+	{
+		private object _entity;
 
 		private readonly IEntityPropertyType _property;
 
@@ -17,7 +23,7 @@ namespace Soul.SqlBatis.Infrastructure
 		public EntityPropertyEntry(IEntityPropertyType property, object entity, object originalValue)
 		{
 			_property = property;
-			Entity = entity;
+			_entity = entity;
 			OriginalValue = originalValue;
 			ListenChange();
 		}
@@ -48,7 +54,7 @@ namespace Soul.SqlBatis.Infrastructure
 		{
 			get
 			{
-				return _property.Property.GetValue(Entity);
+				return _property.Property.GetValue(_entity);
 			}
 		}
 
@@ -58,21 +64,22 @@ namespace Soul.SqlBatis.Infrastructure
 		{
 			get
 			{
+				var currentValue =  CurrentValue;
 				if (_referenceIsModified == true)
 				{
 					return true;
 				}
-				if (CurrentValue == null && OriginalValue == null)
+				if (currentValue == null && OriginalValue == null)
 				{
 					return false;
 				}
-				else if (CurrentValue != null)
+				else if (currentValue != null)
 				{
-					return !CurrentValue.Equals(OriginalValue);
+					return !currentValue.Equals(OriginalValue);
 				}
 				else
 				{
-					return !OriginalValue.Equals(CurrentValue);
+					return !OriginalValue.Equals(currentValue);
 				}
 			}
 		}
@@ -92,5 +99,42 @@ namespace Soul.SqlBatis.Infrastructure
 		public string CSharpName => _property.CSharpName;
 
 		public bool IsConcurrencyToken => _property.IsConcurrencyToken;
+	}
+
+	public class EntityPropertyEntryCache : IEntityPropertyEntry
+	{
+		private readonly IEntityPropertyType _propertyType;
+		
+		public object CurrentValue { get; }
+
+		public object OriginalValue { get; }
+
+		public bool IsModified { get; }
+		
+		public EntityPropertyEntryCache(IEntityPropertyType propertyType,object currentValue,object originalValue,bool isModified)
+		{
+			_propertyType = propertyType;
+			CurrentValue = currentValue;
+			OriginalValue = originalValue;
+			IsModified = isModified;
+		}
+
+		public bool IsKey => _propertyType.IsKey;
+
+		public bool IsIdentity => _propertyType.IsIdentity;
+
+		public bool IsNotMapped => _propertyType.IsNotMapped;
+
+		public bool IsConcurrencyToken => _propertyType.IsConcurrencyToken;
+
+		public PropertyInfo Property => _propertyType.Property;
+
+		public string ColumnName => _propertyType.ColumnName;
+
+		public string CSharpName => _propertyType.CSharpName;
+
+		public IReadOnlyCollection<object> Metadata => _propertyType.Metadata;
+
+		
 	}
 }

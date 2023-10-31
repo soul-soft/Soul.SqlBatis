@@ -8,14 +8,14 @@ namespace Soul.SqlBatis.Infrastructure
 	{
 		private readonly IModel _model;
 
-		private readonly Dictionary<object, EntityEntry> _entryReferences = new Dictionary<object, EntityEntry>();
+		private readonly Dictionary<object, IEntityEntry> _entryReferences = new Dictionary<object, IEntityEntry>();
 
 		public ChangeTracker(IModel model)
 		{
 			_model = model;
 		}
 
-		public IEnumerable<EntityEntry> Entries()
+		public IEnumerable<IEntityEntry> Entries()
 		{
 			return _entryReferences.Values;
 		}
@@ -32,7 +32,7 @@ namespace Soul.SqlBatis.Infrastructure
 			return _entryReferences.Keys.Any(a => ReferenceEquals(a, entry));
 		}
 
-		public EntityEntry Find(Type type, object key)
+		public IEntityEntry Find(Type type, object key)
 		{
 			var property = _model.GetEntityType(type).Properties
 				.Where(a => a.IsKey)
@@ -59,7 +59,7 @@ namespace Soul.SqlBatis.Infrastructure
 			return new EntityEntry<T>(entry);
 		}
 
-		private EntityEntry GetOrCreateEntry(object entity)
+		private IEntityEntry GetOrCreateEntry(object entity)
 		{
 			if (entity == null)
 			{
@@ -72,7 +72,7 @@ namespace Soul.SqlBatis.Infrastructure
 			return CreateEntry(entity);
 		}
 
-		private EntityEntry CreateEntry(object entity)
+		private IEntityEntry CreateEntry(object entity)
 		{
 			var entityType = _model.GetEntityType(entity.GetType());
 			var func = TypeSerializer.CreateDeserializer(entity.GetType());
@@ -86,12 +86,6 @@ namespace Soul.SqlBatis.Infrastructure
 			};
 			_entryReferences.Add(entity, entry);
 			return entry;
-		}
-
-		private EntityEntry<T> CreateEntry<T>(T entity)
-		{
-			var entry = CreateEntry(entity);
-			return new EntityEntry<T>(entry);
 		}
 
 		internal void Clear()

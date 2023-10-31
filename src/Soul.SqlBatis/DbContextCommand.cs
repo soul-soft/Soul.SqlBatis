@@ -19,7 +19,8 @@ namespace Soul.SqlBatis.Infrastructure
 		public int SaveChanges()
 		{
 			var row = 0;
-			if (!HasChanges())
+			var entries = GetCacheEntries();
+			if (!HasChanges(entries))
 			{
 				return row;
 			}
@@ -28,7 +29,6 @@ namespace Soul.SqlBatis.Infrastructure
 			try
 			{
 				transaction = hasActiveDbTransaction ? _context.CurrentTransaction : _context.BeginTransaction();
-				var entries = _context.ChangeTracker.Entries();
 				foreach (var entry in entries)
 				{
 					if (entry.State == EntityState.Added)
@@ -63,7 +63,8 @@ namespace Soul.SqlBatis.Infrastructure
 		public async Task<int> SaveChangesAsync(CancellationToken? cancellationToken = default)
 		{
 			var row = 0;
-			if (!HasChanges())
+			var entries = GetCacheEntries();
+			if (!HasChanges(entries))
 			{
 				return row;
 			}
@@ -72,7 +73,6 @@ namespace Soul.SqlBatis.Infrastructure
 			try
 			{
 				transaction = hasActiveDbTransaction ? _context.CurrentTransaction : await _context.BeginTransactionAsync();
-				var entries = _context.ChangeTracker.Entries();
 				foreach (var entry in entries)
 				{
 					if (entry.State == EntityState.Added)
@@ -104,11 +104,22 @@ namespace Soul.SqlBatis.Infrastructure
 			return row;
 		}
 
-		public bool HasChanges()
+		public bool HasChanges(List<IEntityEntry> entries)
 		{
-			return _context.ChangeTracker.Entries()
-			   .Where(a => a.State == EntityState.Added || a.State == EntityState.Modified || a.State == EntityState.Deleted || a.Values.Any(p => p.IsModified))
-			   .Any();
+			return entries.Where(a => a.State == EntityState.Added || a.State == EntityState.Modified || a.State == EntityState.Deleted || a.Values.Any(p => p.IsModified)).Any();
+		}
+
+		private List<IEntityEntry> GetCacheEntries()
+		{
+			var entries = _context.ChangeTracker.Entries();
+			return entries.Select(s =>
+			{
+				var values = s.Values.Select(v => new EntityPropertyEntryCache(v, v.CurrentValue, v.OriginalValue, v.IsModified)).ToList();
+				var state = values.Any(a => a.IsModified) ? EntityState.Modified : EntityState.Unchanged;
+				return new EntityEntryCache(s, s.Entity, values, state);
+			})
+			.Cast<IEntityEntry>()
+			.ToList();
 		}
 
 		public T Find<T>(object key)
@@ -141,7 +152,7 @@ namespace Soul.SqlBatis.Infrastructure
 			return entity;
 		}
 
-		private int ExecuteInsert(EntityEntry entry)
+		private int ExecuteInsert(IEntityEntry entry)
 		{
 			var (sql, values) = BuildInsertCommand(entry);
 			if (!entry.Values.Any(a => a.IsIdentity))
@@ -153,7 +164,7 @@ namespace Soul.SqlBatis.Infrastructure
 			return 1;
 		}
 
-		private async Task<int> ExecuteInsertAsync(EntityEntry entry, CancellationToken? cancellationToken = default)
+		private async Task<int> ExecuteInsertAsync(IEntityEntry entry, CancellationToken? cancellationToken = default)
 		{
 			var (sql, values) = BuildInsertCommand(entry);
 			if (!entry.Values.Any(a => a.IsIdentity))
@@ -165,7 +176,7 @@ namespace Soul.SqlBatis.Infrastructure
 			return 1;
 		}
 
-		private static void SetIdentityPropertyValue(EntityEntry entity, object identity)
+		private static void SetIdentityPropertyValue(IEntityEntry entity, object identity)
 		{
 			var property = entity.Values.Where(a => a.IsIdentity).First().Property;
 			var type = Nullable.GetUnderlyingType(property.PropertyType)
@@ -173,7 +184,7 @@ namespace Soul.SqlBatis.Infrastructure
 			property.SetValue(entity.Entity, Convert.ChangeType(identity, type));
 		}
 
-		private int ExecuteUpdate(EntityEntry entity)
+		private int ExecuteUpdate(IEntityEntry entity)
 		{
 			var (sql, values) = BuildUpdateCommand(entity);
 			var row = _context.Execute(sql, values);
@@ -184,7 +195,7 @@ namespace Soul.SqlBatis.Infrastructure
 			return row;
 		}
 
-		private async Task<int> ExecuteUpdateAsync(EntityEntry entity, CancellationToken? cancellationToken = default)
+		private async Task<int> ExecuteUpdateAsync(IEntityEntry entity, CancellationToken? cancellationToken = default)
 		{
 			var (sql, values) = BuildUpdateCommand(entity);
 			var row = await _context.ExecuteAsync(sql, values, cancellationToken: cancellationToken);
@@ -195,19 +206,19 @@ namespace Soul.SqlBatis.Infrastructure
 			return row;
 		}
 
-		private int ExecuteDelete(EntityEntry entity)
+		private int ExecuteDelete(IEntityEntry entity)
 		{
 			var (sql, values) = BuildDeleteCommand(entity);
 			return _context.Execute(sql, values);
 		}
 
-		private Task<int> ExecuteDeleteAsync(EntityEntry entity, CancellationToken? cancellationToken = default)
+		private Task<int> ExecuteDeleteAsync(IEntityEntry entity, CancellationToken? cancellationToken = default)
 		{
 			var (sql, values) = BuildDeleteCommand(entity);
 			return _context.ExecuteAsync(sql, values, cancellationToken: cancellationToken);
 		}
 
-		private static (string, object) BuildInsertCommand(EntityEntry entity)
+		private static (string, object) BuildInsertCommand(IEntityEntry entity)
 		{
 			var func = TypeSerializer.CreateDeserializer(entity.Type);
 			var properties = entity.Values
@@ -224,7 +235,7 @@ namespace Soul.SqlBatis.Infrastructure
 			return (sql, values);
 		}
 
-		private static (string, object) BuildUpdateCommand(EntityEntry entity)
+		private static (string, object) BuildUpdateCommand(IEntityEntry entity)
 		{
 			var properties = entity.Values
 					.Where(a => !a.IsNotMapped)
@@ -240,7 +251,7 @@ namespace Soul.SqlBatis.Infrastructure
 			return (sql, values);
 		}
 
-		private static (string, object) BuildDeleteCommand(EntityEntry entity)
+		private static (string, object) BuildDeleteCommand(IEntityEntry entity)
 		{
 			var wheres = BuildWhereCommand(entity);
 			var properties = entity.Values
