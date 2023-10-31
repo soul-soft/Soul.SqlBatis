@@ -222,25 +222,25 @@ var context = new MyDbContext(options);
   ```
 - Linq To Sql 
 
-``` C#
-var (sb,param) = context.Students
-	.Where(a => a.Id  > 10)
-	.Where(a => a.Math > 20)
-	.Build();
-var whereSql = sb.Build("/**where**/");
-var sql = $"select * from student {whereSql}"
-var list = context.Query(sql, param);
-```
-- 混合查询
-
-  ```C#
-  //尽情发挥创造力
-  var param = new DynamicParameters();
-  param.Add(new { Math = 90 });
-  var student = context.Set<Student>(param)
-  	.Where("Id IN (SELECT StudentId FROM student_scores WHERE math > @Math)")
-  	.Where(a => DbOperations.Contains(a.FirstName, "王"))
-  	.ToList();
+  ``` C#
+	var (sb,param) = context.Students
+		.Where(a => a.Id  > 10)
+		.Where(a => a.Math > 20)
+		.Build();
+	var whereSql = sb.Build("/**where**/");
+	var sql = $"select * from student {whereSql}"
+	var list = context.Query(sql, param);
+	```
+	- 混合查询
+	
+	  ```C#
+	  //尽情发挥创造力
+	  var param = new DynamicParameters();
+	  param.Add(new { Math = 90 });
+	  var student = context.Set<Student>(param)
+	  	.Where("Id IN (SELECT StudentId FROM student_scores WHERE math > @Math)")
+	  	.Where(a => DbOperations.Contains(a.FirstName, "王"))
+	  	.ToList();
   ```
 - switch、if
 
@@ -260,44 +260,44 @@ var list = context.Query(sql, param);
 编写一个静态类，给成员函数加上DbFunction即可，可以通过Name来映射名称，通过Format来映射参数
 
 ```C#
-    public static class DbFunctions
-    {
-        [DbFunction(Name = "NOW")]
-        public static DateTime Now()
-        {
-            throw new NotImplementedException();
-        }
-
-        [DbFunction(Name = "COUNT", Format = "DISTINCT {column}")]
-        public static int CountDistinct(object column)
-        {
-            throw new NotImplementedException();
-        }
-
-        [DbFunction(Name = "COUNT", Format = "*")]
-        public static int CountX()
-        {
-            throw new NotImplementedException();
-        }
-
-        [DbFunction(Name = "AVG")]
-        public static decimal Avg<T>(T column)
-        {
-            throw new NotImplementedException();
-        }
-
-        [DbFunction(Name = "JSON_EXTRACT")]
-        public static TPath JsonExtract<TPath>(object column, string path)
-        {
-            throw new NotImplementedException();
-        }
-
-        [DbFunction(Name = "DATE")]
-        internal static DateTime Date(DateTime? creationTime)
-        {
-            throw new NotImplementedException();
-        }
-    }
+public static class DbFunctions
+{
+	[DbFunction(Name = "NOW")]
+	public static DateTime Now()
+	{
+	    throw new NotImplementedException();
+	}
+	
+	[DbFunction(Name = "COUNT", Format = "DISTINCT {column}")]
+	public static int CountDistinct(object column)
+	{
+	    throw new NotImplementedException();
+	}
+	
+	[DbFunction(Name = "COUNT", Format = "*")]
+	public static int CountX()
+	{
+	    throw new NotImplementedException();
+	}
+	
+	[DbFunction(Name = "AVG")]
+	public static decimal Avg<T>(T column)
+	{
+	    throw new NotImplementedException();
+	}
+	
+	[DbFunction(Name = "JSON_EXTRACT")]
+	public static TPath JsonExtract<TPath>(object column, string path)
+	{
+	    throw new NotImplementedException();
+	}
+	
+	[DbFunction(Name = "DATE")]
+	internal static DateTime Date(DateTime? creationTime)
+	{
+	    throw new NotImplementedException();
+	}
+}
 ```
 
 ```C#
