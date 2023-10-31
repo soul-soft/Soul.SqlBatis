@@ -196,6 +196,7 @@ var context = new MyDbContext(options);
 - Sql To Linq
 
   ```C#
+  
   var sb = new SqlBuilder();
   //model是请求模型
   var param = new DynamicParameters();
@@ -222,7 +223,7 @@ var context = new MyDbContext(options);
   ```
 - Linq To Sql 
 
-  ``` C#
+ ``` C#
 	var (sb,param) = context.Students
 		.Where(a => a.Id  > 10)
 		.Where(a => a.Math > 20)
@@ -238,21 +239,21 @@ var context = new MyDbContext(options);
 	  var param = new DynamicParameters();
 	  param.Add(new { Math = 90 });
 	  var student = context.Set<Student>(param)
-	  	.Where("Id IN (SELECT StudentId FROM student_scores WHERE math > @Math)")
-	  	.Where(a => DbOperations.Contains(a.FirstName, "王"))
-	  	.ToList();
-  ```
+		.Where("Id IN (SELECT StudentId FROM student_scores WHERE math > @Math)")
+		.Where(a => DbOperations.Contains(a.FirstName, "王"))
+		.ToList();
+  ```  
 - switch、if
 
   ``` C#
-   var list = context.Students
-        .Select(s => new
-        {
-            Fa = s.State,
-            Flag = DbOperations.IF(s.State > 0, "大于0", "小于0"),
-            Status = DbOperations.Switch(s.State == 0, "初始").Case(s.State == 1, "VIP").Default("游离")
-        })
-        .ToList();
+	var list = context.Students
+	.Select(s => new
+	{
+	    Fa = s.State,
+	    Flag = DbOperations.IF(s.State > 0, "大于0", "小于0"),
+	    Status = DbOperations.Switch(s.State == 0, "初始").Case(s.State == 1, "VIP").Default("游离")
+	})
+	.ToList();
   ```  
 
 ## 函数映射
