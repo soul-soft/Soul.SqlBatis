@@ -32,13 +32,13 @@ namespace Soul.SqlBatis
 
         private DynamicParameters _parameters;
 
-        protected DynamicParameters Parameters { get => _parameters; set => _parameters = value; }
+        protected DynamicParameters Parameters { get => _parameters; }
 
-        public DbQueryable(DbContext context, Type type)
+        public DbQueryable(DbContext context, Type type, DynamicParameters parameters)
         {
             _type = type;
             _context = context;
-            _parameters = new DynamicParameters();
+            _parameters = parameters;
             IsTracking = context.Options.EnableQueryTracking;
 
         }
@@ -50,30 +50,6 @@ namespace Soul.SqlBatis
             _expressions = expressions;
             _parameters = parameters;
             IsTracking = false;
-        }
-
-        protected void AddParameters(object param)
-        {
-            if (param == null)
-            {
-                return;
-            }
-            if (param is Dictionary<string, object> values)
-            {
-                foreach (var item in values)
-                {
-                    _parameters.Add(item.Key, item.Value);
-                }
-                return;
-            }
-            var properties = param.GetType().GetProperties();
-            foreach (var property in properties)
-            {
-                var name = property.Name;
-                var value = property.GetValue(param);
-                _parameters.Add(name, value);
-            }
-            return;
         }
 
         protected void AddExpression(DbExpression expression)
@@ -91,78 +67,6 @@ namespace Soul.SqlBatis
             IsTracking = false;
         }
 
-        internal (string, object) BuildUpdate()
-        {
-            var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
-            var entityType = Model.GetEntityType(EntityType);
-            var sb = new MySqlBuilder(entityType, tokens);
-            return (sb.Update(), Parameters);
-        }
-
-        internal (string, object) BuildDelete()
-        {
-            var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
-            var entityType = Model.GetEntityType(EntityType);
-            var sb = new MySqlBuilder(entityType, tokens);
-            return (sb.Delete(), Parameters);
-        }
-
-        internal (string, object) BuildSelect()
-        {
-            var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
-            var entityType = Model.GetEntityType(EntityType);
-            var sb = new MySqlBuilder(entityType, tokens);
-            return (sb.Select(), Parameters);
-        }
-
-        internal (string, object) BuildCount()
-        {
-            var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
-            var entityType = Model.GetEntityType(EntityType);
-            var sb = new MySqlBuilder(entityType, tokens);
-            return (sb.Count(), Parameters);
-        }
-
-        internal (string, object) BuildSum()
-        {
-            var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
-            var entityType = Model.GetEntityType(EntityType);
-            var sb = new MySqlBuilder(entityType, tokens);
-            return (sb.Sum(), Parameters);
-        }
-
-        internal (string, object) BuildMax()
-        {
-            var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
-            var entityType = Model.GetEntityType(EntityType);
-            var sb = new MySqlBuilder(entityType, tokens);
-            return (sb.Max(), Parameters);
-        }
-
-        internal (string, object) BuildMin()
-        {
-            var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
-            var entityType = Model.GetEntityType(EntityType);
-            var sb = new MySqlBuilder(entityType, tokens);
-            return (sb.Min(), Parameters);
-        }
-
-        internal (string, object) BuildAny()
-        {
-            var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
-            var entityType = Model.GetEntityType(EntityType);
-            var sb = new MySqlBuilder(entityType, tokens);
-            return (sb.Any(), Parameters);
-        }
-
-        internal (string, object) BuildAverage()
-        {
-            var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
-            var entityType = Model.GetEntityType(EntityType);
-            var sb = new MySqlBuilder(entityType, tokens);
-            return (sb.Average(), Parameters);
-        }
-
         internal List<T> Query<T>(string sql, object param)
         {
             var list = _context.Query<T>(sql, param).ToList();
@@ -176,6 +80,13 @@ namespace Soul.SqlBatis
                 }
             }
             return list;
+        }
+
+        public SqlQuery BuildSqlQuery()
+        {
+            var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
+            var entityType = Model.GetEntityType(EntityType);
+            return new SqlQuery(entityType, tokens, _parameters);
         }
 
         internal async Task<List<T>> QueryAsync<T>(string sql, object param, CancellationToken? cancellationToken = null)
@@ -217,10 +128,19 @@ namespace Soul.SqlBatis
 
     public class DbQueryable<T> : DbQueryable, IDbQueryable<T>
     {
-        public DbQueryable(DbContext context, Type type)
-            : base(context, type)
+        IModel IDbQueryable<T>.Model => DbContext.Model;
+
+
+        public DbQueryable(DbContext context, Type type, DynamicParameters parameters)
+            : base(context, type, parameters)
         {
 
+        }
+
+        public DbQueryable(DbContext context, Type type, string fromSql, DynamicParameters parameters)
+           : base(context, type, parameters)
+        {
+            AddExpression(DbExpression.FromSqlExpression(fromSql, DbExpressionType.From));
         }
 
         private DbQueryable(DbContext context, Type type, List<DbExpression> expressions, DynamicParameters parameters)
@@ -229,18 +149,16 @@ namespace Soul.SqlBatis
 
         }
 
-        IModel IDbQueryable<T>.Model => DbContext.Model;
-
-        public SqlBuilder Build(DynamicParameters parameters)
+        public (SqlBuilder, DynamicParameters) Build()
         {
             var sb = new SqlBuilder();
-            var builder = new DbExpressionBuilder(Model, parameters, DbExpressions);
+            var builder = new DbExpressionBuilder(Model, Parameters, DbExpressions);
             var tokens = builder.Build();
             foreach (var item in tokens.Where(a => a.Key == DbExpressionType.Where))
             {
                 sb.Where(string.Join(" AND ", item.Value));
             }
-            return sb;
+            return (sb, Parameters);
         }
 
         public IDbQueryable<T> Clone()
@@ -253,16 +171,6 @@ namespace Soul.SqlBatis
         {
             var query = new DbQueryable<TResult>(DbContext, EntityType, DbExpressions.ToList(), Parameters);
             return query;
-        }
-
-        public IDbQueryable<T> FromSql(RawSql sql, DynamicParameters parameters = null)
-        {
-            if (parameters != null)
-            {
-                Parameters = parameters;
-            }
-            AddExpression(DbExpression.FromSqlExpression(sql, DbExpressionType.From));
-            return this;
         }
 
         public IDbQueryable<T> GroupBy(RawSql sql, bool flag = true)
@@ -279,11 +187,10 @@ namespace Soul.SqlBatis
             return this;
         }
 
-        public IDbQueryable<T> Having(RawSql sql, object param = null, bool flag = true)
+        public IDbQueryable<T> Having(RawSql sql, bool flag = true)
         {
             if (flag)
             {
-                AddParameters(param);
                 AddExpression(DbExpression.FromSqlExpression(sql, DbExpressionType.Having));
             }
             return this;
@@ -359,11 +266,10 @@ namespace Soul.SqlBatis
             return this;
         }
 
-        public IDbQueryable<T> Where(RawSql sql, object param = null, bool flag = true)
+        public IDbQueryable<T> Where(RawSql sql, bool flag = true)
         {
             if (flag)
             {
-                AddParameters(param);
                 AddExpression(DbExpression.FromSqlExpression(sql, DbExpressionType.Where));
             }
             return this;

@@ -61,13 +61,25 @@ namespace Soul.SqlBatis
         public DbSet<T> Set<T>()
             where T : class
         {
-            return new DbSet<T>(this);
+            return new DbSet<T>(this, new DynamicParameters());
+        }
+
+        public DbSet<T> Set<T>(DynamicParameters parameters)
+           where T : class
+        {
+            return new DbSet<T>(this, parameters);
+        }
+
+        public IDbQueryable<T> FromSql<T>(string fromSql)
+          where T : class
+        {
+            return new DbSet<T>(this, fromSql, new DynamicParameters());
         }
 
         public IDbQueryable<T> FromSql<T>(string fromSql, DynamicParameters parameters = null)
             where T : class
         {
-            return new DbSet<T>(this).FromSql(fromSql, parameters);
+            return new DbSet<T>(this, fromSql, parameters);
         }
 
         public EntityEntry<T> Entry<T>(T entity)
@@ -98,15 +110,15 @@ namespace Soul.SqlBatis
 
         public void Attach(object entity)
         {
-			Entry(entity).State = EntityState.Unchanged;
-		}
+            Entry(entity).State = EntityState.Unchanged;
+        }
 
-		public void Attach<T>(T entity)
-		{
+        public void Attach<T>(T entity)
+        {
             Attach(entity);
-		}
+        }
 
-		public void Add<T>(T entity)
+        public void Add<T>(T entity)
             where T : class
         {
             Entry(entity).State = EntityState.Added;
@@ -146,11 +158,11 @@ namespace Soul.SqlBatis
 
         public void Update(object entity)
         {
-			if (ChangeTracker.HasEntry(entity))
-			{
-				return;
-			}
-			Entry(entity).State = EntityState.Modified;
+            if (ChangeTracker.HasEntry(entity))
+            {
+                return;
+            }
+            Entry(entity).State = EntityState.Modified;
         }
 
         public void UpdateRange<T>(IEnumerable<T> entities)

@@ -4,33 +4,35 @@ using System.Linq;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-    internal class MySqlBuilder
+    public class SqlQuery
     {
+        public DynamicParameters Parameters { get; private set; }
         private readonly IEntityType _entityType;
 
         private readonly Dictionary<DbExpressionType, IEnumerable<string>> _tokens = new Dictionary<DbExpressionType, IEnumerable<string>>();
 
-        public MySqlBuilder(IEntityType entityType, Dictionary<DbExpressionType, IEnumerable<string>> tokens)
+        public SqlQuery(IEntityType entityType, Dictionary<DbExpressionType, IEnumerable<string>> tokens, DynamicParameters parameters)
         {
             _entityType = entityType;
             _tokens = tokens;
+            Parameters = parameters;
         }
 
-        public string Update()
+        private string Update()
         {
             var filter = BuildFilterSql();
             var view = BuildFromSql();
             return string.Join(" ", $"UPDATE {view}", filter);
         }
-     
-        public string Delete()
+
+        private string Delete()
         {
             var filter = BuildFilterSql();
             var view = BuildFromSql();
             return string.Join(" ", $"DELETE FROM {view}", filter);
         }
 
-        public string Select()
+        private string Query()
         {
             var tokens = BuildFilterSql();
             var columns = GetColumnSql();
@@ -55,89 +57,86 @@ namespace Soul.SqlBatis.Infrastructure
             return string.Join(" ", sql, limit);
         }
 
-        public string Count()
+        private string Count()
         {
             var tokens = BuildFilterSql(DbExpressionType.OrderBy);
             var columns = GetColumnSql();
             var fromSql = BuildFromSql();
             if (_tokens.ContainsKey(DbExpressionType.GroupBy))
             {
-                var sql = Select();
+                var sql = Query();
                 return $"SELECT COUNT({columns}) FROM ({sql}) AS t";
             }
             return string.Join(" ", $"SELECT COUNT({columns}) FROM {fromSql}", tokens);
         }
 
-        public string Sum()
+        private string Sum()
         {
             var tokens = BuildFilterSql();
             var fromSql = BuildFromSql();
             var columns = GetColumnSql();
             if (_tokens.ContainsKey(DbExpressionType.GroupBy))
             {
-                var sql = Select();
+                var sql = Query();
                 return $"SELECT SUM({columns}) FROM ({sql}) AS t";
             }
             return string.Join(" ", $"SELECT SUM({columns}) FROM {fromSql}", tokens);
         }
 
-        public string Average()
-        {
-            var tokens = BuildFilterSql();
-            var fromSql = BuildFromSql();
-            var columns = GetColumnSql();
-            if (_tokens.ContainsKey(DbExpressionType.GroupBy))
-            {
-                var sql = Select();
-                return $"SELECT MAX({columns}) FROM ({sql}) AS t";
-            }
-            return string.Join(" ", $"SELECT MAX({columns}) FROM {fromSql}", tokens);
-        }
-
-        public string Min()
+        private string Min()
         {
             var tokens = BuildFilterSql();
             var columns = GetColumnSql();
             var fromSql = BuildFromSql();
             if (_tokens.ContainsKey(DbExpressionType.GroupBy))
             {
-                var sql = Select();
+                var sql = Query();
                 return $"SELECT MIN({columns}) FROM ({sql}) AS t";
             }
             return string.Join(" ", $"SELECT MIN({columns}) FROM {fromSql}", tokens);
         }
 
-        public string Max()
+        private string Max()
         {
             var tokens = BuildFilterSql();
             var columns = GetColumnSql();
             var fromSql = BuildFromSql();
             if (_tokens.ContainsKey(DbExpressionType.GroupBy))
             {
-                var sql = Select();
+                var sql = Query();
                 return $"SELECT MAX({columns}) FROM ({sql}) AS t";
             }
-            return string.Join(" ", $"SELECT MIN({columns}) FROM {fromSql}", tokens);
+            return string.Join(" ", $"SELECT MAX({columns}) FROM {fromSql}", tokens);
         }
 
-        public string Avg()
+        private string Avg()
         {
             var tokens = BuildFilterSql();
             var columns = GetColumnSql();
             var fromSql = BuildFromSql();
             if (_tokens.ContainsKey(DbExpressionType.GroupBy))
             {
-                var sql = Select();
+                var sql = Query();
                 return $"SELECT AVG({columns}) FROM ({sql}) AS t";
             }
             return string.Join(" ", $"SELECT AVG({columns}) FROM {fromSql}", tokens);
         }
 
-        public string Any()
+        private string Any()
         {
-            var sql = Select();
+            var sql = Query();
             return $"SELECT EXISTS({sql}) AS Expr";
         }
+
+        public string QuerySql => Query();
+        public string UpdateSql => Update();
+        public string DeleteSql => Delete();
+        public string AnySql => Any();
+        public string AvgSql => Avg();
+        public string MaxSql => Max();
+        public string MinSql => Min();
+        public string SumSql => Sum();
+        public string CountSql => Count();
 
         private string BuildFromSql()
         {
