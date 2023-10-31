@@ -218,7 +218,7 @@ var context = new MyDbContext(options);
   ";
   var student = context.FromSql<StudentGroup>(view, param)
   	.Where(a => DbOperations.Contains(a.FirstName, "王"))
-    .Take(10).Skip(0)//分页  
+    	.Take(10).Skip(0)//分页  
   	.ToList();
   ```
   
@@ -231,7 +231,7 @@ var context = new MyDbContext(options);
       .Build();
   var whereSql = sb.Build("/**where**/");
   var sql = $"select * from student {whereSql}"
-      var list = context.Query(sql, param);
+  var list = context.Query(sql, param);
   ```
 
   
