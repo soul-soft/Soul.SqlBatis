@@ -193,12 +193,13 @@ var context = new MyDbContext(options);
     var students = context.Students.Skip(10).Take(10).ToList(); 
   ```
 
-- fromSql
+- Sql To Linq
 
   ```C#
   var sb = new SqlBuilder();
   //model是请求模型
-  var param = new DynamicParameters(model);
+  var param = new DynamicParameters();
+  param.Add(model);//将model进行解构
   sb.Where("schools.Math > @MathMin " ,  model.MathMin != null);
   var whereSql = sb.Build("/**where**/");
   //告别视图
@@ -219,13 +220,25 @@ var context = new MyDbContext(options);
     .Take(10).Skip(0)//分页  
   	.ToList();
   ```
+- Linq To Sql 
 
+``` C#
+var (sb,param) = context.Students
+	.Where(a => a.Id  > 10)
+	.Where(a => a.Math > 20)
+	.Build();
+var whereSql = sb.Build("/**where**/");
+var sql = $"select * from student {whereSql}"
+var list = context.Query(sql, param);
+```
 - 混合查询
 
   ```C#
   //尽情发挥创造力
-  var student = context.Students
-  	.Where("Id IN (SELECT StudentId FROM student_scores WHERE math > @Math)", new { Math = 90 })
+  var param = new DynamicParameters();
+  param.Add(new { Math = 90 });
+  var student = context.Set<Student>(param)
+  	.Where("Id IN (SELECT StudentId FROM student_scores WHERE math > @Math)")
   	.Where(a => DbOperations.Contains(a.FirstName, "王"))
   	.ToList();
   ```
