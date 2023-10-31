@@ -221,31 +221,37 @@ var context = new MyDbContext(options);
     .Take(10).Skip(0)//分页  
   	.ToList();
   ```
+  
 - Linq To Sql 
 
- ``` C#
-	var (sb,param) = context.Students
-		.Where(a => a.Id  > 10)
-		.Where(a => a.Math > 20)
-		.Build();
-	var whereSql = sb.Build("/**where**/");
-	var sql = $"select * from student {whereSql}"
-	var list = context.Query(sql, param);
-	```
-	- 混合查询
+  ```C#
+  var (sb,param) = context.Students
+      .Where(a => a.Id  > 10)
+      .Where(a => a.Math > 20)
+      .Build();
+  var whereSql = sb.Build("/**where**/");
+  var sql = $"select * from student {whereSql}"
+      var list = context.Query(sql, param);
+  ```
+
+  
+
+- 混合查询
 	
-	  ```C#
-	  //尽情发挥创造力
-	  var param = new DynamicParameters();
-	  param.Add(new { Math = 90 });
-	  var student = context.Set<Student>(param)
-		.Where("Id IN (SELECT StudentId FROM student_scores WHERE math > @Math)")
-		.Where(a => DbOperations.Contains(a.FirstName, "王"))
-		.ToList();
-  ```  
+	```C#
+	//尽情发挥创造力
+	var param = new DynamicParameters();
+	param.Add(new { Math = 90 });
+	var student = context.Set<Student>(param)
+	    .Where("Id IN (SELECT StudentId FROM student_scores WHERE math > @Math)")
+	    .Where(a => DbOperations.Contains(a.FirstName, "王"))
+	    .ToList();
+	```
+	
+	
 - switch、if
 
-  ``` C#
+  ```C#
 	var list = context.Students
 	.Select(s => new
 	{
@@ -254,7 +260,9 @@ var context = new MyDbContext(options);
 	    Status = DbOperations.Switch(s.State == 0, "初始").Case(s.State == 1, "VIP").Default("游离")
 	})
 	.ToList();
-  ```  
+  ```
+  
+  
 
 ## 函数映射
 
@@ -310,4 +318,3 @@ var students = context.Students
         Count = DbFunctions.Count(s.Id)        
     });
 ```
-
