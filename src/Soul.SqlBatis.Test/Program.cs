@@ -4,16 +4,17 @@ using Soul.SqlBatis.Entities;
 using Soul.SqlBatis.Infrastructure;
 
 var options = new DbContextOptionsBuilder()
-    .EnableQueryTracking()
-    .UseConnectionFactory(() => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test"))
-    .Build();
+	.EnableQueryTracking()
+	.UseConnectionFactory(() => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test"))
+	.Build();
 var context = new MyDbContext(options);
 
 try
 {
-    var student = context.Students.Where(a=>a.Id == 1).Single();
-    var state1 = context.Entry(student).State;
-    student.Name = "a";
+	//var student = new Student();
+	var student = context.Students.Where(a => a.Id == 1).Single();
+	var state1 = context.Entry(student).State;
+	student.Name = "a";
 	var state2 = context.Entry(student).State;
 	student.Name = "fa";
 	var state3 = context.Entry(student).State;
@@ -22,6 +23,6 @@ try
 catch (Exception ex)
 {
 
-    throw;
+	throw;
 }
 

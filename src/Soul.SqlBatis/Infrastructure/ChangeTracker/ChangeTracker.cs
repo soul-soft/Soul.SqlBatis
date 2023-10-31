@@ -20,7 +20,7 @@ namespace Soul.SqlBatis.Infrastructure
 			return _entryReferences.Values;
 		}
 
-		public IEnumerable<EntityEntry<T>> Entries<T>()
+		public IEnumerable<IEntityEntry<T>> Entries<T>()
 		{
 			return _entryReferences.Values
 				.Where(a => a.GetType() == typeof(T))

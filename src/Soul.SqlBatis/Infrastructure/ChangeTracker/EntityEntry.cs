@@ -26,13 +26,16 @@ namespace Soul.SqlBatis.Infrastructure
 		{
 			get
 			{
-				if (Values.Any(a => a.IsModified))
+				if (_state != EntityState.Added && _state != EntityState.Detached)
 				{
-					_state = EntityState.Modified;
-				}
-				else
-				{
-					_state = EntityState.Unchanged;
+					if (Values.Any(a => a.IsModified))
+					{
+						_state = EntityState.Modified;
+					}
+					else
+					{
+						_state = EntityState.Unchanged;
+					}
 				}
 				return _state;
 			}

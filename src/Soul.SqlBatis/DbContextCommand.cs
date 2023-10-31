@@ -114,9 +114,10 @@ namespace Soul.SqlBatis.Infrastructure
 			var entries = _context.ChangeTracker.Entries();
 			return entries.Select(s =>
 			{
-				var values = s.Values.Select(v => new EntityPropertyEntryCache(v, v.CurrentValue, v.OriginalValue, v.IsModified)).ToList();
-				var state = values.Any(a => a.IsModified) ? EntityState.Modified : EntityState.Unchanged;
-				return new EntityEntryCache(s, s.Entity, values, state);
+				var values = s.Values
+					.Select(v => new EntityPropertyEntryCache(v, v.CurrentValue, v.OriginalValue, v.IsModified))
+					.ToList();
+				return new EntityEntryCache(s, s.Entity, values, s.State);
 			})
 			.Cast<IEntityEntry>()
 			.ToList();

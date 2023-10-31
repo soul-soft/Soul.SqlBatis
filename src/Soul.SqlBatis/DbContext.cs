@@ -82,7 +82,7 @@ namespace Soul.SqlBatis
             return new DbSet<T>(this, fromSql, parameters);
         }
 
-        public EntityEntry<T> Entry<T>(T entity)
+        public IEntityEntry<T> Entry<T>(T entity)
             where T : class
         {
             return _changeTracker.TrackGraph(entity);
