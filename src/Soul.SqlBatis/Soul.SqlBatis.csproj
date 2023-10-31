@@ -11,7 +11,7 @@
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<NoWarn>1701;1702;1591</NoWarn>
-		<Version>1.1.0-beta029</Version>
+		<Version>1.1.0-beta030</Version>
 		<PackageReleaseNotes>Preview Version</PackageReleaseNotes>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<Description>Supports Linq, entity tracking, dynamic SQL.The universe's invincible orm framework does not accept any refutation!!! </Description>
