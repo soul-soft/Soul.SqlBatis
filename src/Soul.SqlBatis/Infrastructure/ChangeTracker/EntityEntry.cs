@@ -5,119 +5,129 @@ using System.Reflection;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-	internal class EntityEntry : IEntityEntry
-	{
-		public object Entity { get; }
+    internal class EntityEntry : IEntityEntry
+    {
+        public object Entity { get; }
 
-		private readonly IEntityType _entityType;
+        private readonly IEntityType _entityType;
 
-		private readonly IReadOnlyCollection<EntityPropertyEntry> _values;
+        private readonly IReadOnlyCollection<EntityPropertyEntry> _values;
 
-		public EntityEntry(IEntityType entityType, object entity, IReadOnlyCollection<EntityPropertyEntry> valus)
-		{
-			Entity = entity;
-			_values = valus;
-			_entityType = entityType;
-		}
+        public EntityEntry(IEntityType entityType, object entity, IReadOnlyCollection<EntityPropertyEntry> valus)
+        {
+            Entity = entity;
+            _values = valus;
+            _entityType = entityType;
+        }
 
-		private EntityState _state;
+        private EntityState _state;
 
-		public virtual EntityState State
-		{
-			get
-			{
-				if (_state != EntityState.Added && _state != EntityState.Detached)
-				{
-					if (Values.Any(a => a.IsModified))
-					{
-						_state = EntityState.Modified;
-					}
-					else
-					{
-						_state = EntityState.Unchanged;
-					}
-				}
-				return _state;
-			}
-			set
-			{
-				if (value == EntityState.Modified)
-				{
-					foreach (var item in _values)
-					{
-						if (item.IsKey)
-						{
-							continue;
-						}
-						if (item.IsConcurrencyToken)
-						{
-							continue;
-						}
-						item.OriginalValue = null;
-					}
-				}
-				_state = value;
-			}
-		}
+        public virtual EntityState State
+        {
+            get
+            {
+                return CalcState(Values);
+            }
+            set
+            {
+                if (value == EntityState.Modified)
+                {
+                    ModifyEntity();
+                }
+                _state = value;
+            }
+        }
 
-		public virtual IReadOnlyCollection<IEntityPropertyEntry> Values => _values;
+        public EntityState CalcState(IReadOnlyCollection<IEntityPropertyEntry> values)
+        {
+            if (_state != EntityState.Added && _state != EntityState.Detached)
+            {
+                if (values.Any(a => a.IsModified))
+                {
+                    return EntityState.Modified;
+                }
+                else
+                {
+                    return EntityState.Unchanged;
+                }
+            }
+            return _state;
+        }
 
-		public Type Type => _entityType.Type;
+        private void ModifyEntity()
+        {
+            foreach (var item in _values)
+            {
+                if (item.IsKey)
+                {
+                    continue;
+                }
+                if (item.IsConcurrencyToken)
+                {
+                    continue;
+                }
+                item.OriginalValue = null;
+            }
+        }
 
-		public string Schema => _entityType.Schema;
+        public virtual IReadOnlyCollection<IEntityPropertyEntry> Values => _values;
 
-		public string TableName => _entityType.TableName;
+        public Type Type => _entityType.Type;
 
-		public IReadOnlyCollection<object> Metadata => _entityType.Metadata;
+        public string Schema => _entityType.Schema;
 
-		public IReadOnlyCollection<IEntityPropertyType> Properties => _entityType.Properties;
+        public string TableName => _entityType.TableName;
 
-		public IEntityPropertyType GetProperty(MemberInfo member)
-		{
-			return _entityType.GetProperty(member);
-		}
+        public IReadOnlyCollection<object> Metadata => _entityType.Metadata;
 
-		public void HasAnnotation(object annotation)
-		{
-			_entityType.HasAnnotation(annotation);
-		}
-	}
+        public IReadOnlyCollection<IEntityPropertyType> Properties => _entityType.Properties;
 
-	internal class EntityEntry<T> : IEntityEntry<T>
-	{
-		private readonly IEntityEntry _entry;
+        public IEntityPropertyType GetProperty(MemberInfo member)
+        {
+            return _entityType.GetProperty(member);
+        }
 
-		T IEntityEntry<T>.Entity => (T)_entry.Entity;
+        public void HasAnnotation(object annotation)
+        {
+            _entityType.HasAnnotation(annotation);
+        }
+    }
 
-		object IEntityEntry.Entity => _entry.Entity;
+    internal class EntityEntry<T> : IEntityEntry<T>
+    {
+        private readonly IEntityEntry _entry;
 
-		public EntityState State { get => _entry.State; set => _entry.State = value; }
+        T IEntityEntry<T>.Entity => (T)_entry.Entity;
 
-		public IReadOnlyCollection<IEntityPropertyEntry> Values => _entry.Values;
+        object IEntityEntry.Entity => _entry.Entity;
 
-		public Type Type => _entry.Type;
+        public EntityState State { get => _entry.State; set => _entry.State = value; }
 
-		public string Schema => _entry.Schema;
+        public IReadOnlyCollection<IEntityPropertyEntry> Values => _entry.Values;
 
-		public string TableName => _entry.TableName;
+        public Type Type => _entry.Type;
 
-		public IReadOnlyCollection<object> Metadata => _entry.Metadata;
+        public string Schema => _entry.Schema;
 
-		public IReadOnlyCollection<IEntityPropertyType> Properties => _entry.Properties;
+        public string TableName => _entry.TableName;
 
-		internal EntityEntry(IEntityEntry entry)
-		{
-			_entry = entry;
-		}
+        public IReadOnlyCollection<object> Metadata => _entry.Metadata;
 
-		public IEntityPropertyType GetProperty(MemberInfo member)
-		{
-			return _entry.GetProperty(member);
-		}
+        public IReadOnlyCollection<IEntityPropertyType> Properties => _entry.Properties;
 
-		public void HasAnnotation(object annotation)
-		{
-			_entry.HasAnnotation(annotation);
-		}
-	}
+        internal EntityEntry(IEntityEntry entry)
+        {
+            _entry = entry;
+        }
+
+        public IEntityPropertyType GetProperty(MemberInfo member)
+        {
+            return _entry.GetProperty(member);
+        }
+
+        public void HasAnnotation(object annotation)
+        {
+            _entry.HasAnnotation(annotation);
+        }
+    }
 }
