@@ -10,7 +10,7 @@ namespace Soul.SqlBatis.Infrastructure
     {
         public Type Type { get; }
 
-        private AttributeCollection _attributes;
+        private readonly AttributeCollection _attributes;
 
         public IReadOnlyCollection<IEntityPropertyType> Properties { get; }
 

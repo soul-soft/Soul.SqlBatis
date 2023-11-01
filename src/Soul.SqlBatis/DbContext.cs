@@ -272,14 +272,14 @@ namespace Soul.SqlBatis
                 autoCloase = true;
             }
             var currentTransaction = new DbContextTransaction(transaction ?? _connection.BeginTransaction());
-            Action transactionEnd = () =>
+            void transactionEnd()
             {
                 _currentTransaction = null;
                 if (autoCloase)
                 {
                     ColseDbConnection();
                 }
-            };
+            }
             currentTransaction.OnTransactionCommitEnd += transactionEnd;
             currentTransaction.OnTransactionRollbackEnd += transactionEnd;
             _currentTransaction = currentTransaction;
@@ -295,14 +295,14 @@ namespace Soul.SqlBatis
                 autoCloase = true;
             }
             var currentTransaction = new DbContextTransaction(transaction ?? _connection.BeginTransaction());
-            Action transactionEndAction = () =>
+            void transactionEndAction()
             {
                 _currentTransaction = null;
                 if (autoCloase)
                 {
                     ColseDbConnection();
                 }
-            };
+            }
             currentTransaction.OnTransactionCommitEnd += transactionEndAction;
             currentTransaction.OnTransactionRollbackEnd += transactionEndAction;
             _currentTransaction = currentTransaction;
