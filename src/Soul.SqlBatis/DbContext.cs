@@ -83,7 +83,6 @@ namespace Soul.SqlBatis
         }
 
         public IEntityEntry<T> Entry<T>(T entity)
-            where T : class
         {
             return _changeTracker.TrackGraph(entity);
         }
@@ -114,8 +113,9 @@ namespace Soul.SqlBatis
         }
 
         public void Attach<T>(T entity)
+            where T : class
         {
-            Attach(entity);
+            Entry(entity).State = EntityState.Unchanged;
         }
 
         public void Add<T>(T entity)

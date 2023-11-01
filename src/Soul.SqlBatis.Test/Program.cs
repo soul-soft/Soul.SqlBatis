@@ -12,13 +12,17 @@ var context = new MyDbContext(options);
 try
 {
 	//var student = new Student();
-	var student = context.Students.Where(a => a.Id == 1).Single();
-	var state1 = context.Entry(student).State;
-	student.Name = "a";
-	var state2 = context.Entry(student).State;
-	student.Name = "fa";
-	var state3 = context.Entry(student).State;
-	context.SaveChanges();
+	var student = new Student()
+	{
+		Id = 20,
+		Name = "Test",
+		Rowversion = "4003cb53-8f07-4dda-ace1-184830e9b20b"
+    };
+    context.Attach(student);
+    var state1 = context.Entry(student).State;
+	student.Rowversion = "1";
+    var state2 = context.Entry(student).State;
+    context.SaveChanges();
 }
 catch (Exception ex)
 {
