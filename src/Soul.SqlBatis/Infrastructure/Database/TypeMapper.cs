@@ -73,7 +73,7 @@ namespace Soul.SqlBatis.Infrastructure
 			return typeof(IDataRecord).GetMethod(nameof(IDataRecord.GetValue), new Type[] { typeof(int) });
 		}
 
-		public static bool HasDefaultConveter(Type type)
+		internal static bool HasDefaultConveter(Type type)
 		{
 			if (IsJsonType(type))
 			{
@@ -81,9 +81,13 @@ namespace Soul.SqlBatis.Infrastructure
 			}
 			return FindDataRecordConverter(type) != null;
 		}
-		public static MethodInfo FindJsonDeserializeConvert(Type type)
+		internal static MethodInfo FindJsonDeserializeConvert(Type type)
 		{
 			return typeof(TypeMapper).GetMethods().Where(a => a.Name == nameof(JsonDeserialize)).First().MakeGenericMethod(type);
+		}
+		internal static MethodInfo FindStringConvert(Type type)
+		{
+			return typeof(Convert).GetMethod(nameof(Convert.ToString), new Type[] { type });
 		}
 		/// <summary>
 		/// json序列化

@@ -11,7 +11,7 @@ using var context = new MyDbContext(options);
 context.OpenDbConnection();
 
 var list1 = context.Students.ToList();
-
+var list2 = context.Students.ToList();
 int w = 2;
 decimal a = (decimal)w;
 Console.WriteLine();

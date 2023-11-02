@@ -240,14 +240,19 @@ namespace Soul.SqlBatis
 		{
 			var test = Expression.Call(parameter, TypeMapper.IsDBNullMethod, Expression.Constant(ordinal));
 			var ifTrue = Expression.Default(memberType);
-			var convertMethod = TypeMapper.FindDataRecordConverter(columnType);
-			var ifElse = (Expression)Expression.Call(parameter, convertMethod, Expression.Constant(ordinal));
+			var defaultConverter = TypeMapper.FindDataRecordConverter(columnType);
+			var ifElse = (Expression)Expression.Call(parameter, defaultConverter, Expression.Constant(ordinal));
 			if (memberType != columnType)
 			{
-				if (TypeMapper.IsJsonType(memberType))
+				if (memberType == typeof(string))
 				{
-					var jsonConvertMethod = TypeMapper.FindJsonDeserializeConvert(memberType);
-					ifElse = Expression.Call(jsonConvertMethod, ifElse);
+					var converter = TypeMapper.FindStringConvert(columnType);
+					ifElse = Expression.Call(converter, ifElse);
+				}
+				else if (TypeMapper.IsJsonType(memberType))
+				{
+					var converter = TypeMapper.FindJsonDeserializeConvert(memberType);
+					ifElse = Expression.Call(converter, ifElse);
 				}
 				else
 				{

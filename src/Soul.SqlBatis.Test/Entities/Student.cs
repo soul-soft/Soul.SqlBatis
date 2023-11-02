@@ -20,7 +20,7 @@ namespace Soul.SqlBatis.Entities
 		/// 
 		/// </summary>
 		[Column("Age")]
-		public int? Age { get; set; }
+		public string Age { get; set; }
 		/// <summary>
 		/// 
 		/// </summary>
