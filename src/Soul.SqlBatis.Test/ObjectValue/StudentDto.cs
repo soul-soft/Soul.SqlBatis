@@ -2,6 +2,6 @@
 {
     public class StudentDto
     {
-        public decimal Money { get; set; }
+        public decimal Money { get;private set; }
     }
 }
