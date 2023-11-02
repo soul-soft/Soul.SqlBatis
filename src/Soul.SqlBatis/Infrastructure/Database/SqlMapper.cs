@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Soul.SqlBatis.Infrastructure;
 
 namespace Soul.SqlBatis
 {
@@ -164,9 +165,9 @@ namespace Soul.SqlBatis
             {
                 parameter.Value = DBNull.Value;
             }
-            else if (TypeSerializer.IsJsonType(value.GetType()))
+            else if (TypeMapper.IsJsonType(value.GetType()))
             {
-                var json = TypeSerializer.JsonSerialize(value);
+                var json = TypeMapper.JsonSerialize(value);
                 parameter.Value = json;
             }
             else

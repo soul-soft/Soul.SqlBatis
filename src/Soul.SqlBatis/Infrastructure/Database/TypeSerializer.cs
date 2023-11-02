@@ -22,44 +22,7 @@ namespace Soul.SqlBatis
 		/// </summary>
 		private readonly static ConcurrentDictionary<Type, Func<object, Dictionary<string, object>>> _deserializers = new ConcurrentDictionary<Type, Func<object, Dictionary<string, object>>>();
 
-		/// <summary>
-		/// json序列化
-		/// </summary>
-		/// <param name="obj"></param>
-		/// <returns></returns>
-		public static string JsonSerialize(object obj)
-		{
-			return JsonSerializer.Serialize(obj, SqlMapper.Settings.JsonSerializerOptions);
-		}
-		/// <summary>
-		/// json序列化
-		/// </summary>
-		/// <param name="obj"></param>
-		/// <returns></returns>
-		public static T JsonDeserialize<T>(string json)
-		{
-			if (json == null)
-			{
-				if (SqlMapper.Settings.InitializeJsonArray && typeof(IJsonArray).IsAssignableFrom(typeof(T)))
-				{
-					json = "[]";
-				}
-				else
-				{
-					return default;
-				}
-			}
-			return JsonSerializer.Deserialize<T>(json, SqlMapper.Settings.JsonSerializerOptions);
-		}
-		/// <summary>
-		/// 是否是json类型
-		/// </summary>
-		/// <param name="type"></param>
-		/// <returns></returns>
-		public static bool IsJsonType(Type type)
-		{
-			return type.CustomAttributes.Any(a => a.AttributeType == typeof(JsonValueAttribute));
-		}
+
 		/// <summary>
 		/// 创建序列器
 		/// </summary>
@@ -84,8 +47,8 @@ namespace Soul.SqlBatis
 		{
 			return (record) =>
 			{
-				var expando = new System.Dynamic.ExpandoObject();
-				var entity = (IDictionary<string, dynamic>)expando;
+				var obj = new System.Dynamic.ExpandoObject();
+				var entity = (IDictionary<string, dynamic>)obj;
 				for (int i = 0; i < record.FieldCount; i++)
 				{
 					var name = record.GetName(i);
@@ -170,7 +133,7 @@ namespace Soul.SqlBatis
 		{
 			var returnType = typeof(T);
 			var columns = GetDataReaderMetadata(record).ToList();
-			if (columns.Count() == 1 && ValueConverters.HasValueConverterMethod(returnType))
+			if (columns.Count() == 1 && TypeMapper.HasDefaultConveter(returnType))
 			{
 				var parameter = Expression.Parameter(typeof(IDataRecord), "dr");
 				var body = BuildExpression(parameter, returnType, columns[0].Type, 0);
@@ -215,7 +178,7 @@ namespace Soul.SqlBatis
 		/// <returns></returns>
 		private static string CreateEmitSerializerCacheKey(Type type, List<DataReaderColumn> columns)
 		{
-			if (columns.Count == 1 && ValueConverters.HasValueConverterMethod(type))
+			if (columns.Count == 1 && TypeMapper.HasDefaultConveter(type))
 			{
 				return string.Format("{0}|{1}", type.GUID.ToString("N"), columns[0].Type.GUID.ToString("N"));
 			}
@@ -237,25 +200,6 @@ namespace Soul.SqlBatis
 			return type.GetProperties()
 				.Where(a => a.Name.ToUpper() == propertyName)
 				.FirstOrDefault();
-		}
-		/// <summary>
-		/// 获取参数
-		/// </summary>
-		/// <param name="constructor"></param>
-		/// <param name="name"></param>
-		/// <returns></returns>
-		/// <exception cref="InvalidCastException"></exception>
-		private static ParameterInfo FindConstructorInfoParameter(ConstructorInfo constructor, string name)
-		{
-			var parameter = constructor.GetParameters()
-				.Where(a => a.Name.ToUpper().Equals(name.ToUpper()))
-				.FirstOrDefault();
-			if (parameter == null)
-			{
-				var message = string.Format("No parameter found for {0} constructor of type", constructor.DeclaringType);
-				throw new InvalidCastException(message);
-			}
-			return parameter;
 		}
 		/// <summary>
 		/// 获取记录中的字段信息
@@ -296,13 +240,13 @@ namespace Soul.SqlBatis
 		{
 			var test = Expression.Call(parameter, TypeMapper.IsDBNullMethod, Expression.Constant(ordinal));
 			var ifTrue = Expression.Default(memberType);
-			var convertMethod = TypeMapper.FindMethod(columnType);
+			var convertMethod = TypeMapper.FindDataRecordConverter(columnType);
 			var ifElse = (Expression)Expression.Call(parameter, convertMethod, Expression.Constant(ordinal));
 			if (memberType != columnType)
 			{
-				if (IsJsonType(memberType))
+				if (TypeMapper.IsJsonType(memberType))
 				{
-					var jsonConvertMethod = typeof(TypeSerializer).GetMethod(nameof(TypeSerializer.JsonDeserialize), new Type[] { columnType }).MakeGenericMethod(memberType);
+					var jsonConvertMethod = TypeMapper.FindJsonDeserializeConvert(memberType);
 					ifElse = Expression.Call(jsonConvertMethod, ifElse);
 				}
 				else
