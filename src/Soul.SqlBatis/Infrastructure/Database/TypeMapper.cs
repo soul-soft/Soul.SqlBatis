@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Reflection;
@@ -8,9 +10,10 @@ namespace Soul.SqlBatis.Infrastructure
 {
 	public static class TypeMapper
 	{
+		#region Default Converter
 		internal static MethodInfo IsDBNullMethod = typeof(IDataRecord).GetMethod(nameof(IDataRecord.IsDBNull), new Type[] { typeof(int) });
 
-		internal static MethodInfo FindDataRecordConverter(Type type)
+		internal static MethodInfo FindDefaultConverter(Type type)
 		{
 			if (type == typeof(short))
 			{
@@ -79,30 +82,24 @@ namespace Soul.SqlBatis.Infrastructure
 			{
 				return true;
 			}
-			return FindDataRecordConverter(type) != null;
+			return FindDefaultConverter(type) != null;
 		}
-		internal static MethodInfo FindJsonDeserializeConvert(Type type)
+
+		internal static MethodInfo FindJsonDeserializeConverter(Type type)
 		{
 			return typeof(TypeMapper).GetMethods().Where(a => a.Name == nameof(JsonDeserialize)).First().MakeGenericMethod(type);
 		}
-		internal static MethodInfo FindStringConvert(Type type)
+
+		internal static MethodInfo FindStringConverter(Type type)
 		{
 			return typeof(Convert).GetMethod(nameof(Convert.ToString), new Type[] { type });
 		}
-		/// <summary>
-		/// json序列化
-		/// </summary>
-		/// <param name="obj"></param>
-		/// <returns></returns>
+
 		internal static string JsonSerialize(object obj)
 		{
 			return JsonSerializer.Serialize(obj, SqlMapper.Settings.JsonSerializerOptions);
 		}
-		/// <summary>
-		/// json序列化
-		/// </summary>
-		/// <param name="obj"></param>
-		/// <returns></returns>
+
 		public static T JsonDeserialize<T>(string json)
 		{
 			if (json == null)
@@ -118,14 +115,37 @@ namespace Soul.SqlBatis.Infrastructure
 			}
 			return JsonSerializer.Deserialize<T>(json, SqlMapper.Settings.JsonSerializerOptions);
 		}
-		/// <summary>
-		/// 是否是json类型
-		/// </summary>
-		/// <param name="type"></param>
-		/// <returns></returns>
+
 		internal static bool IsJsonType(Type type)
 		{
 			return type.CustomAttributes.Any(a => a.AttributeType == typeof(JsonValueAttribute));
 		}
+		#endregion
+
+		#region Custom Converter
+		private static ConcurrentDictionary<string, TypeConverter> _customConverters = new ConcurrentDictionary<string, TypeConverter>();
+
+		public static void AddConverter<TColumn, TMember>(Func<TColumn, TMember> converter)
+		{
+			var key = $"{typeof(TColumn).GUID:N}|{typeof(TMember).GUID:N}";
+			_customConverters.TryAdd(key, new TypeConverter
+			{
+				MemberType = typeof(TMember),
+				ColumnType = typeof(TColumn),
+				Method = converter.Method,
+				Target = converter.Target
+			});
+		}
+
+		internal static TypeConverter FindCustomConvert(Type columnType, Type memberType)
+		{
+			var key = $"{columnType.GUID:N}|{memberType.GUID:N}";
+			if (_customConverters.TryGetValue(key, out TypeConverter convert))
+			{
+				return convert;
+			}
+			return null;
+		}
+		#endregion
 	}
 }

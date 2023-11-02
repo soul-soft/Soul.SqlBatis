@@ -6,7 +6,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Text.Json;
 using Soul.SqlBatis.Infrastructure;
 
 namespace Soul.SqlBatis
@@ -22,14 +21,6 @@ namespace Soul.SqlBatis
 		/// </summary>
 		private readonly static ConcurrentDictionary<Type, Func<object, Dictionary<string, object>>> _deserializers = new ConcurrentDictionary<Type, Func<object, Dictionary<string, object>>>();
 
-
-		/// <summary>
-		/// 创建序列器
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="record"></param>
-		/// <param name="options"></param>
-		/// <returns></returns>
 		public static Func<IDataRecord, T> CreateSerializer<T>(IDataRecord record)
 		{
 			var columns = GetDataReaderMetadata(record).ToList();
@@ -39,10 +30,7 @@ namespace Soul.SqlBatis
 				return CreateEmitSerializer<T>(record);
 			}) as Func<IDataRecord, T>;
 		}
-		/// <summary>
-		/// 创建动态类型序列器
-		/// </summary>
-		/// <returns></returns>
+		
 		public static Func<IDataRecord, dynamic> CreateSerializer()
 		{
 			return (record) =>
@@ -62,11 +50,7 @@ namespace Soul.SqlBatis
 				return entity;
 			};
 		}
-		/// <summary>
-		/// 创建解构器 
-		/// </summary>
-		/// <param name="type"></param>
-		/// <returns></returns>
+		
 		public static Func<object, Dictionary<string, object>> CreateDeserializer(Type type)
 		{
 			if (type == typeof(DynamicParameters))
@@ -88,10 +72,7 @@ namespace Soul.SqlBatis
 				return CreateEmitDeserializer(type);
 			});
 		}
-		/// <summary>
-		/// 创建对象解构器
-		/// </summary>
-		/// <returns></returns>
+	
 		private static Func<object, Dictionary<string, object>> CreateEmitDeserializer(Type type)
 		{
 			var resultType = typeof(Dictionary<string, object>);
@@ -122,13 +103,7 @@ namespace Soul.SqlBatis
 			generator.Emit(OpCodes.Ret);
 			return dynamicMethod.CreateDelegate(typeof(Func<object, Dictionary<string, object>>)) as Func<object, Dictionary<string, object>>;
 		}
-		/// <summary>
-		/// 创建序列器
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="record"></param>
-		/// <param name="options"></param>
-		/// <returns></returns>
+		
 		private static Func<IDataRecord, T> CreateEmitSerializer<T>(IDataRecord record)
 		{
 			var returnType = typeof(T);
@@ -136,7 +111,7 @@ namespace Soul.SqlBatis
 			if (columns.Count() == 1 && TypeMapper.HasDefaultConveter(returnType))
 			{
 				var parameter = Expression.Parameter(typeof(IDataRecord), "dr");
-				var body = BuildExpression(parameter, returnType, columns[0].Type, 0);
+				var body = BuildConvertExpression(parameter, columns[0].Type, returnType, 0);
 				var lambda = Expression.Lambda(body, parameter);
 				return (Func<IDataRecord, T>)lambda.Compile();
 			}
@@ -148,7 +123,7 @@ namespace Soul.SqlBatis
 				foreach (var item in columns)
 				{
 					var property = FindEntityTypePropery(returnType, item.Name);
-					var bind = Expression.Bind(property, BuildExpression(parameter, property.PropertyType, item.Type, item.Ordinal));
+					var bind = Expression.Bind(property, BuildConvertExpression(parameter, item.Type, property.PropertyType, item.Ordinal));
 					memberBinds.Add(bind);
 				}
 				var body = Expression.MemberInit(newExpression, memberBinds);
@@ -165,17 +140,14 @@ namespace Soul.SqlBatis
 				foreach (var item in constructor.GetParameters())
 				{
 					var column = columns.Where(a => a.Name == item.Name).FirstOrDefault();
-					arguments.Add(BuildExpression(parameter, item.ParameterType, column.Type, column.Ordinal));
+					arguments.Add(BuildConvertExpression(parameter, column.Type, item.ParameterType, column.Ordinal));
 				}
 				var body = Expression.New(constructor, arguments);
 				var lambda = Expression.Lambda(body, parameter);
 				return (Func<IDataRecord, T>)lambda.Compile();
 			}
 		}
-		/// <summary>
-		/// 创建序列化缓存key
-		/// </summary>
-		/// <returns></returns>
+		
 		private static string CreateEmitSerializerCacheKey(Type type, List<DataReaderColumn> columns)
 		{
 			if (columns.Count == 1 && TypeMapper.HasDefaultConveter(type))
@@ -184,12 +156,7 @@ namespace Soul.SqlBatis
 			}
 			return string.Format("{0}|{1}", type.GUID.ToString("N"), columns.Select(s => s.Name), columns.Select(s => s.Type.GUID.ToString("N")));
 		}
-		/// <summary>
-		/// 获取字段
-		/// </summary>
-		/// <param name="type"></param>
-		/// <param name="name"></param>
-		/// <returns></returns>
+		
 		private static PropertyInfo FindEntityTypePropery(Type type, string name)
 		{
 			var propertyName = name.ToUpper();
@@ -201,11 +168,7 @@ namespace Soul.SqlBatis
 				.Where(a => a.Name.ToUpper() == propertyName)
 				.FirstOrDefault();
 		}
-		/// <summary>
-		/// 获取记录中的字段信息
-		/// </summary>
-		/// <param name="record"></param>
-		/// <returns></returns>
+		
 		private static IEnumerable<DataReaderColumn> GetDataReaderMetadata(IDataRecord record)
 		{
 			for (int i = 0; i < record.FieldCount; i++)
@@ -216,42 +179,47 @@ namespace Soul.SqlBatis
 				yield return new DataReaderColumn(name, type, ordinal);
 			}
 		}
-		/// <summary>
-		/// 获取无参构造器
-		/// </summary>
-		/// <param name="entityType"></param>
-		/// <returns></returns>
+		
 		private static ConstructorInfo GetNonParameterConstructor(Type entityType)
 		{
 			var flags = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
 			return entityType.GetConstructor(flags, null, Type.EmptyTypes, null);
 		}
-		/// <summary>
-		/// 是否存在无参构造
-		/// </summary>
-		/// <param name="entityType"></param>
-		/// <returns></returns>
+		
 		private static bool HasNonParameterConstructor(Type entityType)
 		{
 			return GetNonParameterConstructor(entityType) != null;
 		}
 
-		private static Expression BuildExpression(Expression parameter, Type memberType, Type columnType, int ordinal)
+		private static Expression BuildConvertExpression(Expression parameter, Type columnType, Type memberType, int ordinal)
 		{
 			var test = Expression.Call(parameter, TypeMapper.IsDBNullMethod, Expression.Constant(ordinal));
 			var ifTrue = Expression.Default(memberType);
-			var defaultConverter = TypeMapper.FindDataRecordConverter(columnType);
+			var defaultConverter = TypeMapper.FindDefaultConverter(columnType);
 			var ifElse = (Expression)Expression.Call(parameter, defaultConverter, Expression.Constant(ordinal));
 			if (memberType != columnType)
 			{
-				if (memberType == typeof(string))
+				var customConverter = TypeMapper.FindCustomConvert(columnType, memberType);
+				if (customConverter != null)
 				{
-					var converter = TypeMapper.FindStringConvert(columnType);
+					if (customConverter.Target != null)
+					{
+						var instance = Expression.Constant(customConverter.Target);
+						ifElse = Expression.Call(instance, customConverter.Method, ifElse);
+					}
+					else
+					{
+						ifElse = Expression.Call(customConverter.Method, ifElse);
+					}
+				}
+				else if (memberType == typeof(string))
+				{
+					var converter = TypeMapper.FindStringConverter(columnType);
 					ifElse = Expression.Call(converter, ifElse);
 				}
 				else if (TypeMapper.IsJsonType(memberType))
 				{
-					var converter = TypeMapper.FindJsonDeserializeConvert(memberType);
+					var converter = TypeMapper.FindJsonDeserializeConverter(memberType);
 					ifElse = Expression.Call(converter, ifElse);
 				}
 				else
@@ -261,9 +229,7 @@ namespace Soul.SqlBatis
 			}
 			return Expression.Condition(test, ifTrue, ifElse);
 		}
-		/// <summary>
-		/// IDataRecord信息
-		/// </summary>
+		
 		class DataReaderColumn
 		{
 			public string Name { get; }

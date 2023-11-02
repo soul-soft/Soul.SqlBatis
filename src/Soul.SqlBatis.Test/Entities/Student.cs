@@ -25,7 +25,7 @@ namespace Soul.SqlBatis.Entities
 		/// 
 		/// </summary>
 		[Column("CreationTime")]
-		public DateTime? Creationtime { get; set; }
+		public string Creationtime { get; set; }
 		/// <summary>
 		/// 
 		/// </summary>
