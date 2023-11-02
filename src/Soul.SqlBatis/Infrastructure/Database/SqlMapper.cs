@@ -164,7 +164,7 @@ namespace Soul.SqlBatis
             {
                 parameter.Value = DBNull.Value;
             }
-            else if (TypeSerializer.IsJsonValueType(value.GetType()))
+            else if (TypeSerializer.IsJsonType(value.GetType()))
             {
                 var json = TypeSerializer.JsonSerialize(value);
                 parameter.Value = json;

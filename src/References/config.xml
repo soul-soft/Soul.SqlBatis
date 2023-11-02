@@ -5,6 +5,7 @@
 		<entity name="Student">
 			<properties>
 				<property name="Address" type="Address" />
+				<property name="State" type="StudentState?" />
 			</properties>
 		</entity>
 	</entities>

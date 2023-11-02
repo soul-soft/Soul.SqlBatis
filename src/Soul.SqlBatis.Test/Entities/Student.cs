@@ -19,6 +19,11 @@ namespace Soul.SqlBatis.Entities
 		/// <summary>
 		/// 
 		/// </summary>
+		[Column("Age")]
+		public int? Age { get; set; }
+		/// <summary>
+		/// 
+		/// </summary>
 		[Column("CreationTime")]
 		public DateTime? Creationtime { get; set; }
 		/// <summary>
@@ -45,6 +50,6 @@ namespace Soul.SqlBatis.Entities
 		/// 
 		/// </summary>
 		[Column("State")]
-		public int? State { get; set; }
+		public StudentState? State { get; set; }
 	}
 }

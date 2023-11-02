@@ -1,5 +1,4 @@
-﻿using MySql.Data.MySqlClient;
-using Soul.SqlBatis.Entities;
+﻿using Soul.SqlBatis.Entities;
 
 namespace Soul.SqlBatis.Infrastructure
 {
@@ -28,7 +27,7 @@ namespace Soul.SqlBatis.Infrastructure
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseConnectionFactory(() => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test"));
+            optionsBuilder.UseConnectionFactory(() => new MySqlConnector.MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test"));
         }
     }
 }

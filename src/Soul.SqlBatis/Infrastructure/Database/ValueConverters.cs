@@ -40,7 +40,7 @@ namespace Soul.SqlBatis
 					.Where(a => (ReflectionUtility.IsNullable(type) == a.IsNullable) || (ReflectionUtility.IsNullable(type) == a.IsNullable))
 					.First();
 			}
-			else if (TypeSerializer.IsJsonValueType(type))
+			else if (TypeSerializer.IsJsonType(type))
 			{
 				converter = _converters
 					.Where(a => a.Token == ValueConverterToken.Json)
@@ -76,7 +76,7 @@ namespace Soul.SqlBatis
 			{
 				return true;
 			}
-			if (TypeSerializer.IsJsonValueType(type))
+			if (TypeSerializer.IsJsonType(type))
 			{
 				return true;
 			}
