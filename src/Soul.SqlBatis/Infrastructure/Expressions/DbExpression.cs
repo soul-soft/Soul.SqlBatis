@@ -35,7 +35,7 @@ namespace Soul.SqlBatis.Infrastructure
         }
     }
 
-    public class DbSqlExpression : DbExpression
+    internal class DbSqlExpression : DbExpression
     {
         public DbSqlExpression(RawSql token, DbExpressionType expressionType)
         {
@@ -44,7 +44,7 @@ namespace Soul.SqlBatis.Infrastructure
         }
     }
 
-    public class DbSetExpression : DbExpression
+    internal class DbSetExpression : DbExpression
     {
         public Expression Value { get; }
 

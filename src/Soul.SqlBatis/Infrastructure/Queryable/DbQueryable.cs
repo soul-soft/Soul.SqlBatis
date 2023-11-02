@@ -28,9 +28,9 @@ namespace Soul.SqlBatis
 
         private readonly List<DbExpression> _expressions = new List<DbExpression>();
 
-        protected IReadOnlyCollection<DbExpression> DbExpressions => _expressions;
+        public IReadOnlyCollection<DbExpression> DbExpressions => _expressions;
 
-        private DynamicParameters _parameters;
+        private readonly DynamicParameters _parameters;
 
         protected DynamicParameters Parameters { get => _parameters; }
 

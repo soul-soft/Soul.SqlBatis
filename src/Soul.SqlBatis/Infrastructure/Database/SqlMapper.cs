@@ -112,7 +112,7 @@ namespace Soul.SqlBatis
             }
         }
 
-        public static IDbCommand CreateDbCommand(this IDbConnection connection, string sql, object param, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null)
+        private static IDbCommand CreateDbCommand(this IDbConnection connection, string sql, object param, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             var command = connection.CreateCommand();
             command.Transaction = transaction;
