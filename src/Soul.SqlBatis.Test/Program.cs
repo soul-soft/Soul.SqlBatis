@@ -1,32 +1,15 @@
 ﻿using MySql.Data.MySqlClient;
 using Soul.SqlBatis;
-using Soul.SqlBatis.Entities;
 using Soul.SqlBatis.Infrastructure;
 
 var options = new DbContextOptionsBuilder()
-	.EnableQueryTracking()
-	.UseConnectionFactory(() => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test"))
-	.Build();
-var context = new MyDbContext(options);
+    //.EnableQueryTracking()
+    .UseConnectionFactory(() => new MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test"))
+    .Build();
 
-try
-{
-	//var student = new Student();
-	var student = new Student()
-	{
-		Id = 20,
-		Name = "Test",
-		Rowversion = "4003cb53-8f07-4dda-ace1-184830e9b20b"
-    };
-    context.Attach(student);
-    var state1 = context.Entry(student).State;
-	student.Rowversion = "1";
-    var state2 = context.Entry(student).State;
-    context.SaveChanges();
-}
-catch (Exception ex)
-{
+using var context = new MyDbContext(options);
 
-	throw;
-}
+var list1 = context.Query<decimal>("select money from student");
+var list2 = context.Query<decimal>("select money from student");
+Console.WriteLine(  );
 

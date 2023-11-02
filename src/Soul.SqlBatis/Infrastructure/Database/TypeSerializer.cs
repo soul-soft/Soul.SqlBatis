@@ -276,7 +276,7 @@ namespace Soul.SqlBatis
 				return string.Format("{0}|{1}", type.Name, type.GUID.ToString("N"));
 			}
 			var columns = string.Join(",", names);
-			return string.Format("{0}|{1}|{2}", type.Name, columns, type.GUID.ToString("N"));
+			return string.Format("{0}|{1}|{2}", type.Name, type.GUID.ToString("N"), columns);
 		}
 		/// <summary>
 		/// 获取字段
