@@ -173,16 +173,7 @@ namespace Soul.SqlBatis
             if (columns.Count() == 1 && ValueConverters.HasValueConverterMethod(returnType))
             {
                 var paramether = Expression.Parameter(typeof(IDataRecord), "dr");
-                var ordinal = Expression.Constant(0);
-                var test = Expression.Call(paramether, TypeMapper.IsDBNullMethod, ordinal);
-                var ifTrue = Expression.Default(returnType);
-                var convertMethod = TypeMapper.FindMethod(columns[0].DbType);
-                var ifElse = (Expression)Expression.Call(paramether, convertMethod, ordinal);
-                if (ReflectionUtility.GetUnderlyingType(returnType) != columns[0].DbType)
-                {
-                    ifElse = Expression.Convert(ifElse, returnType);
-                }
-                var body = Expression.Condition(test, ifTrue, ifElse);
+                var body = BuildExpression(paramether, returnType, columns[0].DbType, 0);
                 var lambda = Expression.Lambda(body, paramether);
                 return (Func<IDataRecord, T>)lambda.Compile();
             }
@@ -194,16 +185,7 @@ namespace Soul.SqlBatis
                 foreach (var item in columns)
                 {
                     var property = FindEntityTypePropery(returnType, item.Name);
-                    var ordinal = Expression.Constant(item.Ordinal);
-                    var test = Expression.Call(paramether, TypeMapper.IsDBNullMethod, ordinal);
-                    var ifTrue = Expression.Default(property.PropertyType);
-                    var convertMethod = TypeMapper.FindMethod(item.DbType);
-                    var ifElse = (Expression)Expression.Call(paramether, convertMethod, ordinal);
-                    if (ReflectionUtility.GetUnderlyingType(property.PropertyType) != item.DbType)
-                    {
-                        ifElse = Expression.Convert(ifElse, property.PropertyType);
-                    }
-                    var bind = Expression.Bind(property, Expression.Condition(test, ifTrue, ifElse));
+                    var bind = Expression.Bind(property, BuildExpression(paramether, property.PropertyType, item.DbType, item.Ordinal));
                     memberBinds.Add(bind);
                 }
                 var body = Expression.MemberInit(newExpression, memberBinds);
@@ -340,6 +322,19 @@ namespace Soul.SqlBatis
         private static bool HasNonParameterConstructor(Type entityType)
         {
             return GetNonParameterConstructor(entityType) != null;
+        }
+
+        private static Expression BuildExpression(Expression parameter, Type memberType, Type columnType, int ordinal)
+        {
+            var test = Expression.Call(parameter, TypeMapper.IsDBNullMethod, Expression.Constant(ordinal));
+            var ifTrue = Expression.Default(memberType);
+            var convertMethod = TypeMapper.FindMethod(columnType);
+            var ifElse = (Expression)Expression.Call(parameter, convertMethod, Expression.Constant(ordinal));
+            if (ReflectionUtility.GetUnderlyingType(memberType) != columnType)
+            {
+                ifElse = Expression.Convert(ifElse, memberType);
+            }
+            return Expression.Condition(test, ifTrue, ifElse);
         }
         /// <summary>
         /// IDataRecord信息
