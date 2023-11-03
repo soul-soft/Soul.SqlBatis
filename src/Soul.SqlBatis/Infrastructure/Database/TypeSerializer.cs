@@ -108,16 +108,15 @@ namespace Soul.SqlBatis
 		{
 			var returnType = typeof(T);
 			var columns = GetDataReaderMetadata(record).ToList();
-			if (columns.Count() == 1 && TypeMapper.HasDefaultConveter(returnType))
+            var parameter = Expression.Parameter(typeof(IDataRecord), "dr");
+            if (columns.Count() == 1 && TypeMapper.HasDefaultConveter(returnType))
 			{
-				var parameter = Expression.Parameter(typeof(IDataRecord), "dr");
 				var body = BuildConvertExpression(parameter, columns[0].Type, returnType, 0);
 				var lambda = Expression.Lambda(body, parameter);
 				return (Func<IDataRecord, T>)lambda.Compile();
 			}
 			else if (TryGetNonParameterConstructor(returnType,out ConstructorInfo nonParameterConstructor))
 			{
-				var parameter = Expression.Parameter(typeof(IDataRecord), "dr");
 				var newExpression = Expression.New(nonParameterConstructor);
 				var memberBinds = new List<MemberBinding>();
 				foreach (var item in columns)
@@ -132,7 +131,6 @@ namespace Soul.SqlBatis
 			}
 			else
 			{
-				var parameter = Expression.Parameter(typeof(IDataRecord), "dr");
 				var constructor = returnType.GetConstructors()
 					.OrderByDescending(a => a.GetParameters().Length)
 					.First();
