@@ -34,6 +34,10 @@ namespace Soul.SqlBatis.Infrastructure
             {
                 return typeof(IDataRecord).GetMethod(nameof(IDataRecord.GetDouble), new Type[] { typeof(int) });
             }
+            if (type == typeof(decimal))
+            {
+                return typeof(IDataRecord).GetMethod(nameof(IDataRecord.GetDecimal), new Type[] { typeof(int) });
+            }
             if (type == typeof(string))
             {
                 return typeof(IDataRecord).GetMethod(nameof(IDataRecord.GetString), new Type[] { typeof(int) });

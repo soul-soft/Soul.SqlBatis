@@ -109,9 +109,9 @@ namespace Soul.SqlBatis
             var returnType = typeof(T);
             var columns = GetDataReaderMetadata(record).ToList();
             var parameter = Expression.Parameter(typeof(IDataRecord), "dr");
-            if (columns.Count() == 1 && TypeMapper.HasDefaultConveter(returnType))
+            if (columns.Count == 1 && TypeMapper.HasDefaultConveter(returnType))
             {
-                var body = BuildConvertExpression(parameter, columns[0].Type, returnType, 0);
+                var body = BuildGetValueExpression(parameter, returnType, columns[0]);
                 var lambda = Expression.Lambda(body, parameter);
                 return (Func<IDataRecord, T>)lambda.Compile();
             }
@@ -121,8 +121,12 @@ namespace Soul.SqlBatis
                 var memberBinds = new List<MemberBinding>();
                 foreach (var item in columns)
                 {
-                    var property = MatchEntityTypeProperyInfo(returnType, item.Name);
-                    var bind = Expression.Bind(property, BuildConvertExpression(parameter, item.Type, property.PropertyType, item.Ordinal));
+                    var property = MatchEntityProperyInfo(returnType, item.Name);
+                    if (property == null)
+                    {
+                        continue;
+                    }
+                    var bind = Expression.Bind(property, BuildGetValueExpression(parameter, property.PropertyType, item));
                     memberBinds.Add(bind);
                 }
                 var body = Expression.MemberInit(newExpression, memberBinds);
@@ -131,14 +135,12 @@ namespace Soul.SqlBatis
             }
             else
             {
-                var constructor = returnType.GetConstructors()
-                    .OrderByDescending(a => a.GetParameters().Length)
-                    .First();
+                var constructor = GetMaxParameterCountConstructor(returnType);
                 var arguments = new List<Expression>();
                 foreach (var item in constructor.GetParameters())
                 {
                     var column = columns.Where(a => a.Name == item.Name).FirstOrDefault();
-                    arguments.Add(BuildConvertExpression(parameter, column.Type, item.ParameterType, column.Ordinal));
+                    arguments.Add(BuildGetValueExpression(parameter, item.ParameterType, column));
                 }
                 var body = Expression.New(constructor, arguments);
                 var lambda = Expression.Lambda(body, parameter);
@@ -159,12 +161,12 @@ namespace Soul.SqlBatis
             {
                 yield return type;
             }
-            if (TryGetNonParameterConstructor(type, _))
+            if (TryGetNonParameterConstructor(type, out _))
             {
                 foreach (var item in columns)
                 {
-                    var property = MatchEntityTypeProperyInfo(type, item.Name);
-                    if (property == null)
+                    var property = MatchEntityProperyInfo(type, item.Name);
+                    if (property != null)
                     {
                         yield return property.PropertyType;
                     }
@@ -172,9 +174,7 @@ namespace Soul.SqlBatis
             }
             else
             {
-                var constructor = type.GetConstructors()
-                    .OrderByDescending(a => a.GetParameters().Length)
-                    .First();
+                var constructor = GetMaxParameterCountConstructor(type);
                 foreach (var item in constructor.GetParameters())
                 {
                     yield return item.ParameterType;
@@ -182,7 +182,7 @@ namespace Soul.SqlBatis
             }
         }
 
-        private static PropertyInfo MatchEntityTypeProperyInfo(Type type, string name)
+        private static PropertyInfo MatchEntityProperyInfo(Type type, string name)
         {
             var propertyName = name.ToUpper();
             if (!SqlMapper.Settings.MatchNamesWithUnderscores)
@@ -212,42 +212,56 @@ namespace Soul.SqlBatis
             return constructor != null;
         }
 
-        private static Expression BuildConvertExpression(Expression parameter, Type columnType, Type memberType, int ordinal)
+        private static ConstructorInfo GetMaxParameterCountConstructor(Type entityType)
         {
-            var test = Expression.Call(parameter, TypeMapper.IsDBNullMethod, Expression.Constant(ordinal));
-            var ifTrue = Expression.Default(memberType);
-            var dataReaderConverter = TypeMapper.FindDataReaderConverter(columnType);
-            var ifElse = (Expression)Expression.Call(parameter, dataReaderConverter, Expression.Constant(ordinal));
-            if (memberType != columnType)
+            return entityType.GetConstructors()
+                    .OrderByDescending(a => a.GetParameters().Length)
+                    .First();
+        }
+
+        private static Expression BuildGetValueExpression(Expression parameter, Type memberType, DataReaderColumn column)
+        {
+            try
             {
-                if (TypeMapper.TryGetCustomConverter(columnType, memberType, out TypeConverter customConverter))
+                var test = Expression.Call(parameter, TypeMapper.IsDBNullMethod, Expression.Constant(column.Ordinal));
+                var ifTrue = Expression.Default(memberType);
+                var dataReaderConverter = TypeMapper.FindDataReaderConverter(column.Type);
+                var ifElse = (Expression)Expression.Call(parameter, dataReaderConverter, Expression.Constant(column.Ordinal));
+                if (memberType != column.Type)
                 {
-                    if (customConverter.Target != null)
+                    if (TypeMapper.TryGetCustomConverter(column.Type, memberType, out TypeConverter customConverter))
                     {
-                        var instance = Expression.Constant(customConverter.Target);
-                        ifElse = Expression.Call(instance, customConverter.Method, ifElse);
+                        if (customConverter.Target != null)
+                        {
+                            var instance = Expression.Constant(customConverter.Target);
+                            ifElse = Expression.Call(instance, customConverter.Method, ifElse);
+                        }
+                        else
+                        {
+                            ifElse = Expression.Call(customConverter.Method, ifElse);
+                        }
+                    }
+                    else if (memberType == typeof(string))
+                    {
+                        var converter = TypeMapper.FindStringConverter(column.Type);
+                        ifElse = Expression.Call(converter, ifElse);
+                    }
+                    else if (TypeMapper.IsJsonType(memberType))
+                    {
+                        var converter = TypeMapper.FindJsonDeserializeConverter(memberType);
+                        ifElse = Expression.Call(converter, ifElse);
                     }
                     else
                     {
-                        ifElse = Expression.Call(customConverter.Method, ifElse);
+                        ifElse = Expression.Convert(ifElse, memberType);
                     }
                 }
-                else if (memberType == typeof(string))
-                {
-                    var converter = TypeMapper.FindStringConverter(columnType);
-                    ifElse = Expression.Call(converter, ifElse);
-                }
-                else if (TypeMapper.IsJsonType(memberType))
-                {
-                    var converter = TypeMapper.FindJsonDeserializeConverter(memberType);
-                    ifElse = Expression.Call(converter, ifElse);
-                }
-                else
-                {
-                    ifElse = Expression.Convert(ifElse, memberType);
-                }
+                return Expression.Condition(test, ifTrue, ifElse);
             }
-            return Expression.Condition(test, ifTrue, ifElse);
+            catch (Exception)
+            {
+                throw new InvalidCastException($"Unable to cast object of type '{column.Type}' to type '{memberType}'. On the '{column}' column.");
+            }
         }
 
     }
