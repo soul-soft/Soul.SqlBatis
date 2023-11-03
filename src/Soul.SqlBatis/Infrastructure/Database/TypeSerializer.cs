@@ -27,7 +27,7 @@ namespace Soul.SqlBatis
 			var key = CreateEmitSerializerCacheKey(typeof(T), columns);
 			return _serializers.GetOrAdd(key, _ =>
 			{
-				return CreateEmitSerializer<T>(record);
+				return CreateTypeSerializer<T>(record);
 			}) as Func<IDataRecord, T>;
 		}
 		
@@ -104,7 +104,7 @@ namespace Soul.SqlBatis
 			return dynamicMethod.CreateDelegate(typeof(Func<object, Dictionary<string, object>>)) as Func<object, Dictionary<string, object>>;
 		}
 		
-		private static Func<IDataRecord, T> CreateEmitSerializer<T>(IDataRecord record)
+		private static Func<IDataRecord, T> CreateTypeSerializer<T>(IDataRecord record)
 		{
 			var returnType = typeof(T);
 			var columns = GetDataReaderMetadata(record).ToList();
@@ -115,14 +115,14 @@ namespace Soul.SqlBatis
 				var lambda = Expression.Lambda(body, parameter);
 				return (Func<IDataRecord, T>)lambda.Compile();
 			}
-			else if (HasNonParameterConstructor(returnType))
+			else if (TryGetNonParameterConstructor(returnType,out ConstructorInfo nonParameterConstructor))
 			{
 				var parameter = Expression.Parameter(typeof(IDataRecord), "dr");
-				var newExpression = Expression.New(GetNonParameterConstructor(returnType));
+				var newExpression = Expression.New(nonParameterConstructor);
 				var memberBinds = new List<MemberBinding>();
 				foreach (var item in columns)
 				{
-					var property = FindEntityTypePropery(returnType, item.Name);
+					var property = FindTypePropery(returnType, item.Name);
 					var bind = Expression.Bind(property, BuildConvertExpression(parameter, item.Type, property.PropertyType, item.Ordinal));
 					memberBinds.Add(bind);
 				}
@@ -157,7 +157,7 @@ namespace Soul.SqlBatis
 			return string.Format("{0}|{1}", type.GUID.ToString("N"), columns.Select(s => s.Name), columns.Select(s => s.Type.GUID.ToString("N")));
 		}
 		
-		private static PropertyInfo FindEntityTypePropery(Type type, string name)
+		private static PropertyInfo FindTypePropery(Type type, string name)
 		{
 			var propertyName = name.ToUpper();
 			if (!SqlMapper.Settings.MatchNamesWithUnderscores)
@@ -180,27 +180,22 @@ namespace Soul.SqlBatis
 			}
 		}
 		
-		private static ConstructorInfo GetNonParameterConstructor(Type entityType)
+		private static bool TryGetNonParameterConstructor(Type entityType,out ConstructorInfo constructor)
 		{
 			var flags = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
-			return entityType.GetConstructor(flags, null, Type.EmptyTypes, null);
-		}
-		
-		private static bool HasNonParameterConstructor(Type entityType)
-		{
-			return GetNonParameterConstructor(entityType) != null;
+            constructor = entityType.GetConstructor(flags, null, Type.EmptyTypes, null);
+			return constructor != null;
 		}
 
 		private static Expression BuildConvertExpression(Expression parameter, Type columnType, Type memberType, int ordinal)
 		{
 			var test = Expression.Call(parameter, TypeMapper.IsDBNullMethod, Expression.Constant(ordinal));
 			var ifTrue = Expression.Default(memberType);
-			var defaultConverter = TypeMapper.FindDefaultConverter(columnType);
-			var ifElse = (Expression)Expression.Call(parameter, defaultConverter, Expression.Constant(ordinal));
+			var dataReaderConverter = TypeMapper.FindDataReaderConverter(columnType);
+			var ifElse = (Expression)Expression.Call(parameter, dataReaderConverter, Expression.Constant(ordinal));
 			if (memberType != columnType)
 			{
-				var customConverter = TypeMapper.FindCustomConvert(columnType, memberType);
-				if (customConverter != null)
+				if (TypeMapper.TryGetCustomConverter(columnType, memberType,out TypeConverter customConverter))
 				{
 					if (customConverter.Target != null)
 					{
