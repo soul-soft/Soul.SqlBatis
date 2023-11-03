@@ -21,10 +21,10 @@ namespace Soul.SqlBatis
             _enableQueryTracking = true;
             return this;
         }
-
-        public DbContextOptionsBuilder UseConnectionFactory(Func<IDbConnection> provider)
+     
+        public DbContextOptionsBuilder UseConnectionFactory(Func<IDbConnection> provider, DBMS dbms)
         {
-            _connectionFactory = new DelegateDbConnectionFactory(provider);
+            _connectionFactory = new DelegateDbConnectionFactory(provider, dbms);
             return this;
         }
 

@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-    public class SqlQuery : ISqlQuery
+    internal class MySqlQuery : ISqlQuery
     {
         private readonly IEntityType _entityType;
         private readonly Dictionary<DbExpressionType, IEnumerable<string>> _tokens;
 
-        public SqlQuery(IEntityType entityType, Dictionary<DbExpressionType, IEnumerable<string>> tokens, DynamicParameters parameters)
+        public MySqlQuery(IEntityType entityType, Dictionary<DbExpressionType, IEnumerable<string>> tokens, DynamicParameters parameters)
         {
             _entityType = entityType;
             _tokens = tokens;
@@ -18,7 +17,6 @@ namespace Soul.SqlBatis.Infrastructure
         }
 
         public DynamicParameters Parameters { get; private set; }
-
         public string QuerySql => Query();
         public string UpdateSql => Update();
         public string DeleteSql => Delete();
@@ -45,7 +43,7 @@ namespace Soul.SqlBatis.Infrastructure
 
         private string Query()
         {
-            var filter = BuildFilterSql();
+            var tokens = BuildFilterSql();
             var columns = GetColumnSql();
             if (columns == "*")
             {
@@ -59,7 +57,7 @@ namespace Soul.SqlBatis.Infrastructure
                 }));
             }
             var view = BuildFromSql();
-            return GetQuerySql(columns, view, filter);
+            return BuildQuery(columns,view,tokens);
         }
 
         private string Count()
@@ -133,6 +131,7 @@ namespace Soul.SqlBatis.Infrastructure
             return $"SELECT EXISTS({sql}) AS Expr";
         }
 
+
         private string BuildFromSql()
         {
             if (_tokens.ContainsKey(DbExpressionType.From))
@@ -152,24 +151,25 @@ namespace Soul.SqlBatis.Infrastructure
             return "*";
         }
 
-        private string GetQuerySql(string column, string view, string filter)
+        private string BuildQuery(string column,string view,string filter)
         {
             if (_tokens.Any(a => a.Key == DbExpressionType.Skip) && _tokens.Any(a => a.Key == DbExpressionType.Take))
             {
                 var offset = _tokens[DbExpressionType.Skip].Last();
                 var take = _tokens[DbExpressionType.Take].Last();
-                return $"LIMIT {offset}, {take}";
+                return string.Join(" ", $"SELECT {column} FROM {view}", filter, $"LIMIT {offset}, {take}");
             }
             else if (!_tokens.Any(a => a.Key == DbExpressionType.Skip) && _tokens.Any(a => a.Key == DbExpressionType.Take))
             {
+                var offset = 0;
                 var take = _tokens[DbExpressionType.Take].Last();
-                return string.Join(" ", $"SELECT TOP {take} {column} FROM {view}", filter);
+                return string.Join(" ", $"SELECT {column} FROM {view}", filter, $"LIMIT {offset}, {take}");
             }
             else if (_tokens.Any(a => a.Key == DbExpressionType.Skip) && !_tokens.Any(a => a.Key == DbExpressionType.Take))
             {
                 var offset = _tokens[DbExpressionType.Skip].Last();
                 var take = int.MaxValue;
-                return $"LIMIT {offset}, {take}";
+                return string.Join(" ", $"SELECT {column} FROM {view}", filter, $"LIMIT {offset}, {take}");
             }
             return string.Join(" ", $"SELECT {column} FROM {view}", filter);
         }

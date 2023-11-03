@@ -25,7 +25,7 @@ namespace Soul.SqlBatis.Entities
 		/// 
 		/// </summary>
 		[Column("CreationTime")]
-		public string Creationtime { get; set; }
+		public DateTime? Creationtime { get; set; }
 		/// <summary>
 		/// 
 		/// </summary>
@@ -36,6 +36,11 @@ namespace Soul.SqlBatis.Entities
 		/// </summary>
 		[Key][Column("Id")]
 		public int Id { get; set; }
+		/// <summary>
+		/// 
+		/// </summary>
+		[Column("Money")]
+		public double? Money { get; set; }
 		/// <summary>
 		/// 
 		/// </summary>
@@ -51,5 +56,11 @@ namespace Soul.SqlBatis.Entities
 		/// </summary>
 		[Column("State")]
 		public StudentState? State { get; set; }
-	}
+        /// <summary>
+        /// 
+        /// </summary>
+        [Column("BinaryData")]
+		public byte[] BinaryData { get; set; }
+
+    }
 }

@@ -237,7 +237,7 @@ namespace Soul.SqlBatis.Infrastructure
             var sql = $"INSERT INTO {entity.TableName} ({string.Join(",", columns)}) VALUES ({string.Join(",", parameters)})";
             if (entity.Values.Any(a => a.IsIdentity))
             {
-                return ($"{sql};SELECT LAST_INSERT_ID();", values);
+                return ($"{sql};SELECT @@IDENTITY;", values);
             }
             return (sql, values);
         }
