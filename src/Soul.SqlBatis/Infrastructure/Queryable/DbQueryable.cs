@@ -82,10 +82,15 @@ namespace Soul.SqlBatis
             return list;
         }
 
-        public SqlQuery BuildSqlQuery()
+        internal ISqlQuery BuildSqlQuery()
         {
             var tokens = new DbExpressionBuilder(Model, _parameters, _expressions).Build();
             var entityType = Model.GetEntityType(EntityType);
+            var dbms = _context.Options.ConnectionFactory.DBMS;
+            if (dbms == DBMS.MSSQL)
+            {
+                new MySqlQuery(entityType, tokens, _parameters);
+            }
             return new SqlQuery(entityType, tokens, _parameters);
         }
 

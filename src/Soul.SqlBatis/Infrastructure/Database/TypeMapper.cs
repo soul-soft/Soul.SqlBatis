@@ -10,6 +10,7 @@ namespace Soul.SqlBatis.Infrastructure
     public static class TypeMapper
     {
         #region Default Converter
+
         internal static MethodInfo IsDBNullMethod = typeof(IDataRecord).GetMethod(nameof(IDataRecord.IsDBNull), new Type[] { typeof(int) });
 
         internal static MethodInfo FindDataReaderConverter(Type type)
@@ -60,10 +61,7 @@ namespace Soul.SqlBatis.Infrastructure
             }
             if (type == typeof(byte[]))
             {
-                return typeof(IDataRecord).GetMethod(nameof(IDataRecord.GetBytes), new Type[]
-                {
-                    typeof(int), typeof(long), typeof(byte[]), typeof(int), typeof(int)
-                });
+                return typeof(TypeMapper).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(a => a.Name == nameof(GetBytes)).First();
             }
             if (type == typeof(char))
             {
@@ -90,7 +88,7 @@ namespace Soul.SqlBatis.Infrastructure
 
         internal static MethodInfo FindJsonDeserializeConverter(Type type)
         {
-            return typeof(TypeMapper).GetMethods().Where(a => a.Name == nameof(JsonDeserialize)).First().MakeGenericMethod(type);
+            return typeof(TypeMapper).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(a => a.Name == nameof(JsonDeserialize)).First().MakeGenericMethod(type);
         }
 
         internal static MethodInfo FindStringConverter(Type type)
@@ -103,7 +101,7 @@ namespace Soul.SqlBatis.Infrastructure
             return JsonSerializer.Serialize(obj, SqlMapper.Settings.JsonSerializerOptions);
         }
 
-        public static T JsonDeserialize<T>(string json)
+        internal static T JsonDeserialize<T>(string json)
         {
             if (json == null)
             {
@@ -122,6 +120,13 @@ namespace Soul.SqlBatis.Infrastructure
         internal static bool IsJsonType(Type type)
         {
             return type.CustomAttributes.Any(a => a.AttributeType == typeof(JsonValueAttribute));
+        }
+
+        internal static byte[] GetBytes(this IDataRecord dr, int i)
+        {
+            var buffer = new byte[SqlMapper.Settings.BinaryBufferSize];
+            var length = dr.GetBytes(i, 0, buffer, 0, buffer.Length);
+            return buffer.Take((int)length).ToArray();
         }
         #endregion
 

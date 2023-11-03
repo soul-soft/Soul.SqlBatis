@@ -131,7 +131,7 @@ namespace Soul.SqlBatis
                 var func = TypeSerializer.CreateDeserializer(param.GetType());
                 foreach (var item in func(param))
                 {
-                    if (item.Value != null && item.Value is IEnumerable && item.Value.GetType() != typeof(string))
+                    if (IsInParameter(sql, item))
                     {
                         command.SplitArrayParameter(item.Key, item.Value);
                     }
@@ -142,6 +142,11 @@ namespace Soul.SqlBatis
                 }
             }
             return command;
+        }
+
+        private static bool IsInParameter(string sql, KeyValuePair<string, object> item)
+        {
+            return item.Value != null && item.Value is IEnumerable && item.Value.GetType() != typeof(string) && Regex.IsMatch(sql, $@"IN\s@{item.Key}*", RegexOptions.IgnoreCase);
         }
 
         private static T ChangeType<T>(object obj)

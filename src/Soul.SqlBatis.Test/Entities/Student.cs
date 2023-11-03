@@ -56,5 +56,11 @@ namespace Soul.SqlBatis.Entities
 		/// </summary>
 		[Column("State")]
 		public StudentState? State { get; set; }
-	}
+        /// <summary>
+        /// 
+        /// </summary>
+        [Column("BinaryData")]
+		public byte[] BinaryData { get; set; }
+
+    }
 }

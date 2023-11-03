@@ -226,7 +226,15 @@ namespace Soul.SqlBatis
                 var test = Expression.Call(parameter, TypeMapper.IsDBNullMethod, Expression.Constant(column.Ordinal));
                 var ifTrue = Expression.Default(memberType);
                 var dataReaderConverter = TypeMapper.FindDataReaderConverter(column.Type);
-                var ifElse = (Expression)Expression.Call(parameter, dataReaderConverter, Expression.Constant(column.Ordinal));
+                Expression ifElse;
+                if (dataReaderConverter.IsStatic)
+                {
+                    ifElse = Expression.Call(dataReaderConverter, parameter, Expression.Constant(column.Ordinal));
+                }
+                else
+                {
+                    ifElse = Expression.Call(parameter, dataReaderConverter, Expression.Constant(column.Ordinal));
+                }
                 if (memberType != column.Type)
                 {
                     if (TypeMapper.TryGetCustomConverter(column.Type, memberType, out TypeConverter customConverter))
@@ -258,9 +266,9 @@ namespace Soul.SqlBatis
                 }
                 return Expression.Condition(test, ifTrue, ifElse);
             }
-            catch (Exception)
+            catch
             {
-                throw new InvalidCastException($"Unable to cast object of type '{column.Type}' to type '{memberType}'. On the '{column}' column.");
+                throw new InvalidCastException($"Unable to cast object of type '{column.Type}' to type '{memberType}'. On the '{column.Name}' column.");
             }
         }
 
