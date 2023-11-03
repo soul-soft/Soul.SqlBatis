@@ -216,10 +216,14 @@ namespace Soul.SqlBatis
             /// 二进制缓冲大小
             /// </summary>
             public static int BinaryBufferSize { get; set; } = 1024 * 1024 * 10;
-            /// <summary>
-            /// json序列化选项
-            /// </summary>
-            public static JsonSerializerOptions JsonSerializerOptions { get; } = new JsonSerializerOptions()
+			/// <summary>
+			/// 文本缓冲大小
+			/// </summary>
+			public static int TextBufferSize { get; set; } = 1024 * 1024 * 10;
+			/// <summary>
+			/// json序列化选项
+			/// </summary>
+			public static JsonSerializerOptions JsonSerializerOptions { get; } = new JsonSerializerOptions()
             {
                 PropertyNameCaseInsensitive = true,
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
