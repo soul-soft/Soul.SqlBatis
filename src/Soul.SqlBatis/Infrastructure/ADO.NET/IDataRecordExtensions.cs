@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Reflection;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-	internal static class IDataRecordExtensions
+    internal static class IDataRecordExtensions
 	{
 		public static List<DataRecordField> GetFields(this IDataRecord dr)
 		{
@@ -19,30 +18,20 @@ namespace Soul.SqlBatis.Infrastructure
 			}
 			return list;
 		}
+		
 		public static byte[] GetBytes(this IDataRecord dr, int i)
 		{
 			var buffer = new byte[0];
 			var length = dr.GetBytes(i, 0, buffer, 0, buffer.Length);
 			return buffer.Take((int)length).ToArray();
 		}
+	
 		public static char[] GetChars(this IDataRecord dr, int i)
 		{
 			var buffer = new char[0];
 			var length = dr.GetChars(i, 0, buffer, 0, buffer.Length);
 			return buffer.Take((int)length).ToArray();
 		}
-	}
 
-	internal class DataRecordField
-	{
-		public Type Type { get; }
-		public string Name { get; }
-		public int Ordinal { get; }
-		public DataRecordField(Type type, string name, int ordinal)
-		{
-			Type = type;
-			Name = name;
-			Ordinal = ordinal;
-		}
 	}
 }

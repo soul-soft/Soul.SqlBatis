@@ -20,7 +20,7 @@ namespace Soul.SqlBatis
             using (var reader = cmd.ExecuteReader())
             {
                 var list = new List<dynamic>();
-                var func = TypeSerializer.CreateSerializer();
+                var func = TypeSerializer.CreateEntityDynamicSerializer();
                 while (reader.Read())
                 {
                     list.Add(func(reader));
@@ -34,7 +34,7 @@ namespace Soul.SqlBatis
             using (var reader = await (cancellationToken == null ? cmd.ExecuteReaderAsync() : cmd.ExecuteReaderAsync(cancellationToken.Value)))
             {
                 var list = new List<dynamic>();
-                var func = TypeSerializer.CreateSerializer();
+                var func = TypeSerializer.CreateEntityDynamicSerializer();
                 while (reader.Read())
                 {
                     list.Add(func(reader));
@@ -48,7 +48,7 @@ namespace Soul.SqlBatis
             using (var reader = cmd.ExecuteReader())
             {
                 var list = new List<T>();
-                var func = TypeSerializer.CreateSerializer<T>(reader);
+                var func = TypeSerializer.CreateEntitySerializer<T>(reader);
                 while (reader.Read())
                 {
                     list.Add(func(reader));
@@ -62,7 +62,7 @@ namespace Soul.SqlBatis
             using (var reader = await (cancellationToken == null ? cmd.ExecuteReaderAsync() : cmd.ExecuteReaderAsync(cancellationToken.Value)))
             {
                 var list = new List<T>();
-                var func = TypeSerializer.CreateSerializer<T>(reader);
+                var func = TypeSerializer.CreateEntitySerializer<T>(reader);
                 while (await reader.ReadAsync())
                 {
                     list.Add(func(reader));
@@ -170,9 +170,9 @@ namespace Soul.SqlBatis
             {
                 parameter.Value = DBNull.Value;
             }
-            else if (JsonConverter.IsJsonType(value.GetType()))
+            else if (JsonConvert.IsJsonType(value.GetType()))
             {
-                var json = JsonConverter.Serialize(value);
+                var json = JsonConvert.Serialize(value);
                 parameter.Value = json;
             }
             else
