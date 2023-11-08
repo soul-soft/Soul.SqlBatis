@@ -31,24 +31,22 @@ namespace Soul.SqlBatis.Infrastructure
 			return $"{columnType.GUID:N}|{memberType.GUID:N}";
 		}
 
-      
-
-        public static Func<IDataRecord, T> Create<T>(IDataRecord dr)
+        public static Func<IDataRecord, T> CreateEntityMapper<T>(IDataRecord dr)
         {
             var fields = dr.GetFields();
             var key = CreateEntityConverterKey<T>(fields);
-            return (Func<IDataRecord, T>)_converters.GetOrAdd(key, k =>
+            return (Func<IDataRecord, T>)_converters.GetOrAdd(key, (Func<string, Delegate>)(k =>
             {
-                return CreateEntityConverter<T>(dr);
-            });
+                return CreateEntityMapperDelegete<T>(dr);
+            }));
         }
 
-        private static Func<IDataRecord, T> CreateEntityConverter<T>(IDataRecord dr)
+        private static Func<IDataRecord, T> CreateEntityMapperDelegete<T>(IDataRecord dr)
         {
             var fields = dr.GetFields();
             var entityType = typeof(T);
             var parameter = Expression.Parameter(typeof(IDataRecord), "dr");
-            if (fields.Count == 1 && GetDataRecordConverter(entityType) != null || JsonConverter.IsJsonType(entityType))
+            if (fields.Count == 1 && GetDataRecordConverter(entityType) != null || JsonConvert.IsJsonType(entityType))
             {
                 var body = CreateBindingExpression(parameter, entityType, fields[0]);
                 var lambda = Expression.Lambda(body, parameter);
@@ -57,14 +55,35 @@ namespace Soul.SqlBatis.Infrastructure
             else if (ReflectionUtility.TryGetNonParameterConstructor(entityType, out ConstructorInfo constructor1))
             {
                 var properties = entityType.GetProperties();
-                foreach (var item in properties)
+                var memberBindings = new List<MemberBinding>();
+                var newExpression = Expression.New(constructor1);
+                foreach (var item in fields)
                 {
-
+                    var property = FindEntityMember(properties,item.Name);
+                    if (property == null)
+                    {
+                        continue;
+                    }
+                    var bind = Expression.Bind(property, CreateBindingExpression(parameter, property.PropertyType, item));
+                    memberBindings.Add(bind);
                 }
+                var body = Expression.MemberInit(newExpression, memberBindings);
+                var lambda = Expression.Lambda(body, parameter);
+                return (Func<IDataRecord, T>)lambda.Compile();
             }
             else
             {
-                var constructor2 = ReflectionUtility.GetMaxParameterConstructor(entityType);
+                var arguments = new List<Expression>();
+                var constructor2 = ReflectionUtility.GetNonParameterConstructor(entityType);
+                var parameters = constructor2.GetParameters();
+                foreach (var item in fields)
+                {
+                    var memberType = parameters.Where(a => a.Name == item.Name).First().ParameterType;
+                    arguments.Add(CreateBindingExpression(parameter, memberType, item));
+                }
+                var body = Expression.New(constructor2, arguments);
+                var lambda = Expression.Lambda(body, parameter);
+                return (Func<IDataRecord, T>)lambda.Compile();
             }
         }
 
@@ -104,9 +123,9 @@ namespace Soul.SqlBatis.Infrastructure
                         var converter = GetToStringConverter(field.Type);
                         ifElse = Expression.Call(converter, ifElse);
                     }
-                    else if (JsonConverter.IsJsonType(memberType))
+                    else if (JsonConvert.IsJsonType(memberType))
                     {
-                        var converter = JsonConverter.GetDeserializeConverter(memberType);
+                        var converter = JsonConvert.GetDeserializeConverter(memberType);
                         ifElse = Expression.Call(converter, ifElse);
                     }
                     else
@@ -125,7 +144,7 @@ namespace Soul.SqlBatis.Infrastructure
         private static string CreateEntityConverterKey<T>(List<DataRecordField> fields)
         {
             var entityType = typeof(T);
-            if (fields.Count == 1 && GetDataRecordConverter(entityType) != null || JsonConverter.IsJsonType(entityType))
+            if (fields.Count == 1 && GetDataRecordConverter(entityType) != null || JsonConvert.IsJsonType(entityType))
             {
                 return $"{fields[0].Type.GUID:N}|{entityType.GUID:N}";
             }
