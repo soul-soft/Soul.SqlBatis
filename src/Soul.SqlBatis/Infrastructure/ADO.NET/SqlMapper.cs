@@ -20,7 +20,7 @@ namespace Soul.SqlBatis
             using (var reader = cmd.ExecuteReader())
             {
                 var list = new List<dynamic>();
-                var func = TypeSerializer.CreateEntityDynamicSerializer();
+                var func = TypeSerializer.CreateDynamicSerializer();
                 while (reader.Read())
                 {
                     list.Add(func(reader));
@@ -34,7 +34,7 @@ namespace Soul.SqlBatis
             using (var reader = await (cancellationToken == null ? cmd.ExecuteReaderAsync() : cmd.ExecuteReaderAsync(cancellationToken.Value)))
             {
                 var list = new List<dynamic>();
-                var func = TypeSerializer.CreateEntityDynamicSerializer();
+                var func = TypeSerializer.CreateDynamicSerializer();
                 while (reader.Read())
                 {
                     list.Add(func(reader));
@@ -48,7 +48,7 @@ namespace Soul.SqlBatis
             using (var reader = cmd.ExecuteReader())
             {
                 var list = new List<T>();
-                var func = TypeSerializer.CreateEntitySerializer<T>(reader);
+                var func = TypeSerializer.CreateSerializer<T>(reader);
                 while (reader.Read())
                 {
                     list.Add(func(reader));
@@ -62,7 +62,7 @@ namespace Soul.SqlBatis
             using (var reader = await (cancellationToken == null ? cmd.ExecuteReaderAsync() : cmd.ExecuteReaderAsync(cancellationToken.Value)))
             {
                 var list = new List<T>();
-                var func = TypeSerializer.CreateEntitySerializer<T>(reader);
+                var func = TypeSerializer.CreateSerializer<T>(reader);
                 while (await reader.ReadAsync())
                 {
                     list.Add(func(reader));

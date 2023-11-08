@@ -1,16 +1,13 @@
-﻿using System.Linq.Expressions;
-using System.Text;
+﻿using System.Text;
 using Soul.SqlBatis;
-using Soul.SqlBatis.Entities;
 using Soul.SqlBatis.Infrastructure;
-using Soul.SqlBatis.Test;
 
 var options = new DbContextOptionsBuilder()
     //.EnableQueryTracking()
     //.UseConnectionFactory(() => new MySqlConnector.MySqlConnection("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test") ,DBMS.MSSQL)
     .UseConnectionFactory(() => new Microsoft.Data.SqlClient.SqlConnection("Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=test;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False"), DBMS.MSSQL)
     .Build();
-TypeMapper.AddCustomMapper<DateTime, string>(Converts.DatetimtToString);
+TypeSerializer.AddSerializerMapper<DateTime, string>(Converts.DatetimtToString);
 using var context = new MyDbContext(options);
 context.OpenDbConnection();
 var student = context.Students.Where(a => a.Id == 3).Single();
