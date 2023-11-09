@@ -75,7 +75,7 @@ namespace Soul.SqlBatis.Infrastructure
 		private IEntityEntry CreateEntry(object entity)
 		{
 			var entityType = _model.GetEntityType(entity.GetType());
-			var func = TypeSerializer.CreateDeserializer(entity.GetType());
+			var func = TypeMapper.CreateDeserializer(entity.GetType());
 			var values = func(entity);
 			var properties = entity.GetType().GetProperties()
 				.Select(property => new EntityPropertyEntry(entityType.GetProperty(property), entity, values[property.Name]))

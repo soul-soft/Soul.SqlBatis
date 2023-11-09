@@ -7,7 +7,39 @@ using System.Reflection;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-    internal static class IDataRecordExtensions
+    internal class DataRecordField
+    {
+        public Type Type { get; }
+
+        public string Name { get; }
+
+        public int Ordinal { get; }
+
+        public DataRecordField(Type type, string name, int ordinal)
+        {
+            Type = type;
+            Name = name;
+            Ordinal = ordinal;
+        }
+
+        public string Code
+        {
+            get
+            {
+                if (typeof(byte[]) == Type)
+                {
+                    return "ByteArray";
+                }
+                if (typeof(char[]) == Type)
+                {
+                    return "CharArray";
+                }
+                return ((int)Type.GetTypeCode(Type)).ToString();
+            }
+        }
+    }
+
+    internal static class DbTypeConver
     {
         private readonly static ConcurrentDictionary<Type, MethodInfo> _converters = new ConcurrentDictionary<Type, MethodInfo>();
 
@@ -25,14 +57,14 @@ namespace Soul.SqlBatis.Infrastructure
 
         public static byte[] GetBytes(this IDataRecord dr, int i)
         {
-            var buffer = new byte[0];
+            var buffer = new byte[SqlMapper.Settings.BinaryBufferSize];
             var length = dr.GetBytes(i, 0, buffer, 0, buffer.Length);
             return buffer.Take((int)length).ToArray();
         }
 
         public static char[] GetChars(this IDataRecord dr, int i)
         {
-            var buffer = new char[0];
+            var buffer = new char[SqlMapper.Settings.TextBufferSize];
             var length = dr.GetChars(i, 0, buffer, 0, buffer.Length);
             return buffer.Take((int)length).ToArray();
         }
@@ -92,14 +124,15 @@ namespace Soul.SqlBatis.Infrastructure
                 }
                 if (type == typeof(byte[]))
                 {
-                    return typeof(IDataRecordExtensions).GetMethods().Where(a => a.Name == nameof(GetBytes)).First();
+                    return typeof(DbTypeConver).GetMethods().Where(a => a.Name == nameof(GetBytes)).First();
                 }
                 if (type == typeof(char[]))
                 {
-                    return typeof(IDataRecordExtensions).GetMethods().Where(a => a.Name == nameof(GetChars)).First();
+                    return typeof(DbTypeConver).GetMethods().Where(a => a.Name == nameof(GetChars)).First();
                 }
                 return methods.Where(a => a.Name == nameof(IDataRecord.GetValue)).First();
             });
         }
     }
+
 }

@@ -13,12 +13,12 @@ namespace Soul.SqlBatis.Infrastructure
 			return type.CustomAttributes.Any(a => a.AttributeType == typeof(JsonValueAttribute));
 		}
 
-		public static string Serialize(object obj)
+		public static string JsonSerialize(object obj)
 		{
 			return JsonSerializer.Serialize(obj, SqlMapper.Settings.JsonSerializerOptions);
 		}
 
-		public static T Deserialize<T>(string json)
+		public static T JsonDeserialize<T>(string json)
 		{
 			if (json == null)
 			{
@@ -36,7 +36,7 @@ namespace Soul.SqlBatis.Infrastructure
 
 		public static MethodInfo GetDeserializeConverter(Type type)
 		{
-			return typeof(JsonConvert).GetMethod(nameof(Deserialize), new Type[] { typeof(string) }).MakeGenericMethod(type);
+			return typeof(JsonConvert).GetMethod(nameof(JsonDeserialize), new Type[] { typeof(string) }).MakeGenericMethod(type);
 		}
 	}
 }

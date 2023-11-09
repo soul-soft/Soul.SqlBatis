@@ -20,7 +20,7 @@ namespace Soul.SqlBatis
             {
                 return;
             }
-            var func = TypeSerializer.CreateDeserializer(model.GetType());
+            var func = TypeMapper.CreateDeserializer(model.GetType());
             var values = func(model);
             foreach (var item in values)
             {

@@ -243,7 +243,7 @@ namespace Soul.SqlBatis
             return Clone<TResult>();
         }
 
-        public IDbQueryable<T> Set<TResult>(Expression<Func<T, TResult>> column, TResult value, bool flag = true)
+        public IDbQueryable<T> SetProperty<TResult>(Expression<Func<T, TResult>> column, TResult value, bool flag = true)
         {
             if (flag)
                 AddExpression(DbExpression.FromSetExpression(column, Expression.Constant(value)));

@@ -8,12 +8,11 @@ using System.Reflection;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-    public static class TypeSerializer
+    public static class TypeMapper
     {
         private readonly static ConcurrentDictionary<string, Delegate> _serializers = new ConcurrentDictionary<string, Delegate>();
         private readonly static ConcurrentDictionary<Type, Delegate> _deserializers = new ConcurrentDictionary<Type, Delegate>();
-        private readonly static ConcurrentDictionary<string, Delegate> _serializerMappers = new ConcurrentDictionary<string, Delegate>();
-
+        private readonly static ConcurrentDictionary<string, Delegate> _customTypeMapper = new ConcurrentDictionary<string, Delegate>();
 
         #region Deserializer
         public static Func<object, Dictionary<string, object>> CreateDeserializer(Type type)
@@ -92,10 +91,24 @@ namespace Soul.SqlBatis.Infrastructure
             });
         }
 
-        public static void AddSerializerMapper<TColumn, TMember>(Func<TColumn, TMember> converter)
+        #endregion
+
+        #region TypeMapper
+        public static void AddTypeMapper<TColumn, TMember>(Func<TColumn, TMember> converter)
         {
-            var key = CreateSerializerMapperKey(typeof(TColumn), typeof(TMember));
-            _serializerMappers.TryAdd(key, converter);
+            var key = CreateTypeMapperKey(typeof(TColumn), typeof(TMember));
+            _customTypeMapper.TryAdd(key, converter);
+        }
+
+        private static bool TryGetTypeMapper(Type columnType, Type memberType, out Delegate mapper)
+        {
+            var key = CreateTypeMapperKey(columnType, memberType);
+            return _customTypeMapper.TryGetValue(key, out mapper);
+        }
+        
+        private static string CreateTypeMapperKey(Type columnType, Type memberType)
+        {
+            return $"{columnType.GUID:N}|{memberType.GUID:N}";
         }
         #endregion
 
@@ -104,7 +117,7 @@ namespace Soul.SqlBatis.Infrastructure
             var fields = dr.GetFields();
             var entityType = typeof(T);
             var parameter = Expression.Parameter(typeof(IDataRecord), "dr");
-            if (fields.Count == 1 && IDataRecordExtensions.GetGetMethod(entityType) != null)
+            if (fields.Count == 1 && DbTypeConver.GetGetMethod(entityType) != null)
             {
                 var body = CreateSerializerExpression(parameter, entityType, fields[0]);
                 var lambda = Expression.Lambda(body, parameter);
@@ -145,14 +158,6 @@ namespace Soul.SqlBatis.Infrastructure
             }
         }
 
-        internal static bool TryGetSerializerMapper(Type columnType, Type memberType, out Delegate mapper)
-        {
-            var key = CreateSerializerMapperKey(columnType, memberType);
-            return _serializerMappers.TryGetValue(key, out mapper);
-        }
-
-
-
         private static Expression CreateSerializerExpression(Expression parameter, Type memberType, DataRecordField field)
         {
             try
@@ -162,7 +167,7 @@ namespace Soul.SqlBatis.Infrastructure
                 var test = Expression.Call(parameter, isDbNullMethod, ordinalExpression);
                 var ifTrue = Expression.Default(memberType);
                 Expression ifElse;
-                var getMethod = IDataRecordExtensions.GetGetMethod(field.Type);
+                var getMethod = DbTypeConver.GetGetMethod(field.Type);
                 if (getMethod.IsStatic)
                 {
                     ifElse = Expression.Call(getMethod, parameter, ordinalExpression);
@@ -173,7 +178,7 @@ namespace Soul.SqlBatis.Infrastructure
                 }
                 if (memberType != field.Type)
                 {
-                    if (TryGetSerializerMapper(field.Type, memberType, out Delegate mapper))
+                    if (TryGetTypeMapper(field.Type, memberType, out Delegate mapper))
                     {
                         if (mapper.Method.IsStatic)
                         {
@@ -207,22 +212,17 @@ namespace Soul.SqlBatis.Infrastructure
             }
         }
 
-        private static string CreateSerializerMapperKey(Type columnType, Type memberType)
-        {
-            return $"{columnType.GUID:N}|{memberType.GUID:N}";
-        }
-
         private static string CreateSerializerDelegateKey<T>(List<DataRecordField> fields)
         {
             var entityType = typeof(T);
-            if (fields.Count == 1 && IDataRecordExtensions.GetGetMethod(entityType) != null)
+            if (fields.Count == 1 && DbTypeConver.GetGetMethod(entityType) != null)
             {
                 return $"{fields[0].Type.GUID:N}|{entityType.GUID:N}";
             }
             else if (ReflectionUtility.TryGetNonParameterConstructor(entityType, out _))
             {
                 var names = string.Join(",", fields.Select(s => s.Name));
-                var types = string.Join(",", fields.Select(s => s.Type.GUID.ToString("N")));
+                var types = string.Join(",", fields.Select(s => s.Code));
                 return $"{entityType.GUID:N}|{names}|{types}";
             }
             else

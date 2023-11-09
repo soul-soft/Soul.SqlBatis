@@ -20,7 +20,7 @@ namespace Soul.SqlBatis
             using (var reader = cmd.ExecuteReader())
             {
                 var list = new List<dynamic>();
-                var func = TypeSerializer.CreateDynamicSerializer();
+                var func = TypeMapper.CreateDynamicSerializer();
                 while (reader.Read())
                 {
                     list.Add(func(reader));
@@ -34,7 +34,7 @@ namespace Soul.SqlBatis
             using (var reader = await (cancellationToken == null ? cmd.ExecuteReaderAsync() : cmd.ExecuteReaderAsync(cancellationToken.Value)))
             {
                 var list = new List<dynamic>();
-                var func = TypeSerializer.CreateDynamicSerializer();
+                var func = TypeMapper.CreateDynamicSerializer();
                 while (reader.Read())
                 {
                     list.Add(func(reader));
@@ -48,7 +48,7 @@ namespace Soul.SqlBatis
             using (var reader = cmd.ExecuteReader())
             {
                 var list = new List<T>();
-                var func = TypeSerializer.CreateSerializer<T>(reader);
+                var func = TypeMapper.CreateSerializer<T>(reader);
                 while (reader.Read())
                 {
                     list.Add(func(reader));
@@ -62,7 +62,7 @@ namespace Soul.SqlBatis
             using (var reader = await (cancellationToken == null ? cmd.ExecuteReaderAsync() : cmd.ExecuteReaderAsync(cancellationToken.Value)))
             {
                 var list = new List<T>();
-                var func = TypeSerializer.CreateSerializer<T>(reader);
+                var func = TypeMapper.CreateSerializer<T>(reader);
                 while (await reader.ReadAsync())
                 {
                     list.Add(func(reader));
@@ -128,7 +128,7 @@ namespace Soul.SqlBatis
             }
             if (param != null)
             {
-                var func = TypeSerializer.CreateDeserializer(param.GetType());
+                var func = TypeMapper.CreateDeserializer(param.GetType());
                 foreach (var item in func(param))
                 {
                     if (IsInParameter(sql, item))
@@ -172,7 +172,7 @@ namespace Soul.SqlBatis
             }
             else if (JsonConvert.IsJsonType(value.GetType()))
             {
-                var json = JsonConvert.Serialize(value);
+                var json = JsonConvert.JsonSerialize(value);
                 parameter.Value = json;
             }
             else

@@ -227,7 +227,7 @@ namespace Soul.SqlBatis.Infrastructure
 
         private static (string, object) BuildInsertCommand(IEntityEntry entity)
         {
-            var func = TypeSerializer.CreateDeserializer(entity.Type);
+            var func = TypeMapper.CreateDeserializer(entity.Type);
             var properties = entity.Values
                 .Where(a => !a.IsNotMapped)
                 .Where(a => !a.IsIdentity);

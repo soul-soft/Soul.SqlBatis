@@ -1,5 +1,5 @@
 ﻿CREATE TABLE [dbo].[Student] (
-    [Id]           INT             NOT NULL identity(1,1),
+    [Id]           INT             IDENTITY (1, 1) NOT NULL,
     [Name]         NCHAR (10)      NULL,
     [FirstName]    VARCHAR (50)    NULL,
     [Address]      CHAR (100)      NULL,
@@ -8,7 +8,7 @@
     [Money]        DECIMAL (18, 2) NULL,
     [RowVersion]   VARCHAR (50)    NULL,
     [Age]          INT             NULL,
-    [BinaryData]   BINARY (50)     NULL,
+    [BinaryData]   VARBINARY(50)     NULL,
     PRIMARY KEY CLUSTERED ([Id] ASC)
 );
 

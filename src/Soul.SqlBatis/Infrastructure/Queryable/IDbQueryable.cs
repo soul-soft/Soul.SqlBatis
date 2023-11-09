@@ -8,7 +8,7 @@ namespace Soul.SqlBatis
     {
         IModel Model { get; }
         (SqlBuilder, DynamicParameters) Build();
-        IDbQueryable<T> Set<TResult>(Expression<Func<T, TResult>> column, TResult value, bool flag = true);
+        IDbQueryable<T> SetProperty<TResult>(Expression<Func<T, TResult>> column, TResult value, bool flag = true);
         IDbQueryable<T> Set<TResult>(Expression<Func<T, TResult>> column, Expression<Func<T, TResult>> expression, bool flag = true);
         IDbQueryable<TResult> Select<TResult>(RawSql sql, bool flag = true);
         IDbQueryable<T> Where(RawSql sql, bool flag = true);
