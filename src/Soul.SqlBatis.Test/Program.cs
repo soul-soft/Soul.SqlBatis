@@ -18,8 +18,7 @@ TypeMapper.AddTypeMapper<DateTime, string>(date =>
 
 using var context = new MyDbContext(options);
 context.OpenDbConnection();
-context.Students
-    .SetProperty(a => a.BinaryData, Encoding.UTF8.GetBytes("afdf"))
+context.Students.SetProperty(a => a.BinaryData, Encoding.UTF8.GetBytes("afdf"))
     .ExecuteUpdate();
 var student = context.Students.Where(a => a.Id == 1).Single();
 var text = Encoding.UTF8.GetString(student.BinaryData);
