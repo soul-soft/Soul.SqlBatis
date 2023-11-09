@@ -3,132 +3,102 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Reflection;
 
 namespace Soul.SqlBatis.Infrastructure
 {
     internal static class IDataRecordExtensions
-	{
-        private readonly static ConcurrentDictionary<Type, Delegate> _delegates = new ConcurrentDictionary<Type, Delegate>();
+    {
+        private readonly static ConcurrentDictionary<Type, MethodInfo> _converters = new ConcurrentDictionary<Type, MethodInfo>();
 
         public static List<DataRecordField> GetFields(this IDataRecord dr)
-		{
-			var list = new List<DataRecordField>();
-			for (int i = 0; i < dr.FieldCount; i++)
-			{
-				var name = dr.GetName(i);
-				var type = dr.GetFieldType(i);
-				list.Add(new DataRecordField(type, name, i));
-			}
-			return list;
-		}
-		
-		public static byte[] GetBytes(this IDataRecord dr, int i)
-		{
-			var buffer = new byte[0];
-			var length = dr.GetBytes(i, 0, buffer, 0, buffer.Length);
-			return buffer.Take((int)length).ToArray();
-		}
-	
-		public static char[] GetChars(this IDataRecord dr, int i)
-		{
-			var buffer = new char[0];
-			var length = dr.GetChars(i, 0, buffer, 0, buffer.Length);
-			return buffer.Take((int)length).ToArray();
-		}
-
-        public static Delegate GetDelegate(Type type)
         {
-            return _delegates.GetOrAdd(type, key =>
+            var list = new List<DataRecordField>();
+            for (int i = 0; i < dr.FieldCount; i++)
+            {
+                var name = dr.GetName(i);
+                var type = dr.GetFieldType(i);
+                list.Add(new DataRecordField(type, name, i));
+            }
+            return list;
+        }
+
+        public static byte[] GetBytes(this IDataRecord dr, int i)
+        {
+            var buffer = new byte[0];
+            var length = dr.GetBytes(i, 0, buffer, 0, buffer.Length);
+            return buffer.Take((int)length).ToArray();
+        }
+
+        public static char[] GetChars(this IDataRecord dr, int i)
+        {
+            var buffer = new char[0];
+            var length = dr.GetChars(i, 0, buffer, 0, buffer.Length);
+            return buffer.Take((int)length).ToArray();
+        }
+
+        public static MethodInfo GetGetMethod(Type type)
+        {
+            return _converters.GetOrAdd(type, key =>
             {
                 var methods = typeof(IDataRecord).GetMethods();
                 if (type == typeof(byte))
                 {
-                    return methods.Where(a => a.Name == nameof(IDataRecord.GetByte))
-                    .First()
-                    .CreateDelegate(typeof(Func<int, byte>));
+                    return methods.Where(a => a.Name == nameof(IDataRecord.GetByte)).First();
                 }
                 if (type == typeof(char))
                 {
-                    return methods.Where(a => a.Name == nameof(IDataRecord.GetChar))
-                    .First()
-                    .CreateDelegate(typeof(Func<int, char>));
+                    return methods.Where(a => a.Name == nameof(IDataRecord.GetChar)).First();
                 }
                 if (type == typeof(short))
                 {
-                    return methods.Where(a => a.Name == nameof(IDataRecord.GetInt16))
-                    .First()
-                    .CreateDelegate(typeof(Func<int, short>));
+                    return methods.Where(a => a.Name == nameof(IDataRecord.GetInt16)).First();
                 }
                 if (type == typeof(int))
                 {
-                    return methods.Where(a => a.Name == nameof(IDataRecord.GetInt32))
-                    .First()
-                    .CreateDelegate(typeof(Func<int, int>));
+                    return methods.Where(a => a.Name == nameof(IDataRecord.GetInt32)).First();
                 }
                 if (type == typeof(long))
                 {
-                    return methods.Where(a => a.Name == nameof(IDataRecord.GetInt64))
-                    .First()
-                    .CreateDelegate(typeof(Func<int, long>));
+                    return methods.Where(a => a.Name == nameof(IDataRecord.GetInt64)).First();
                 }
                 if (type == typeof(float))
                 {
-                    return methods.Where(a => a.Name == nameof(IDataRecord.GetFloat))
-                    .First()
-                    .CreateDelegate(typeof(Func<int, float>));
+                    return methods.Where(a => a.Name == nameof(IDataRecord.GetFloat)).First();
                 }
                 if (type == typeof(double))
                 {
-                    return methods.Where(a => a.Name == nameof(IDataRecord.GetDouble))
-                    .First()
-                    .CreateDelegate(typeof(Func<int, double>));
+                    return methods.Where(a => a.Name == nameof(IDataRecord.GetDouble)).First();
                 }
                 if (type == typeof(decimal))
                 {
-                    return methods.Where(a => a.Name == nameof(IDataRecord.GetDecimal))
-                    .First()
-                    .CreateDelegate(typeof(Func<int, decimal>));
+                    return methods.Where(a => a.Name == nameof(IDataRecord.GetDecimal)).First();
                 }
                 if (type == typeof(bool))
                 {
-                    return methods.Where(a => a.Name == nameof(IDataRecord.GetBoolean))
-                    .First()
-                    .CreateDelegate(typeof(Func<int, bool>));
+                    return methods.Where(a => a.Name == nameof(IDataRecord.GetBoolean)).First();
                 }
                 if (type == typeof(Guid))
                 {
-                    return methods.Where(a => a.Name == nameof(IDataRecord.GetGuid))
-                    .First()
-                    .CreateDelegate(typeof(Func<int, Guid>));
+                    return methods.Where(a => a.Name == nameof(IDataRecord.GetGuid)).First();
                 }
                 if (type == typeof(DateTime))
                 {
-                    return methods.Where(a => a.Name == nameof(IDataRecord.GetDateTime))
-                    .First()
-                    .CreateDelegate(typeof(Func<int, DateTime>));
+                    return methods.Where(a => a.Name == nameof(IDataRecord.GetDateTime)).First();
                 }
                 if (type == typeof(string))
                 {
-                    var method = methods.Where(a => a.Name == nameof(IDataRecord.GetString)).First();
-                    return method.CreateDelegate(typeof(Func<int, string>));
+                    return methods.Where(a => a.Name == nameof(IDataRecord.GetString)).First();
                 }
                 if (type == typeof(byte[]))
                 {
-                    return typeof(IDataRecordExtensions).GetMethods()
-                    .Where(a => a.Name == nameof(IDataRecordExtensions.GetBytes))
-                    .First()
-                    .CreateDelegate(typeof(Func<int, byte[]>));
+                    return typeof(IDataRecordExtensions).GetMethods().Where(a => a.Name == nameof(GetBytes)).First();
                 }
                 if (type == typeof(char[]))
                 {
-                    return typeof(IDataRecordExtensions).GetMethods()
-                    .Where(a => a.Name == nameof(IDataRecordExtensions.GetChars))
-                    .First()
-                    .CreateDelegate(typeof(Func<int, byte[]>));
+                    return typeof(IDataRecordExtensions).GetMethods().Where(a => a.Name == nameof(GetChars)).First();
                 }
-                return methods.Where(a => a.Name == nameof(IDataRecord.GetValue))
-                    .First()
-                    .CreateDelegate(typeof(Func<int, object>));
+                return methods.Where(a => a.Name == nameof(IDataRecord.GetValue)).First();
             });
         }
     }

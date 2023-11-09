@@ -104,7 +104,7 @@ namespace Soul.SqlBatis.Infrastructure
             var fields = dr.GetFields();
             var entityType = typeof(T);
             var parameter = Expression.Parameter(typeof(IDataRecord), "dr");
-            if (fields.Count == 1 && IDataRecordExtensions.GetDelegate(entityType) != null)
+            if (fields.Count == 1 && IDataRecordExtensions.GetGetMethod(entityType) != null)
             {
                 var body = CreateSerializerExpression(parameter, entityType, fields[0]);
                 var lambda = Expression.Lambda(body, parameter);
@@ -162,14 +162,14 @@ namespace Soul.SqlBatis.Infrastructure
                 var test = Expression.Call(parameter, isDbNullMethod, ordinalExpression);
                 var ifTrue = Expression.Default(memberType);
                 Expression ifElse;
-                var dataRecordDelegate = IDataRecordExtensions.GetDelegate(field.Type);
-                if (dataRecordDelegate.Method.IsStatic)
+                var getMethod = IDataRecordExtensions.GetGetMethod(field.Type);
+                if (getMethod.IsStatic)
                 {
-                    ifElse = Expression.Call(dataRecordDelegate.Method, parameter, ordinalExpression);
+                    ifElse = Expression.Call(getMethod, parameter, ordinalExpression);
                 }
                 else
                 {
-                    ifElse = Expression.Call(parameter, dataRecordDelegate.Method, ordinalExpression);
+                    ifElse = Expression.Call(parameter, getMethod, ordinalExpression);
                 }
                 if (memberType != field.Type)
                 {
@@ -215,7 +215,7 @@ namespace Soul.SqlBatis.Infrastructure
         private static string CreateSerializerDelegateKey<T>(List<DataRecordField> fields)
         {
             var entityType = typeof(T);
-            if (fields.Count == 1 && IDataRecordExtensions.GetDelegate(entityType) != null)
+            if (fields.Count == 1 && IDataRecordExtensions.GetGetMethod(entityType) != null)
             {
                 return $"{fields[0].Type.GUID:N}|{entityType.GUID:N}";
             }
