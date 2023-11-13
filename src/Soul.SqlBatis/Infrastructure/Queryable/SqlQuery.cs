@@ -97,7 +97,7 @@ namespace Soul.SqlBatis.Infrastructure
                 var sql = Query();
                 return $"SELECT MIN({columns}) FROM ({sql}) AS t";
             }
-            return string.Join(" ", $"SELECT MIN({columns}) FROM {fromSql}", tokens);
+            return StringJoin(" ", $"SELECT MIN({columns}) FROM {fromSql}", tokens);
         }
 
         private string Max()
@@ -110,7 +110,7 @@ namespace Soul.SqlBatis.Infrastructure
                 var sql = Query();
                 return $"SELECT MAX({columns}) FROM ({sql}) AS t";
             }
-            return string.Join(" ", $"SELECT MAX({columns}) FROM {fromSql}", tokens);
+            return StringJoin(" ", $"SELECT MAX({columns}) FROM {fromSql}", tokens);
         }
 
         private string Avg()
@@ -123,7 +123,7 @@ namespace Soul.SqlBatis.Infrastructure
                 var sql = Query();
                 return $"SELECT AVG({columns}) FROM ({sql}) AS t";
             }
-            return string.Join(" ", $"SELECT AVG({columns}) FROM {fromSql}", tokens);
+            return StringJoin(" ", $"SELECT AVG({columns}) FROM {fromSql}", tokens);
         }
 
         private string Any()
@@ -159,13 +159,13 @@ namespace Soul.SqlBatis.Infrastructure
                 var take = _tokens[DbExpressionType.Take].Last();
                 var limit = $"OFFSET {offset} ROWS FETCH NEXT {take} ROW ONLY";
                 var orderBy = GetOrderBySql(true);
-                return string.Join(" ", $"SELECT {column} FROM {view}", filter, orderBy, limit);
+                return StringJoin(" ", $"SELECT {column} FROM {view}", filter, orderBy, limit);
             }
             else if (!_tokens.Any(a => a.Key == DbExpressionType.Skip) && _tokens.Any(a => a.Key == DbExpressionType.Take))
             {
                 var orderBy = GetOrderBySql(false);
                 var take = _tokens[DbExpressionType.Take].Last();
-                return string.Join(" ", $"SELECT TOP {take} {column} FROM {view}", filter, orderBy);
+                return StringJoin(" ", $"SELECT TOP {take} {column} FROM {view}", filter, orderBy);
             }
             else if (_tokens.Any(a => a.Key == DbExpressionType.Skip) && !_tokens.Any(a => a.Key == DbExpressionType.Take))
             {
@@ -173,12 +173,12 @@ namespace Soul.SqlBatis.Infrastructure
                 var offset = _tokens[DbExpressionType.Skip].Last();
                 var take = int.MaxValue;
                 var limit = $"OFFSET {offset} ROWS FETCH NEXT {take} ROW ONLY";
-                return string.Join(" ", $"SELECT {column} FROM {view}", filter, limit, orderBy);
+                return StringJoin(" ", $"SELECT {column} FROM {view}", filter, limit, orderBy);
             }
             else
             {
                 var orderBy = GetOrderBySql(true);
-                return string.Join(" ", $"SELECT {column} FROM {view}", filter, orderBy);
+                return StringJoin(" ", $"SELECT {column} FROM {view}", filter, orderBy);
             }
         }
 
