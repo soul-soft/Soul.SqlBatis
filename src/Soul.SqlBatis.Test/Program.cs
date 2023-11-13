@@ -9,17 +9,13 @@ var options = new DbContextOptionsBuilder()
     .Build();
 
 
-TypeMapper.AddTypeMapper<DateTime, string>(date => 
-{
-    return date.ToString("yyyy-MM-dd");
-});
-
-
+//TypeMapper.AddTypeMapper<DateTime, string>(date => 
+//{
+//    return date.ToString("yyyy-MM-dd");
+//});
 
 using var context = new MyDbContext(options);
-context.OpenDbConnection();
-context.Students.SetProperty(a => a.BinaryData, Encoding.UTF8.GetBytes("afdf"))
-    .ExecuteUpdate();
+
 var student = context.Students.Where(a => a.Id == 1).Single();
 var text = Encoding.UTF8.GetString(student.BinaryData);
 var list1 = context.Students.ToList();

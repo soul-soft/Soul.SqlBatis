@@ -158,7 +158,8 @@ namespace Soul.SqlBatis.Infrastructure
             {
                 var offset = _tokens[DbExpressionType.Skip].Last();
                 var take = _tokens[DbExpressionType.Take].Last();
-                return $"LIMIT {offset}, {take}";
+                var limit = $"OFFSET {offset} ROWS FETCH NEXT {take} ROW ONLY";
+                return string.Join(" ", $"SELECT {column} FROM {view}", filter, limit);
             }
             else if (!_tokens.Any(a => a.Key == DbExpressionType.Skip) && _tokens.Any(a => a.Key == DbExpressionType.Take))
             {
@@ -169,7 +170,8 @@ namespace Soul.SqlBatis.Infrastructure
             {
                 var offset = _tokens[DbExpressionType.Skip].Last();
                 var take = int.MaxValue;
-                return $"LIMIT {offset}, {take}";
+                var limit = $"OFFSET {offset} ROWS FETCH NEXT {take} ROW ONLY";
+                return string.Join(" ", $"SELECT {column} FROM {view}", filter, limit);
             }
             return string.Join(" ", $"SELECT {column} FROM {view}", filter);
         }
