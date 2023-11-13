@@ -1,5 +1,5 @@
 # Soul.SqlBatis
-这款ORM设计思想以查询性能为主极低的配置代价，支持动态实体配置、实体变更跟踪、动态sql查询、Linq查询、sql+Linq混合查询。
+这款ORM设计思想以查询性能为主极低的配置，强悍的查询能力，支持动态实体配置、实体变更跟踪、动态sql查询、Linq查询、sql+Linq混合查询。
 
 ## DbContext配置
 
@@ -120,12 +120,12 @@ var context = new MyDbContext(options);
    
    //只跟踪不读缓存
     var student = context.Students
-        .Where(a => a.Id == 1)
+	.Where(a => a.Id == 1)
 	//主动跟踪
-  	.AsTracking()
-        //不进行跟踪
-  	.AsNoTracking()
-        .First();
+	.AsTracking()
+	//不进行跟踪
+	.AsNoTracking()
+	.First();
     student.Name = "zs";
     context.SaveChanges();		
   ```
