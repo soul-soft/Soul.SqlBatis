@@ -6,7 +6,7 @@ namespace Soul.SqlBatis
 {
 	public class SqlBuilder
 	{
-		private List<Token> _tokens = new List<Token>();
+		private readonly List<Token> _tokens = new List<Token>();
 
 		public SqlBuilder Set(string sql, bool flag = true)
 		{

@@ -5,7 +5,7 @@ namespace Soul.SqlBatis
 {
     public class DynamicParameters
     {
-        private Dictionary<string, object> _values = new Dictionary<string, object>();
+        private readonly Dictionary<string, object> _values = new Dictionary<string, object>();
 
         public IReadOnlyDictionary<string, object> Parameters => _values;
 
