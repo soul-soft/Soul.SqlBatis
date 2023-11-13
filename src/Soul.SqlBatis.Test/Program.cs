@@ -1,6 +1,4 @@
-﻿using System.Text;
-using Soul.SqlBatis;
-using Soul.SqlBatis.Entities;
+﻿using Soul.SqlBatis;
 using Soul.SqlBatis.Infrastructure;
 
 var options = new DbContextOptionsBuilder()
