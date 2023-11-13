@@ -64,7 +64,7 @@ namespace Soul.SqlBatis.Infrastructure
 
         private string Count()
         {
-            var tokens = BuildFilterSql(DbExpressionType.OrderBy);
+            var tokens = BuildFilterSql();
             var columns = GetColumnSql();
             var fromSql = BuildFromSql();
             if (_tokens.ContainsKey(DbExpressionType.GroupBy))
@@ -159,29 +159,36 @@ namespace Soul.SqlBatis.Infrastructure
                 var offset = _tokens[DbExpressionType.Skip].Last();
                 var take = _tokens[DbExpressionType.Take].Last();
                 var limit = $"OFFSET {offset} ROWS FETCH NEXT {take} ROW ONLY";
-                return string.Join(" ", $"SELECT {column} FROM {view}", filter, limit);
+                var orderBy = GetOrderBySql(true);
+                return string.Join(" ", $"SELECT {column} FROM {view}", filter, orderBy, limit);
             }
             else if (!_tokens.Any(a => a.Key == DbExpressionType.Skip) && _tokens.Any(a => a.Key == DbExpressionType.Take))
             {
+                var orderBy = GetOrderBySql(false);
                 var take = _tokens[DbExpressionType.Take].Last();
-                return string.Join(" ", $"SELECT TOP {take} {column} FROM {view}", filter);
+                return string.Join(" ", $"SELECT TOP {take} {column} FROM {view}", filter, orderBy);
             }
             else if (_tokens.Any(a => a.Key == DbExpressionType.Skip) && !_tokens.Any(a => a.Key == DbExpressionType.Take))
             {
+                var orderBy = GetOrderBySql(true);
                 var offset = _tokens[DbExpressionType.Skip].Last();
                 var take = int.MaxValue;
                 var limit = $"OFFSET {offset} ROWS FETCH NEXT {take} ROW ONLY";
-                return string.Join(" ", $"SELECT {column} FROM {view}", filter, limit);
+                return string.Join(" ", $"SELECT {column} FROM {view}", filter, limit, orderBy);
             }
-            return string.Join(" ", $"SELECT {column} FROM {view}", filter);
+            else
+            {
+                var orderBy = GetOrderBySql(true);
+                return string.Join(" ", $"SELECT {column} FROM {view}", filter, orderBy);
+            }
         }
 
-        private string BuildFilterSql(params DbExpressionType[] filters)
+        private string BuildFilterSql()
         {
             var tokens = _tokens
-                .Where(a => !filters.Contains(a.Key))
                 .Where(a => a.Key != DbExpressionType.Take)
                 .Where(a => a.Key != DbExpressionType.Skip)
+                .Where(a => a.Key != DbExpressionType.OrderBy)
                 .OrderBy(s => s.Key)
                 .Select(item =>
                 {
@@ -214,6 +221,23 @@ namespace Soul.SqlBatis.Infrastructure
                     return sql;
                 });
             return string.Join(" ", tokens);
+        }
+
+        private string GetOrderBySql(bool hasDefault)
+        {
+            if (_tokens.Any(a => a.Key == DbExpressionType.OrderBy))
+            {
+                return $"ORDER BY {string.Join(",", _tokens[DbExpressionType.OrderBy])}";
+            }
+            else if (hasDefault && _entityType.Properties.Any(a => a.IsKey))
+            {
+                return $"ORDER BY {_entityType.Properties.Where(a => a.IsKey).First().ColumnName}";
+            }
+            else if (hasDefault)
+            {
+                return $"ORDER BY (SELECT 1)";
+            }
+            return string.Empty;
         }
     }
 }

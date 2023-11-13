@@ -16,14 +16,5 @@ var options = new DbContextOptionsBuilder()
 
 using var context = new MyDbContext(options);
 
-var student = context.Students.Where(a => a.Id == 1).Single();
-var text = Encoding.UTF8.GetString(student.BinaryData);
-var list1 = context.Students.ToList();
-var list2 = context.Students.ToList();
-int w = 2;
-decimal a = (decimal)w;
-Console.WriteLine();
-
-
-var asw = new { Age = 20 };
+var list = context.Students.Where(a => a.Id == 1).ToPageList(1,10);
 Console.WriteLine();
