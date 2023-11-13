@@ -17,7 +17,7 @@
 		<Description>Supports Linq, entity tracking, dynamic SQL.The universe's invincible orm framework does not accept any refutation!!! </Description>
 		<Company>Soul</Company>
 		<Authors>Soul</Authors>
-		<PackageTags>SqlBatis;O/RM;Entity;EntityFramework;ChangeTracker;ADO.NET</PackageTags>
+		<PackageTags>SqlBatis;O/RM;Entity;EntityFramework;ChangeTracker;ADO.NET;MySql;SqlServer</PackageTags>
 		<PackageIcon>soul.png</PackageIcon>
 	</PropertyGroup>
 
