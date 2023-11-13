@@ -318,6 +318,15 @@ namespace Soul.SqlBatis
         {
 
         }
+       
+        public virtual List<dynamic> Query(string sql, object param = null, int? commandTimeout = null, CommandType? commandType = null)
+        {
+            return ExecuteDbCommandStrategy(() =>
+            {
+                Logging(sql, param);
+                return _connection.Query(sql, param, GetDbTransaction(), commandTimeout, commandType);
+            });
+        }
 
         public virtual List<T> Query<T>(string sql, object param = null, int? commandTimeout = null, CommandType? commandType = null)
         {
@@ -325,6 +334,15 @@ namespace Soul.SqlBatis
             {
                 Logging(sql, param);
                 return _connection.Query<T>(sql, param, GetDbTransaction(), commandTimeout, commandType);
+            });
+        }
+        
+        public virtual async Task<List<dynamic>> QueryAsync(string sql, object param = null, int? commandTimeout = null, CommandType? commandType = null, CancellationToken? cancellationToken = default)
+        {
+            return await ExecuteDbCommandStrategyAsync(async () =>
+            {
+                Logging(sql, param);
+                return await _connection.QueryAsync(sql, param, GetDbTransaction(), commandTimeout, commandType, cancellationToken);
             });
         }
 
