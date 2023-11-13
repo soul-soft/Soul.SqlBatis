@@ -170,9 +170,9 @@ namespace Soul.SqlBatis
             {
                 parameter.Value = DBNull.Value;
             }
-            else if (JsonConvert.IsJsonType(value.GetType()))
+            else if (JsonConverter.IsJsonType(value.GetType()))
             {
-                var json = JsonConvert.JsonSerialize(value);
+                var json = JsonConverter.JsonSerialize(value);
                 parameter.Value = json;
             }
             else

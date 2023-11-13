@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-	internal class JsonConvert
+	internal class JsonConverter
 	{
 
 		public static bool IsJsonType(Type type)
@@ -36,7 +36,7 @@ namespace Soul.SqlBatis.Infrastructure
 
 		public static MethodInfo GetDeserializeConverter(Type type)
 		{
-			return typeof(JsonConvert).GetMethod(nameof(JsonDeserialize), new Type[] { typeof(string) }).MakeGenericMethod(type);
+			return typeof(JsonConverter).GetMethod(nameof(JsonDeserialize), new Type[] { typeof(string) }).MakeGenericMethod(type);
 		}
 	}
 }

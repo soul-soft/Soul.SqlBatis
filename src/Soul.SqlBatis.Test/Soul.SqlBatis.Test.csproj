@@ -51,4 +51,8 @@
     </Compile>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="DataConverters\" />
+  </ItemGroup>
+
 </Project>

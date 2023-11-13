@@ -7,39 +7,7 @@ using System.Reflection;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-    internal class DataRecordField
-    {
-        public Type Type { get; }
-
-        public string Name { get; }
-
-        public int Ordinal { get; }
-
-        public DataRecordField(Type type, string name, int ordinal)
-        {
-            Type = type;
-            Name = name;
-            Ordinal = ordinal;
-        }
-
-        public string Code
-        {
-            get
-            {
-                if (typeof(byte[]) == Type)
-                {
-                    return "ByteArray";
-                }
-                if (typeof(char[]) == Type)
-                {
-                    return "CharArray";
-                }
-                return ((int)Type.GetTypeCode(Type)).ToString();
-            }
-        }
-    }
-
-    internal static class DbTypeConver
+    internal static class DataRecordConverter
     {
         private readonly static ConcurrentDictionary<Type, MethodInfo> _converters = new ConcurrentDictionary<Type, MethodInfo>();
 
@@ -124,15 +92,14 @@ namespace Soul.SqlBatis.Infrastructure
                 }
                 if (type == typeof(byte[]))
                 {
-                    return typeof(DbTypeConver).GetMethods().Where(a => a.Name == nameof(GetBytes)).First();
+                    return typeof(DataRecordConverter).GetMethods().Where(a => a.Name == nameof(GetBytes)).First();
                 }
                 if (type == typeof(char[]))
                 {
-                    return typeof(DbTypeConver).GetMethods().Where(a => a.Name == nameof(GetChars)).First();
+                    return typeof(DataRecordConverter).GetMethods().Where(a => a.Name == nameof(GetChars)).First();
                 }
                 return methods.Where(a => a.Name == nameof(IDataRecord.GetValue)).First();
             });
         }
     }
-
 }

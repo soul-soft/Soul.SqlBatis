@@ -93,7 +93,7 @@ namespace Soul.SqlBatis.Infrastructure
 
         #endregion
 
-        #region TypeMapper
+        #region DataConverter
         public static void AddTypeMapper<TColumn, TMember>(Func<TColumn, TMember> converter)
         {
             var key = CreateTypeMapperKey(typeof(TColumn), typeof(TMember));
@@ -112,12 +112,13 @@ namespace Soul.SqlBatis.Infrastructure
         }
         #endregion
 
+        #region Helper
         private static Func<IDataRecord, T> CreateSerializerDelegate<T>(IDataRecord dr)
         {
             var fields = dr.GetFields();
             var entityType = typeof(T);
             var parameter = Expression.Parameter(typeof(IDataRecord), "dr");
-            if (fields.Count == 1 && DbTypeConver.GetGetMethod(entityType) != null)
+            if (fields.Count == 1 && DataRecordConverter.GetGetMethod(entityType) != null)
             {
                 var body = CreateSerializerExpression(parameter, entityType, fields[0]);
                 var lambda = Expression.Lambda(body, parameter);
@@ -167,7 +168,7 @@ namespace Soul.SqlBatis.Infrastructure
                 var test = Expression.Call(parameter, isDbNullMethod, ordinalExpression);
                 var ifTrue = Expression.Default(memberType);
                 Expression ifElse;
-                var getMethod = DbTypeConver.GetGetMethod(field.Type);
+                var getMethod = DataRecordConverter.GetGetMethod(field.Type);
                 if (getMethod.IsStatic)
                 {
                     ifElse = Expression.Call(getMethod, parameter, ordinalExpression);
@@ -194,9 +195,9 @@ namespace Soul.SqlBatis.Infrastructure
                         var converter = GetObjectToStringMethod(field.Type);
                         ifElse = Expression.Call(converter, ifElse);
                     }
-                    else if (JsonConvert.IsJsonType(memberType))
+                    else if (JsonConverter.IsJsonType(memberType))
                     {
-                        var converter = JsonConvert.GetDeserializeConverter(memberType);
+                        var converter = JsonConverter.GetDeserializeConverter(memberType);
                         ifElse = Expression.Call(converter, ifElse);
                     }
                     else
@@ -215,7 +216,7 @@ namespace Soul.SqlBatis.Infrastructure
         private static string CreateSerializerDelegateKey<T>(List<DataRecordField> fields)
         {
             var entityType = typeof(T);
-            if (fields.Count == 1 && DbTypeConver.GetGetMethod(entityType) != null)
+            if (fields.Count == 1 && DataRecordConverter.GetGetMethod(entityType) != null)
             {
                 return $"{fields[0].Type.GUID:N}|{entityType.GUID:N}";
             }
@@ -245,5 +246,6 @@ namespace Soul.SqlBatis.Infrastructure
         {
             return typeof(Convert).GetMethod(nameof(Convert.ToString), new Type[] { type });
         }
+        #endregion
     }
 }
