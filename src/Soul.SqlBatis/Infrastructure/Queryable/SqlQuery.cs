@@ -177,7 +177,7 @@ namespace Soul.SqlBatis.Infrastructure
             }
             else
             {
-                var orderBy = GetOrderBySql(true);
+                var orderBy = GetOrderBySql(false);
                 return StringJoin(" ", $"SELECT {column} FROM {view}", filter, orderBy);
             }
         }
