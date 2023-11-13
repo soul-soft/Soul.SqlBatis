@@ -6,7 +6,7 @@ namespace Soul.SqlBatis
     public enum DBMS
     {
         MSSQL,
-        MySql,
+        MYSQL,
     }
 
     public interface IDbConnectionFactory

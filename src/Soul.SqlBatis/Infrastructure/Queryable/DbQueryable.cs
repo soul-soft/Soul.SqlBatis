@@ -89,7 +89,7 @@ namespace Soul.SqlBatis
             var dbms = _context.Options.ConnectionFactory.DBMS;
             if (dbms == DBMS.MSSQL)
             {
-                new MySqlQuery(entityType, tokens, _parameters);
+                return new MySqlQuery(entityType, tokens, _parameters);
             }
             return new SqlQuery(entityType, tokens, _parameters);
         }
