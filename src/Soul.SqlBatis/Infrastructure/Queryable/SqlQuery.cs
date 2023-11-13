@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-    public class SqlQuery : ISqlQuery
+    public class SqlQuery : SqlQueryBase
     {
         private readonly IEntityType _entityType;
         private readonly Dictionary<DbExpressionType, IEnumerable<string>> _tokens;
@@ -17,30 +17,29 @@ namespace Soul.SqlBatis.Infrastructure
             Parameters = parameters;
         }
 
-        public DynamicParameters Parameters { get; private set; }
-
-        public string QuerySql => Query();
-        public string UpdateSql => Update();
-        public string DeleteSql => Delete();
-        public string AnyQuerySql => Any();
-        public string AvgQuerySql => Avg();
-        public string MaxQuerySql => Max();
-        public string MinQuerySql => Min();
-        public string SumQuerySql => Sum();
-        public string CountQuerySql => Count();
+        public override DynamicParameters Parameters { get; }
+        public override string QuerySql => Query();
+        public override string UpdateSql => Update();
+        public override string DeleteSql => Delete();
+        public override string AnyQuerySql => Any();
+        public override string AvgQuerySql => Avg();
+        public override string MaxQuerySql => Max();
+        public override string MinQuerySql => Min();
+        public override string SumQuerySql => Sum();
+        public override string CountQuerySql => Count();
 
         private string Update()
         {
             var filter = BuildFilterSql();
             var view = BuildFromSql();
-            return string.Join(" ", $"UPDATE {view}", filter);
+            return StringJoin(" ", $"UPDATE {view}", filter);
         }
 
         private string Delete()
         {
             var filter = BuildFilterSql();
             var view = BuildFromSql();
-            return string.Join(" ", $"DELETE FROM {view}", filter);
+            return StringJoin(" ", $"DELETE FROM {view}", filter);
         }
 
         private string Query()
@@ -49,7 +48,7 @@ namespace Soul.SqlBatis.Infrastructure
             var columns = GetColumnSql();
             if (columns == "*")
             {
-                columns = string.Join(", ", _entityType.Properties.Select(s =>
+                columns = StringJoin(", ", _entityType.Properties.Select(s =>
                 {
                     if (s.ColumnName == s.Property.Name)
                     {
@@ -72,7 +71,7 @@ namespace Soul.SqlBatis.Infrastructure
                 var sql = Query();
                 return $"SELECT COUNT({columns}) FROM ({sql}) AS t";
             }
-            return string.Join(" ", $"SELECT COUNT({columns}) FROM {fromSql}", tokens);
+            return StringJoin(" ", $"SELECT COUNT({columns}) FROM {fromSql}", tokens);
         }
 
         private string Sum()
@@ -85,7 +84,7 @@ namespace Soul.SqlBatis.Infrastructure
                 var sql = Query();
                 return $"SELECT SUM({columns}) FROM ({sql}) AS t";
             }
-            return string.Join(" ", $"SELECT SUM({columns}) FROM {fromSql}", tokens);
+            return StringJoin(" ", $"SELECT SUM({columns}) FROM {fromSql}", tokens);
         }
 
         private string Min()

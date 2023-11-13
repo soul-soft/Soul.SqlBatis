@@ -8,13 +8,12 @@ var options = new DbContextOptionsBuilder()
     //.UseConnectionFactory(() => new Microsoft.Data.SqlClient.SqlConnection("Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=test;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False"), DBMS.MSSQL)
     .Build();
 
-
-//TypeMapper.AddTypeMapper<DateTime, string>(date => 
-//{
-//    return date.ToString("yyyy-MM-dd");
-//});
+TypeMapper.AddTypeMapper<DateTime, string>(date =>
+{
+    return date.ToString("yyyy/MM/dd");
+});
 
 using var context = new MyDbContext(options);
 
-var list = context.Students.Where(a => a.Id == 1).ToPageList(1,10);
+var list = context.Students.ToPageList(1,10);
 Console.WriteLine();
