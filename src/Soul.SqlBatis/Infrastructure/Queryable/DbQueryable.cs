@@ -250,7 +250,7 @@ namespace Soul.SqlBatis
             return this;
         }
 
-        public IDbQueryable<T> Set<TResult>(Expression<Func<T, TResult>> column, Expression<Func<T, TResult>> expression, bool flag = true)
+        public IDbQueryable<T> SetProperty<TResult>(Expression<Func<T, TResult>> column, Expression<Func<T, TResult>> expression, bool flag = true)
         {
             if (flag)
                 AddExpression(DbExpression.FromSetExpression(column, expression));
