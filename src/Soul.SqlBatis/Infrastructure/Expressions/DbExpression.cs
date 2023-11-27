@@ -6,14 +6,14 @@ namespace Soul.SqlBatis.Infrastructure
     {
         public Expression Expression { get; protected set; }
 
-        public DbExpressionType ExpressionType { get; protected set; }
+        public DbExpressionToken ExpressionType { get; protected set; }
 
         protected DbExpression()
         {
 
         }
 
-        private DbExpression(Expression expression, DbExpressionType expressionType)
+        private DbExpression(Expression expression, DbExpressionToken expressionType)
         {
             Expression = expression;
             ExpressionType = expressionType;
@@ -24,12 +24,12 @@ namespace Soul.SqlBatis.Infrastructure
             return new DbSetExpression(expression, value);
         }
 
-        public static DbExpression FromSqlExpression(RawSql token, DbExpressionType expressionType)
+        public static DbExpression FromSqlExpression(RawSql token, DbExpressionToken expressionType)
         {
             return new DbSqlExpression(token, expressionType);
         }
 
-        public static DbExpression FromExpression(Expression expression, DbExpressionType expressionType)
+        public static DbExpression FromExpression(Expression expression, DbExpressionToken expressionType)
         {
             return new DbExpression(expression, expressionType);
         }
@@ -37,7 +37,7 @@ namespace Soul.SqlBatis.Infrastructure
 
     internal class DbSqlExpression : DbExpression
     {
-        public DbSqlExpression(RawSql token, DbExpressionType expressionType)
+        public DbSqlExpression(RawSql token, DbExpressionToken expressionType)
         {
             Expression = Expression.Constant(token, typeof(RawSql));
             ExpressionType = expressionType;
@@ -52,7 +52,7 @@ namespace Soul.SqlBatis.Infrastructure
         {
             Value = value;
             Expression = expression;
-            ExpressionType = DbExpressionType.Set;
+            ExpressionType = DbExpressionToken.Set;
         }
     }
 }

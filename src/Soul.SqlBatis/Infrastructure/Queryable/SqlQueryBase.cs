@@ -9,12 +9,13 @@ namespace Soul.SqlBatis.Infrastructure
         public abstract string QuerySql { get; }
         public abstract string UpdateSql { get; }
         public abstract string DeleteSql { get; }
-        public abstract string AnyQuerySql { get; }
-        public abstract string AvgQuerySql { get; }
-        public abstract string MaxQuerySql { get; }
-        public abstract string MinQuerySql { get; }
-        public abstract string SumQuerySql { get; }
-        public abstract string CountQuerySql { get; }
+        public abstract string AnySql { get; }
+        public abstract string AvgSql { get; }
+        public abstract string MaxSql { get; }
+        public abstract string MinSql { get; }
+        public abstract string SumSql { get; }
+        public abstract string CountSql { get; }
+        public abstract string ViewAlias { get; }
 
         protected string StringJoin(string separator, params string[] values)
         {

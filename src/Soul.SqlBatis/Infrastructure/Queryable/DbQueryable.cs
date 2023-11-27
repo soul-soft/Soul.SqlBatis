@@ -145,7 +145,7 @@ namespace Soul.SqlBatis
         public DbQueryable(DbContext context, Type type, string fromSql, DynamicParameters parameters)
            : base(context, type, parameters)
         {
-            AddExpression(DbExpression.FromSqlExpression(fromSql, DbExpressionType.From));
+            AddExpression(DbExpression.FromSqlExpression(fromSql, DbExpressionToken.From));
         }
 
         private DbQueryable(DbContext context, Type type, List<DbExpression> expressions, DynamicParameters parameters)
@@ -159,7 +159,7 @@ namespace Soul.SqlBatis
             var sb = new SqlBuilder();
             var builder = new DbExpressionBuilder(Model, Parameters, DbExpressions);
             var tokens = builder.Build();
-            foreach (var item in tokens.Where(a => a.Key == DbExpressionType.Where))
+            foreach (var item in tokens.Where(a => a.Key == DbExpressionToken.Where))
             {
                 sb.Where(string.Join(" AND ", item.Value));
             }
@@ -181,14 +181,14 @@ namespace Soul.SqlBatis
         public IDbQueryable<T> GroupBy(RawSql sql, bool flag = true)
         {
             if (flag)
-                AddExpression(DbExpression.FromSqlExpression(sql, DbExpressionType.GroupBy));
+                AddExpression(DbExpression.FromSqlExpression(sql, DbExpressionToken.GroupBy));
             return this;
         }
 
         public IDbQueryable<T> GroupBy<TResult>(Expression<Func<T, TResult>> expression, bool flag = true)
         {
             if (flag)
-                AddExpression(DbExpression.FromExpression(expression, DbExpressionType.GroupBy));
+                AddExpression(DbExpression.FromExpression(expression, DbExpressionToken.GroupBy));
             return this;
         }
 
@@ -196,7 +196,7 @@ namespace Soul.SqlBatis
         {
             if (flag)
             {
-                AddExpression(DbExpression.FromSqlExpression(sql, DbExpressionType.Having));
+                AddExpression(DbExpression.FromSqlExpression(sql, DbExpressionToken.Having));
             }
             return this;
         }
@@ -204,42 +204,42 @@ namespace Soul.SqlBatis
         public IDbQueryable<T> Having(Expression<Func<T, bool>> expression, bool flag = true)
         {
             if (flag)
-                AddExpression(DbExpression.FromExpression(expression, DbExpressionType.Having));
+                AddExpression(DbExpression.FromExpression(expression, DbExpressionToken.Having));
             return this;
         }
 
         public IDbQueryable<T> OrderBy(RawSql sql, bool flag = true)
         {
             if (flag)
-                AddExpression(DbExpression.FromSqlExpression(sql, DbExpressionType.OrderBy));
+                AddExpression(DbExpression.FromSqlExpression(sql, DbExpressionToken.OrderBy));
             return this;
         }
 
         public IDbQueryable<T> OrderBy<TResult>(Expression<Func<T, TResult>> expression, bool flag = true)
         {
             if (flag)
-                AddExpression(DbExpression.FromExpression(expression, DbExpressionType.OrderBy));
+                AddExpression(DbExpression.FromExpression(expression, DbExpressionToken.OrderBy));
             return this;
         }
 
         public IDbQueryable<T> OrderByDescending<TResult>(Expression<Func<T, TResult>> expression, bool flag = true)
         {
             if (flag)
-                AddExpression(DbExpression.FromExpression(expression, DbExpressionType.OrderByDescending));
+                AddExpression(DbExpression.FromExpression(expression, DbExpressionToken.OrderByDescending));
             return this;
         }
 
         public IDbQueryable<TResult> Select<TResult>(RawSql sql, bool flag = true)
         {
             if (flag)
-                AddExpression(DbExpression.FromSqlExpression(sql, DbExpressionType.Select));
+                AddExpression(DbExpression.FromSqlExpression(sql, DbExpressionToken.Select));
             return Clone<TResult>();
         }
 
         public IDbQueryable<TResult> Select<TResult>(Expression<Func<T, TResult>> expression, bool flag = true)
         {
             if (flag)
-                AddExpression(DbExpression.FromExpression(expression, DbExpressionType.Select));
+                AddExpression(DbExpression.FromExpression(expression, DbExpressionToken.Select));
             return Clone<TResult>();
         }
 
@@ -260,14 +260,14 @@ namespace Soul.SqlBatis
         public IDbQueryable<T> Skip(int count, bool flag = true)
         {
             if (flag)
-                AddExpression(DbExpression.FromSqlExpression(count.ToString(), DbExpressionType.Skip));
+                AddExpression(DbExpression.FromSqlExpression(count.ToString(), DbExpressionToken.Skip));
             return this;
         }
 
         public IDbQueryable<T> Take(int count, bool flag = true)
         {
             if (flag)
-                AddExpression(DbExpression.FromSqlExpression(count.ToString(), DbExpressionType.Take));
+                AddExpression(DbExpression.FromSqlExpression(count.ToString(), DbExpressionToken.Take));
             return this;
         }
 
@@ -275,7 +275,7 @@ namespace Soul.SqlBatis
         {
             if (flag)
             {
-                AddExpression(DbExpression.FromSqlExpression(sql, DbExpressionType.Where));
+                AddExpression(DbExpression.FromSqlExpression(sql, DbExpressionToken.Where));
             }
             return this;
         }
@@ -283,7 +283,14 @@ namespace Soul.SqlBatis
         public IDbQueryable<T> Where(Expression<Func<T, bool>> expression, bool flag = true)
         {
             if (flag)
-                AddExpression(DbExpression.FromExpression(expression, DbExpressionType.Where));
+                AddExpression(DbExpression.FromExpression(expression, DbExpressionToken.Where));
+            return this;
+        }
+
+        public IDbQueryable<T> As(string name, bool flag = true)
+        {
+            if (flag)
+                AddExpression(DbExpression.FromSqlExpression(name, DbExpressionToken.As));
             return this;
         }
     }

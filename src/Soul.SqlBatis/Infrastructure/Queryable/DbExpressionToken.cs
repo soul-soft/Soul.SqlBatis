@@ -1,6 +1,6 @@
 ﻿namespace Soul.SqlBatis.Infrastructure
 {
-    public enum DbExpressionType
+    public enum DbExpressionToken
     {
         Select,
         Set,
@@ -13,5 +13,6 @@
         OrderByDescending,
         Skip,
         Take,
+        As
     }
 }

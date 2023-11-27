@@ -24,6 +24,7 @@ namespace Soul.SqlBatis
         IDbQueryable<T> Take(int count, bool flag = true);
         IDbQueryable<T> Skip(int count, bool flag = true);
         IDbQueryable<T> Clone();
+        IDbQueryable<T> As(string name, bool flag = true);
         IDbQueryable<TResult> Clone<TResult>();
     }
 }

@@ -20,15 +20,15 @@ namespace Soul.SqlBatis.Infrastructure
             _expressions = expressions;
         }
      
-        public Dictionary<DbExpressionType, IEnumerable<string>> Build()
+        public Dictionary<DbExpressionToken, IEnumerable<string>> Build()
         {
-            var result = new Dictionary<DbExpressionType, IEnumerable<string>>();
+            var result = new Dictionary<DbExpressionToken, IEnumerable<string>>();
             var values = _expressions.Select(s =>
             {
                 var key = s.ExpressionType;
-                if (key == DbExpressionType.OrderByDescending)
+                if (key == DbExpressionToken.OrderByDescending)
                 {
-                    key = DbExpressionType.OrderBy;
+                    key = DbExpressionToken.OrderBy;
                 }
                 var value = Build(s);
                 return new
@@ -50,52 +50,52 @@ namespace Soul.SqlBatis.Infrastructure
             {
                 return (sqlExpression.Expression as ConstantExpression).Value.ToString();
             }
-            if (expression.ExpressionType == DbExpressionType.From)
+            if (expression.ExpressionType == DbExpressionToken.From)
             {
                 var visitor = new DbExpressionVisitor(_model, _parameters);
                 return visitor.Build(expression.Expression);
             }
-            if (expression.ExpressionType == DbExpressionType.Where)
+            if (expression.ExpressionType == DbExpressionToken.Where)
             {
                 var visitor = new DbExpressionVisitor(_model, _parameters);
                 return visitor.Build(expression.Expression);
             }
-            if (expression.ExpressionType == DbExpressionType.OrderBy)
+            if (expression.ExpressionType == DbExpressionToken.OrderBy)
             {
                 var visitor = new DbOrderByExpressionVisitor(_model, _parameters);
                 return visitor.Build(expression.Expression);
             }
-            if (expression.ExpressionType == DbExpressionType.Skip)
+            if (expression.ExpressionType == DbExpressionToken.Skip)
             {
                 var visitor = new DbExpressionVisitor(_model, _parameters);
                 return visitor.Build(expression.Expression);
             }
-            if (expression.ExpressionType == DbExpressionType.Take)
+            if (expression.ExpressionType == DbExpressionToken.Take)
             {
                 var visitor = new DbExpressionVisitor(_model, _parameters);
                 return visitor.Build(expression.Expression);
             }
-            if (expression.ExpressionType == DbExpressionType.GroupBy)
+            if (expression.ExpressionType == DbExpressionToken.GroupBy)
             {
                 var visitor = new DbGroupByExpressionVisitor(_model, _parameters);
                 return visitor.Build(expression.Expression);
             }
-            if (expression.ExpressionType == DbExpressionType.Having)
+            if (expression.ExpressionType == DbExpressionToken.Having)
             {
                 var visitor = new DbExpressionVisitor(_model, _parameters);
                 return visitor.Build(expression.Expression);
             }
-            if (expression.ExpressionType == DbExpressionType.OrderByDescending)
+            if (expression.ExpressionType == DbExpressionToken.OrderByDescending)
             {
                 var visitor = new DbOrderByExpressionVisitor(_model, _parameters, true);
                 return visitor.Build(expression.Expression);
             }
-            if (expression.ExpressionType == DbExpressionType.Select)
+            if (expression.ExpressionType == DbExpressionToken.Select)
             {
                 var visitor = new DbSelectExpressionVisitor(_model, _parameters);
                 return visitor.Build(expression.Expression);
             }
-            if (expression.ExpressionType == DbExpressionType.Set)
+            if (expression.ExpressionType == DbExpressionToken.Set)
             {
                 var setExpression = expression as DbSetExpression;
                 var memberExpression = GetMemberExpression(setExpression.Expression);
