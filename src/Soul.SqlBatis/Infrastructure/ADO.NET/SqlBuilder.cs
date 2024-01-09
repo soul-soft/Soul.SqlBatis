@@ -75,7 +75,15 @@ namespace Soul.SqlBatis
 
 		public string WhereSql => Build("/**where**/");
 
-		public string Build(string format)
+        public string WhereText 
+		{
+			get
+			{
+				return string.Join(" AND ", _tokens.Where(a => a.Type == TokenType.Where).Select(s => s.Text));
+			}
+		}
+
+        public string Build(string format)
 		{
 			var tokens = _tokens
 				.Where(a => a.Type != TokenType.From)

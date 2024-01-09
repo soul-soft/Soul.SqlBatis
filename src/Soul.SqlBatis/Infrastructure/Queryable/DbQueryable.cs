@@ -148,6 +148,12 @@ namespace Soul.SqlBatis
             AddExpression(DbExpression.FromSqlExpression(fromSql, DbExpressionToken.From));
         }
 
+        public DbQueryable(DbContext context, Type type, SqlBuilder whereSql, DynamicParameters parameters)
+          : base(context, type, parameters)
+        {
+            AddExpression(DbExpression.FromSqlExpression(whereSql.WhereText, DbExpressionToken.Where));
+        }
+
         private DbQueryable(DbContext context, Type type, List<DbExpression> expressions, DynamicParameters parameters)
             : base(context, type, expressions, parameters)
         {

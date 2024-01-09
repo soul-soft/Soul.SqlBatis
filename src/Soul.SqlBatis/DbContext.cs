@@ -70,6 +70,12 @@ namespace Soul.SqlBatis
             return new DbSet<T>(this, parameters);
         }
 
+        public DbSet<T> FromSql<T>(SqlBuilder whereBuilder, DynamicParameters parameters = null)
+            where T : class
+        {
+            return new DbSet<T>(this, whereBuilder, parameters ?? new DynamicParameters());
+        }
+
         public IDbQueryable<T> FromSql<T>(string fromSql)
           where T : class
         {
@@ -79,7 +85,7 @@ namespace Soul.SqlBatis
         public IDbQueryable<T> FromSql<T>(string fromSql, DynamicParameters parameters = null)
             where T : class
         {
-            return new DbSet<T>(this, fromSql, parameters);
+            return new DbSet<T>(this, fromSql, parameters ?? new DynamicParameters());
         }
 
         public IEntityEntry<T> Entry<T>(T entity)

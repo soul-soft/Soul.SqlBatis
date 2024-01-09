@@ -14,5 +14,11 @@
         {
 
         }
+
+        internal DbSet(DbContext context, SqlBuilder whereBuilder, DynamicParameters parameters)
+           : base(context, typeof(T), whereBuilder, parameters)
+        {
+
+        }
     }
 }
