@@ -196,7 +196,7 @@ namespace Soul.SqlBatis
         {
             if (flag)
             {
-                AddExpression(DbExpression.FromSqlExpression(sql, DbExpressionToken.Having));
+                AddExpression(DbExpression.FromSqlExpression($"({sql})", DbExpressionToken.Having));
             }
             return this;
         }
@@ -275,7 +275,7 @@ namespace Soul.SqlBatis
         {
             if (flag)
             {
-                AddExpression(DbExpression.FromSqlExpression(sql, DbExpressionToken.Where));
+                AddExpression(DbExpression.FromSqlExpression($"({sql})", DbExpressionToken.Where));
             }
             return this;
         }

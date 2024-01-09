@@ -21,7 +21,7 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				_tokens.Add(new Token(TokenType.Where, sql));
+				_tokens.Add(new Token(TokenType.Where, $"({sql})"));
 			}
 			return this;
 		}
@@ -39,7 +39,7 @@ namespace Soul.SqlBatis
 		{
 			if (flag)
 			{
-				_tokens.Add(new Token(TokenType.Having, sql));
+				_tokens.Add(new Token(TokenType.Having, $"({sql})"));
 			}
 			return this;
 		}
