@@ -1,37 +1,43 @@
 # Soul.SqlBatis
 
-- Flexible and simple configuration, supports LINQ+SQL, and entity change tracking.
-- Supports customization; refer to the source code for details.
-- The source code is concise and easy to understand, with around 4000 lines of code (algorithms + data structures).
-- The author retains all final rights, and the open-source license is MIT.Configuring DbContext
+* 配置灵活简单，支持linq+sql，支持实体更改跟踪
 
-```C#
+* 支持个性化，具体参考源码
+
+* 源码简短易懂只有4000左右行代码（算法+数据结构）
+
+* 转载格式必须注明：【作者：花间岛，原包：Soul.SqlBatis】
+
+* 作者保留最终所有权，开源协议采用MIT
+
+## 配置DbContext
+
+```` C#
 var context = new MyDbContext(configure =>
 {
-    //logger
+    //设置日志
     configure.UseLogger((sql, param) =>
     {
         Console.WriteLine(sql);
         Debug.WriteLine(sql);
     });
-    //query tracking
+    //启用查询跟踪
     configure.UseQueryTracking();
-    //connect
+    //设置连接对象
     configure.UseConnection(new MySqlConnection("Server=127.0.0.1;User ID=root;Password=1024;Database=test"));
 });
-```
+````
 
-## Configuring Model
+## 配置Model
 
-* It is recommended to provide a parameterless constructor.
+1. 建议一定要提供一个无参构造器
+2. 默认认为名为Id的字段为主键和自增列
+3. 使用[NotIdentity]可以移除名为Id列的自增特征
+4. 如需个性化，请实现IModel接口
 
-* By default, a field named "Id" is considered the primary key and auto-increment column.
 
-* Use [NotIdentity] to remove the auto-increment feature of a column named "Id".
+```` C#
 
-* For customization, implement the IModel interface.
-
-```C#
 public class Student
 {
     [Column("id")]
@@ -52,31 +58,31 @@ public class Address(string cityName, string areaName)
     public string CityName { get; } = cityName;
     public string AreaName { get; } = areaName;
 }
-```
+````
 
-## Query Syntax
+## 查询语法
 
-### List
+### 列表
 
-```C#
+```` C#
 var list = context.Set<Student>().ToList();
 var (list, total) = context.Set<Student>().ToPageList(1, 10);
-```
+````
 
-### Statistics
+### 统计
 
-```C#
+```` C#
 var count = context.Set<Student>().Count();
 var sum = context.Set<Student>().Sum(a => a.Id);
 var min = context.Set<Student>().Min(a => a.Id);
 var max = context.Set<Student>().Max(a => a.Id);
 var has = context.Set<Student>().Any(a => a.Id > 10);
 var avg = context.Set<Student>().Average(a => a.Id);
-```
+````
 
-### IN Query
+### IN查询
 
-```C#
+```` C#
 var ids = new List<int>() {1, 2, 3};
 var list = context.Set<Student>()
     .Where(a => ids.Contains(a.Id))
@@ -93,32 +99,32 @@ var list = context.Set<Student>()
 var list = context.Set<Student>()
     .Where(a => DbOps.InSub(a.Id, "SELECT stu_id FROM grades WHERE level = 1"))
     .ToList();
-```
+````
 
-### Parameterized Query
+### 参数化查询
 
-```C#
+```` C#
 var parameter = new DynamicParameters();
 parameter.Add("Level", 1);
 var list = context.Set<Student>(parameter)
     .Where(a => DbOps.InSub(a.Id, "SELECT stu_id FROM grades WHERE level = @Level"))
     .ToList();
-```
+````
 
-### Query Reuse
+### 查询复用
 
-```C#
-// Function 1: Can be encapsulated into a function for reuse
+```` C#
+//函数1：可以封装到一个函数里，用于复用
 var parameter = new DynamicParameters();
 parameter.Add("Level", 1);
 var query = context.Set<Student>(parameter)
     .Where(a => DbOps.InSub(a.Id, "SELECT stu_id FROM grades WHERE level = @Level"))
     .OrderBy(a => a.Id);
 
-// Function 2: List query
+//函数2：列表查询
 var (list, total) = query.OrderBy(a => a.Id).ToPageResult(1, 20);
 
-// Function 3: Statistics query
+//函数3：统计查询
 var (sb, parameters) = query.As("stu").Build();
 var view = $@"
 SELECT
@@ -140,12 +146,12 @@ LEFT JOIN (
 {sb.OrderSql}
 ";
 var list = context.Command.Query<StudentAvgDto>(view, parameters);
-```
+````
 
 ### SqlBuilder
 
-```C#
-// Query parameters
+```` C#
+//查询参数
 var req  = new 
 {
     Level = (int?)1,
@@ -153,16 +159,16 @@ var req  = new
     EndTime = (DateTime?)null
 };
 
-// Dynamic parameters
+//动态参数
 var parameter = new DynamicParameters();
 parameter.Add(req);
 
-// Query body
+//查询主体
 var sb = new SqlBuilder();
 sb.Where("math_avg > 89", req.Level != null);
 sb.Order("math_avg_ DESC");
 sb.Page(1, 10);
-// Build dynamic score query
+//构建成绩动态查询
 var sbScore = new SqlBuilder();
 sbScore.Where("create_time >= @StartTime" , req.StartTime != null);
 sbScore.Where("create_time <= @EndTime", req.EndTime != null);
@@ -186,7 +192,7 @@ LEFT JOIN (
 {sb.WhereSql}
 {sb.OrderSql}
 {sb.LimitSql}
-/**counter sql** /
+/**计数语句**/
 ;SELECT 
     COUNT(**)
 FROM
@@ -203,41 +209,42 @@ LEFT JOIN (
 ) AS sc ON stu.id = sc.stu_id
 {sb.WhereSql}
 ";
-// Initiate query
+//发起查询
 using(var mutil = context.Command.QueryMultiple(view, parameters))
 {
     var list = mutil.Read<StudentAvgDto>();
     var total = mutil.ReadFirst<int>();
 }
-```
+````
 
-## Update Query
 
-```C#
-var f = context.Set<Student>()
+## 更新查询
+
+```` C#
+ var f = context.Set<Student>()
     .Where(a => a.Id == 1)
     .ExecuteUpdate(setters => setters
         .SetProperty(a => a.Name, "zs")
         .SetProperty(a => a.State, a => a.State + 1));
-```
+````
 
-## Delete Query
+## 删除查询
 
-```C#
-var f = context.Set<Student>()
+```` C#
+ var f = context.Set<Student>()
     .Where(a => a.Id == 1)
     .ExecuteDelete();
-```
+````
 
-## Custom Functions
+## 自定义函数
 
-1. Custom functions are used to map to database functions.
-2. Custom functions must be defined in a static class and only need to be declared without implementation.
-3. The class or the function itself should have the [DbFunction] attribute.
-4. Supports parameter templating with Format. In Format, braces are used as parameter placeholders.
-5. The function name defaults to the final database function, but you can specify with [DbFunction(Name = "COUNT")].
+1. 自定义函数用于对数据库函数进行映射
+2. 自定义函数必须定义在静态类中，只需声明无需实现
+3. 函数定义的类或者函数自身带有[DbFunction]特性
+4. 支持参数模板化Format。Format里花括号里是参数占位标记
+5. 函数名默认为最终的数据库函数，可以通过[DbFunction(Name = "COUNT")]指定
 
-```C#
+```` C#
 [DbFunction]
 public static class DbFunc
 {
@@ -267,35 +274,35 @@ public static class DbFunc
 var list = context.Set<Student>()
     .Select(s => DbFunc.IF(s.State > 10, "A", "S"))
     .ToList();
-```
+````
 
-## Custom Type Mapping
+## 自定义类型映射
 
-### Method 1
+### 方式一
 
-1. The UseTypeMapper method is used to handle member property types, i.e., the UseTypeMapper method returns a bool indicating handling for properties of type bool.
-2. No need to handle Nullable types; the framework will automatically manage it.
-3. The advantage of this method is its simplicity, but it lacks flexibility and context information.
-4. This method has lower priority than the factory method but higher than the default method.
+1. 通过UseTypeMapper方式是通过成员的属性类型来查找的，即UseTypeMapper方法返回bool表示用于处理属性类型是bool的情况
+2. 无需处理Nullable情况，框架内部会自动处理
+3. 方式的优点是配置简单，确定是不够灵活，缺失上下文信息
+4. 该方式优先级低于工程模式，高于默认的模式
 
-```C#
+```` C#
 var context = new MyDbContext(configure =>
 {
     configure.UseEntityMapper(configureOptions =>
     {
-        // Handle bool type
+        //处理bool类型
         configureOptions.UseTypeMapper((record, i) =>
         {
             var result = record.GetInt16(i);
             return result == 0 ? false : true;
         });
-        // Handle string
+        //处理string
         configureOptions.UseTypeMapper((record, i) =>
         {
             return record.GetString(i);
             throw new InvalidOperationException();
         });
-        // Handle timeSpan
+        //处理timeSpan
         configureOptions.UseTypeMapper((record, i) =>
         {
             if (record is MySqlDataReader reader)
@@ -304,7 +311,7 @@ var context = new MyDbContext(configure =>
             }
             throw new InvalidOperationException();
         });
-        // Handle bytes
+        //处理bytes
         configureOptions.UseTypeMapper((record, i) =>
         {
             var buffer = new byte[1024];
@@ -315,24 +322,24 @@ var context = new MyDbContext(configure =>
     });
     configure.UseConnection(new MySqlConnection("Server=127.0.0.1;User ID=root;Password=1024;Database=test"));
 });
-```
+````
 
-### Method 2
+### 方式二
 
-1. You can configure using a factory method, which is more flexible.
-2. Methods 1 and 2 can be used simultaneously, but method 2 has higher priority than method 1.
-3. The returned TypeMapper must be a static function and cannot be a generic method; if it is, it should be made non-generic.
-4. The method should have only two parameters, with the first being of type IDataRecord and the second being int.
-5. Avoid writing unrelated code in the mapper method to prevent performance issues.
-6. The return type of the function must match the MemberType.
+1. 可以通过工程模式来进行配置，工厂模式更加的灵活
+2. 方式一和方式二可以同时使用，但是方式二的优先级高于方式一
+3. 返回的TypeMapper必须是一个静态函数，且不能是泛型方法，如果是泛型方法应该make成非泛型方法
+4. 参数的个数只有两个且第一个的类型必须是IDataRecord，第二必须是int
+5. 不要在映射器方法内写无关代码来影响性能
+6. 函数的返回类型，必须要和MemberType一致
 
-```C#
+```` C#
 public class TypeMapperFactory : ITypeMapperFactory
 {
-    // Must be a static function
+    //必须是静态函数
     public static T StringToJson<T>(IDataRecord record, int i)
     {
-        return JsonSerializer.Deserialize<T>(record.GetString(i), new JsonSerializerOptions 
+        return JsonSerializer.Deserialize<T>(record.GetString(i),new JsonSerializerOptions 
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         })
@@ -350,7 +357,7 @@ public class TypeMapperFactory : ITypeMapperFactory
         {
             while(true)
             {
-                var buffer = new byte[1024 * 16];
+                var buffer = new int[1024 * 16];
                 var count = (int)record.GetBytes(i, 0, buffer, 0, buffer.Length);
                 if(count > 0)
                     ms.Write(buffer, 0, count);
@@ -363,23 +370,23 @@ public class TypeMapperFactory : ITypeMapperFactory
 
     public MethodInfo? GetTypeMapper(TypeMapperContext context)
     {
-        // Distinguish which mapper to use; if DB does not support JSON type, you can add annotations to the field or type for judgment
+        //通过这个来区分使用那个映射器，如果DB不支持json类型，那么可以给字段添加注解，或者给类型添加注解，用于判断
         if ("json".Equals(context.FieldTypeName, StringComparison.OrdinalIgnoreCase) && context.FieldType == typeof(string) && context.MemberType != typeof(string))
         {
             return GetType().GetMethod(nameof(StringToJson))!.MakeGenericMethod(context.MemberType);
         }
         
-        // String to string
+        //string to string
         if(context.FieldType == typeof(string) && context.MemberType == typeof(string))
             return GetType().GetMethod(nameof(StringToString));
         
-        // Byte[] to string
+        //byte[] to string
         if(context.FieldType == typeof(byte[]) && context.MemberType == typeof(string))
             return GetType().GetMethod(nameof(BytesToString));
         return null;
     }
 }
-// Apply type mapping factory
+//应用类型映射工厂
 var context = new MyDbContext(configure =>
 {
     configure.UseEntityMapper(configureOptions =>
@@ -388,4 +395,4 @@ var context = new MyDbContext(configure =>
     });
     configure.UseConnection(new MySqlConnection("Server=127.0.0.1;User ID=root;Password=1024;Database=test"));
 });
-```
+````
