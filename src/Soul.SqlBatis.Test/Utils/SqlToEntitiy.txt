@@ -1,0 +1,10 @@
+﻿
+
+using System.ComponentModel.DataAnnotations.Schema;
+
+public class Entity
+{
+	[Column("col")]
+	public long? Col { get; set; }
+}
+

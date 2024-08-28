@@ -1,0 +1,102 @@
+﻿<#@ template language="C#" hostspecific="true"#>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data" #>
+<#@ assembly name="$(SolutionDir)\References\Dapper.dll" #>
+<#@ assembly name="$(SolutionDir)\References\MySqlConnector.dll" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="MySqlConnector" #>
+<#@ import namespace="Dapper" #>
+<#@ output extension=".txt" #>
+<#  
+	//本工具用于基于sql生成实体
+	var sql = @"
+SELECT 1 as col
+	";
+
+#>
+
+<#  
+	var connectionString = "Server=localhost;Port=3306;User ID=root;Password=1024;Database=test";
+	var columns = SqlManager.GetColumns(connectionString, sql);
+#>
+
+using System.ComponentModel.DataAnnotations.Schema;
+
+public class Entity
+{
+<#foreach(var item in columns) {#>
+	[Column("<#=item.ColumnName#>")]
+	public <#= item.CSharpType #> <#= item.CSharpName #> { get; set; }
+<# }#>
+}
+
+<#+  
+public class ColumnInfo
+{
+	public string ColumnName { get; set; }
+	public string CSharpType { get; set; }
+	public string CSharpName { get; set; }
+}
+public static class SqlManager
+{
+	public static List<ColumnInfo> GetColumns(string connectionString, string commandText)
+	{
+		var connection = new MySqlConnection(connectionString);
+		connection.Open();
+		var command = connection.CreateCommand();
+		command.CommandText = commandText;
+		var reader = command.ExecuteReader();
+		var list = new List<ColumnInfo>();
+		for (int i = 0; i < reader.FieldCount; i++)
+		{
+			var name = reader.GetName(i);
+			var type = reader.GetDataTypeName(i).ToLower();
+			list.Add(new ColumnInfo 
+			{
+				ColumnName = name,
+				CSharpType = GetCSharpType(type),
+				CSharpName = Pascal(name)
+			});
+		}
+		return list;
+	}
+	public static string GetCSharpType(string columnType)
+    {
+        var type = "string";
+        switch (columnType)
+        {
+            case "varchar": type = "string"; break;
+			case "tinytext": type = "string"; break;
+            case "text": type = "string"; break;
+			case "longtext": type = "string"; break;
+			case "char": type = "string"; break;
+			case "bit": type = "bool?"; break;
+			case "tinyint": type = "int?"; break;
+			case "smallint": type = "int?"; break;
+            case "int": type = "int?"; break;
+			case "integer": type = "int?"; break;
+			case "bigint": type = "long?"; break;
+			case "mediumint": type = "int?"; break;
+			case "real": type = "float?"; break;
+			case "float": type = "float?"; break;
+			case "double": type = "double?"; break;
+			case "decimal": type = "decimal?"; break;
+			case "date": type = "DateTime?"; break;
+			case "datetime": type = "DateTime?"; break;
+			case "json": type = "string"; break;
+        }
+        return type;
+    }
+	public static string Pascal(string name)
+    {
+        var list = new List<string>();
+        foreach (var item in name.Split('_'))
+        {
+            list.Add(System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(item.ToLower()));
+        }
+        return string.Join("",list);
+    }
+}
+#>

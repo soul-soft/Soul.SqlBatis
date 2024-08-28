@@ -2,10 +2,9 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 	<database connectionString="Server=localhost;Port=3306;User ID=root;Password=1024;Database=test"/>
 	<entities>
-		<entity name="Student">
+		<entity name="MysqlDataTypes">
 			<properties>
-				<property name="Address" type="Address" />
-				<property name="State" type="StudentState?" />
+				<property name="JsonCol" type="KeyJsonValue" />
 			</properties>
 		</entity>
 	</entities>
