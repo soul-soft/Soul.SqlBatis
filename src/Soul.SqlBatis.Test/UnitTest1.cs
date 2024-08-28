@@ -11,10 +11,8 @@ namespace Soul.SqlBatis.Test
             var context = DbContextFactory.CreateDbContext();
             var ids = new int?[] { 1 };
             var list = context.Set<MysqlDataTypes>()
-                .Where(a => a.Id == 20)
-                .ExecuteUpdate(setters => setters
-                    .SetProperty(a => a.IntCol, 20)
-                );
+                .Where(a => a.VarcharCol.EndsWith("v"))
+                .ToList();
             context.SaveChanges();
         }
     }

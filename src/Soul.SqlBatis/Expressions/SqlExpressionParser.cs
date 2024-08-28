@@ -187,7 +187,7 @@ namespace Soul.SqlBatis.Expressions
                 SqlBuilder.Append(" LIKE ");
                 var value = ParseValue(node.Arguments[0]);
                 if (value != null)
-                    SetParameter(Expression.Constant($"%{value}%"));
+                    SetParameter(Expression.Constant($"{value}%"));
                 else
                     SetParameter(Expression.Constant(value));
             }
@@ -197,7 +197,7 @@ namespace Soul.SqlBatis.Expressions
                 SqlBuilder.Append(" LIKE ");
                 var value = ParseValue(node.Arguments[0]);
                 if (value != null)
-                    SetParameter(Expression.Constant($"%{value}%"));
+                    SetParameter(Expression.Constant($"%{value}"));
                 else
                     SetParameter(Expression.Constant(value));
             }
