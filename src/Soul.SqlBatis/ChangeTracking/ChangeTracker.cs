@@ -12,6 +12,7 @@ namespace Soul.SqlBatis.ChangeTracking
         bool HasChanges();
         bool HasEntry<T>(T entity);
         void Untrack(object entity);
+        void ClearEntities();
         IEnumerable<IEntityEntry> GetChangedEntries();
     }
 
@@ -46,6 +47,11 @@ namespace Soul.SqlBatis.ChangeTracking
         public void Untrack(object entity)
         {
             _references.Remove(entity);
+        }
+
+        public void ClearEntities()
+        {
+            _references.Clear();
         }
 
         public EntityEntry<T> Track<T>(T entity, bool ignoreNullMembers = false)

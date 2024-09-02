@@ -148,6 +148,7 @@ namespace Soul.SqlBatis
             {
                 var affectedRows = EntityPersister.SaveChanges(Command, ChangeTracker.GetChangedEntries());
                 transaction.CommitTransaction();
+                ChangeTracker.ClearEntities();
                 return affectedRows;
             }
         }
@@ -158,6 +159,7 @@ namespace Soul.SqlBatis
             {
                 var affectedRows = await EntityPersister.SaveChangesAsync(Command, ChangeTracker.GetChangedEntries());
                 transaction.CommitTransaction();
+                ChangeTracker.ClearEntities();
                 return affectedRows;
             }
         }

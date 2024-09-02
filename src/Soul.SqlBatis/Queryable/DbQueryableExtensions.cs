@@ -8,39 +8,43 @@ namespace Soul.SqlBatis
 {
     public static class DbQueryableExtensions
     {
-        private static void Track<T>(this IDbQueryable<T> queryable, T entity)
+        private static T Track<T>(this IDbQueryable<T> queryable, T entity)
         {
-            if (entity == null)
-            {
-                return;
-            }
             var query = queryable.GetDbQueryable();
             if (!query.IsTracking)
             {
-                return;
+                return entity;
+            }
+            if (entity == null)
+            {
+                return default;
             }
             var context = queryable.GetDbContext();
             if (context.Options.QueryTracking && !query.Tokens.Any(a => a.Key == DbQueryableType.Select))
             {
-                context.Attach(entity);
+                return (T)context.Attach(entity).Entity;
             }
+            return entity;
         }
 
         private static void Track<T>(this IDbQueryable<T> queryable, List<T> entities)
         {
-            if (entities == null || entities.Count == 0)
+            var query = queryable.GetDbQueryable();
+            if (!query.IsTracking)
             {
                 return;
             }
-            var query = queryable.GetDbQueryable();
-            if (!query.IsTracking)
+            if (entities == null || entities.Count == 0)
             {
                 return;
             }
             var context = queryable.GetDbContext();
             if (context.Options.QueryTracking && !query.Tokens.Any(a => a.Key == DbQueryableType.Select))
             {
-                context.AttachRange(entities);
+                for (var i = 0; i < entities.Count; i++)
+                {
+                    entities[i] = (T)context.Attach(entities[i]).Entity;
+                }
             }
         }
 
@@ -72,7 +76,7 @@ namespace Soul.SqlBatis
         public static bool Any<T>(this IDbQueryable<T> queryable)
         {
             var command = queryable.GetCommand();
-            var (sqler, param) = queryable.Build(configureOptions => 
+            var (sqler, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
                 configureOptions.HasDefaultColumns = false;
@@ -355,8 +359,7 @@ namespace Soul.SqlBatis
             {
                 throw new InvalidOperationException("The source sequence is empty.");
             }
-            queryable.Track(entity);
-            return entity;
+            return queryable.Track(entity);
         }
 
         public static async Task<T> FirstAsync<T>(this IDbQueryable<T> queryable)
@@ -368,8 +371,7 @@ namespace Soul.SqlBatis
             {
                 throw new InvalidOperationException("The source sequence is empty.");
             }
-            queryable.Track(entity);
-            return entity;
+            return queryable.Track(entity);
         }
 
         public static T FirstOrDefault<T>(this IDbQueryable<T> queryable)
@@ -377,8 +379,7 @@ namespace Soul.SqlBatis
             var command = queryable.GetCommand();
             var (sqler, param) = queryable.Build();
             var entity = command.QueryFirst<T>(sqler.QuerySql, param);
-            queryable.Track(entity);
-            return entity;
+            return queryable.Track(entity);
         }
 
         public static async Task<T> FirstOrDefaultAsync<T>(this IDbQueryable<T> queryable)
@@ -386,8 +387,7 @@ namespace Soul.SqlBatis
             var command = queryable.GetCommand();
             var (sqler, param) = queryable.Build();
             var entity = await command.QueryFirstAsync<T>(sqler.QuerySql, param);
-            queryable.Track(entity);
-            return entity;
+            return queryable.Track(entity);
         }
 
         public static List<T> ToList<T>(this IDbQueryable<T> queryable)
