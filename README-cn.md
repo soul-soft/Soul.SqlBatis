@@ -38,7 +38,7 @@ var context = new MyDbContext(configure =>
 
 ```` C#
 
-public class Student
+public class Student : Entity
 {
     [Column("id")]
     public int Id { get; set; }

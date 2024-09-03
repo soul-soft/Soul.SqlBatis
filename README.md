@@ -32,7 +32,7 @@ var context = new MyDbContext(configure =>
 * For customization, implement the IModel interface.
 
 ```C#
-public class Student
+public class Student : Entity
 {
     [Column("id")]
     public int Id { get; set; }

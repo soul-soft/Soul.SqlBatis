@@ -21,14 +21,14 @@ namespace Soul.SqlBatis.Entities
     /// <#=table.Description#>
     /// </summary>
 	[Table("<#=table.TableName#>")]
-	public partial class <#=table.Name#>
+	public partial class <#=table.Name#> : Entity
 	{
 <#foreach(var column in table.Columns){#>
 		/// <summary>
 		/// <#=column.Description#>
 		/// </summary>
 		<#=column.IsPrimaryKey ? $"[Key]":""#><#=column.IsIdentity && column.IsPrimaryKey ? $"[Identity]":""#>[Column("<#=column.ColumnName#>")]
-		public <#=column.Type#> <#=column.Name#> { get; set; }
+		public <#=column.Name == "Id" ? "override" : ""#> <#=column.Type#> <#=column.Name#> { get; set; }
 <#}#>
 	}
 <#}#>
