@@ -32,6 +32,41 @@ var context = new MyDbContext(configure =>
 * For customization, implement the IModel interface.
 
 ```C#
+public abstract class Entity
+{
+    public virtual int Id { get; set; }
+
+    public override bool Equals(object obj)
+    {
+        if (obj == null || GetType() != obj.GetType())
+            return false;
+
+        var entity = (Entity)obj;
+        return Id == entity.Id;
+    }
+
+    public override int GetHashCode()
+    {
+        return Id.GetHashCode();
+    }
+
+    public static bool operator ==(Entity left, Entity right)
+    {
+        if (ReferenceEquals(left, null) && ReferenceEquals(right, null))
+            return true;
+
+        if (ReferenceEquals(left, null) || ReferenceEquals(right, null))
+            return false;
+
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(Entity left, Entity right)
+    {
+        return !(left == right);
+    }
+}
+
 public class Student : Entity
 {
     [Column("id")]
