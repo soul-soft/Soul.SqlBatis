@@ -90,11 +90,17 @@ namespace Soul.SqlBatis
             return hasMapperMethod;
         }
     }
+   
     internal class EntityMapper : IEntityMapper
     {
         private static readonly ConcurrentDictionary<string, Delegate> _mappers = new ConcurrentDictionary<string, Delegate>();
 
         internal EntityMapperOptions Options { get; }
+      
+        public EntityMapper()
+            : this(new EntityMapperOptions())
+        {
+        }
 
         public EntityMapper(EntityMapperOptions options)
         {
