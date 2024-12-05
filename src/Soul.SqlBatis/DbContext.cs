@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Soul.SqlBatis.ChangeTracking;
 using System.Threading.Tasks;
+using System.Data.Common;
 
 namespace Soul.SqlBatis
 {
@@ -15,7 +16,7 @@ namespace Soul.SqlBatis
 
         public IDatabaseCommand Command { get; private set; }
 
-        internal IDbConnection Connection => Options.Connection;
+        private IDbConnection _connection;
 
         private IDbTransaction _transaction;
 
@@ -27,27 +28,19 @@ namespace Soul.SqlBatis
 
         public IChangeTracker ChangeTracker { get; private set; }
 
-        public DbContextOptions Options { get; private set; } = new DbContextOptions();
-
-        private void Init(Action<DbContextOptions> configure)
-        {
-            configure(Options);
-            Command = new DatabaseCommand(this);
-            ChangeTracker = new ChangeTracker(Options.Model);
-        }
+        public DbContextOptions Options { get; private set; }
 
         internal void WriteLog(string sql, object param)
         {
             Options.Loggger?.Invoke(sql, param);
         }
-        
-        protected DbContext()
-        {
-        }
 
-        public DbContext(Action<DbContextOptions> configure)
+        public DbContext(DbContextOptions options)
         {
-            Init(configure);
+            Options = options;
+            _connection = options.Connection;
+            Command = new DatabaseCommand(this);
+            ChangeTracker = new ChangeTracker(options.Model);
         }
 
         public virtual EntityEntry<T> Attach<T>(T entity)
@@ -112,6 +105,8 @@ namespace Soul.SqlBatis
             }
         }
 
+     
+
         public virtual DbSet<T> Set<T>() where T : class
         {
             return new DbSet<T>(this, new DynamicParameters());
@@ -121,24 +116,34 @@ namespace Soul.SqlBatis
         {
             return new DbSet<T>(this, parameters);
         }
+        
+        public IDbConnection GetDbConnection()
+        {
+            return _connection;
+        }
+
+        public IDbTransaction GetDbTransaction()
+        {
+            return _transaction;
+        }
 
         public virtual DbContextTransaction BeginTransaction()
         {
             var closeConnection = false;
             if (_transaction == null)
             {
-                if (Connection.State == ConnectionState.Closed)
+                if (_connection.State == ConnectionState.Closed)
                 {
-                    Connection.Open();
+                    _connection.Open();
                     closeConnection = true;
                 }
-                _transaction = Connection.BeginTransaction();
+                _transaction = _connection.BeginTransaction();
             }
             return new DbContextTransaction(_transaction, () =>
             {
                 _transaction = null;
                 if (closeConnection)
-                    Connection.Close();
+                    _connection.Close();
             });
         }
 
@@ -168,7 +173,6 @@ namespace Soul.SqlBatis
         {
             if (!_disposed)
             {
-                Options = null;
                 try
                 {
                     _transaction?.Dispose();
@@ -177,8 +181,12 @@ namespace Soul.SqlBatis
                 catch { }
                 try
                 {
-                    Connection?.Close();
-                    Connection?.Dispose();
+                    if (_connection.State != ConnectionState.Closed)
+                    {
+                        _connection?.Close();
+                    }
+                    _connection?.Dispose();
+                    _connection = null;
                 }
                 catch { }
                 _disposed = true;

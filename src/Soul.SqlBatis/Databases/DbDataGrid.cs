@@ -78,9 +78,10 @@ namespace Soul.SqlBatis.Databases
 
         private IDataReader ExecuteReader()
         {
-            if (_context.Connection.State == ConnectionState.Closed)
+            var connection = _context.GetDbConnection();
+            if (_context.GetDbConnection().State == ConnectionState.Closed)
             {
-                _context.Connection.Open();
+                connection.Open();
                 _closeConnection = true;
             }
             if (_reader == null)
@@ -97,9 +98,10 @@ namespace Soul.SqlBatis.Databases
 
         private async Task<IDataReader> ExecuteReaderAsync()
         {
-            if (_context.Connection.State == ConnectionState.Closed)
+            var connection = _context.GetDbConnection();
+            if (connection.State == ConnectionState.Closed)
             {
-                _context.Connection.Open();
+                connection.Open();
                 _closeConnection = true;
             }
             if (_reader == null)
@@ -137,7 +139,8 @@ namespace Soul.SqlBatis.Databases
             {
                 if (_closeConnection)
                 {
-                    _context.Connection.Close();
+                    var connection = _context.GetDbConnection();
+                    connection.Close();
                     _closeConnection = false;
                 }
             }

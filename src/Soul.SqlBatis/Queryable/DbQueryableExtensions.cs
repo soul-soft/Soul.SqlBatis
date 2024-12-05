@@ -58,14 +58,13 @@ namespace Soul.SqlBatis
 
         private static IDatabaseCommand GetCommand<T>(this IDbQueryable<T> queryable)
         {
-            var query = queryable.GetDbQueryable();
-            return query.DbContext.Command;
+            return queryable.GetDbContext().Command;
         }
 
         private static DbContext GetDbContext<T>(this IDbQueryable<T> queryable)
         {
             var query = queryable.GetDbQueryable();
-            return query.DbContext;
+            return query.GetDbContext();
         }
 
         public static bool Any<T>(this IDbQueryable<T> queryable)

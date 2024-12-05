@@ -8,7 +8,7 @@ namespace Soul.SqlBatis
 {
     public class DbQueryable<T> : IDbQueryable<T>
     {
-        public DbContext DbContext { get; }
+        protected DbContext DbContext;
 
         public IEntityType EntityType { get; }
 
@@ -32,6 +32,11 @@ namespace Soul.SqlBatis
             IsTracking = isTracking;
             EntityType = entityType;
             Parameters = parameters;
+        }
+
+        internal DbContext GetDbContext()
+        {
+            return DbContext;
         }
 
         public IDbQueryable<T> As(string name)

@@ -191,7 +191,7 @@ namespace Soul.SqlBatis
             _context.WriteLog(sql, param);
             var commandOptions = new DbContextCommandOptions();
             configure?.Invoke(commandOptions);
-            var command = _context.Connection.CreateCommand();
+            var command = _context.GetDbConnection().CreateCommand();
             command.CommandText = sql;
             command.Transaction = _context.CurrentTransaction;
             command.CommandType = commandOptions.CommandType;
@@ -270,7 +270,7 @@ namespace Soul.SqlBatis
 
         private T Start<T>(Func<T> func)
         {
-            var connection = _context.Connection as DbConnection;
+            var connection = _context.GetDbConnection() as DbConnection;
             var closeConnection = false;
             try
             {
@@ -293,7 +293,7 @@ namespace Soul.SqlBatis
 
         private async Task<T> StartAsync<T>(Func<Task<T>> func)
         {
-            var connection = _context.Connection as DbConnection;
+            var connection = _context.GetDbConnection() as DbConnection;
             var closeConnection = false;
             try
             {
