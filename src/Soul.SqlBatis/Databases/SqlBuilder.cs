@@ -272,7 +272,7 @@ namespace Soul.SqlBatis
         {
             get
             {
-                var selectSql = $"SELECT\r\n\tMAX({SelectSql})";
+                var selectSql = $"SELECT\r\n\tMIX({SelectSql})";
                 var items = new List<string>()
                 {
                     selectSql, FromSql, WhereSql, GroupSql, HavingSql
