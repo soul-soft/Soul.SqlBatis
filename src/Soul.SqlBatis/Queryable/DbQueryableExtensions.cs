@@ -103,7 +103,7 @@ namespace Soul.SqlBatis
 
         public static Task<bool> AnyAsync<T>(this IDbQueryable<T> queryable, Expression<Func<T, bool>> expression)
         {
-            queryable.Select(expression);
+            queryable.Where(expression);
             var command = queryable.GetCommand();
             var (sqler, param) = queryable.Build(configureOptions =>
             {
