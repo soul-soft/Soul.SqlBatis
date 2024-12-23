@@ -9,9 +9,7 @@ namespace Soul.SqlBatis.Test
         public void TestMethod1()
         {
             var context = DbContextFactory.CreateDbContext();
-            var entity1 = context.Set<MysqlDataTypes>().Where(a=>a.Id == 1).First();
-            var entity2 = context.Set<MysqlDataTypes>().Where(a => a.Id == 1).First();
-            var flag = ReferenceEquals(entity1, entity2);
+            var list = context.Set<Student>().Where(a => DbOps.InSet(a.Name, "0,fa")).ToList();
             context.SaveChanges();
         }
     }

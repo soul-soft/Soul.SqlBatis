@@ -1,4 +1,5 @@
 ﻿using MySqlConnector;
+using Soul.SqlBatis.Infrastructure;
 using System.Diagnostics;
 
 namespace Soul.SqlBatis.Test

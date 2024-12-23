@@ -11,6 +11,29 @@ namespace Soul.SqlBatis.Entities
 	/// <summary>
     /// 
     /// </summary>
+	[Table("delete_logs")]
+	public partial class DeleteLogs : Entity
+	{
+		/// <summary>
+		/// 
+		/// </summary>
+		[Column("create_time")]
+		public  DateTime? CreateTime { get; set; }
+		/// <summary>
+		/// 
+		/// </summary>
+		[Column("entities_json")]
+		public  string EntitiesJson { get; set; }
+		/// <summary>
+		/// 
+		/// </summary>
+		[Key][Identity][Column("id")]
+		public override int? Id { get; set; }
+	}
+
+	/// <summary>
+    /// 
+    /// </summary>
 	[Table("mysql_data_types")]
 	public partial class MysqlDataTypes : Entity
 	{
@@ -131,6 +154,49 @@ namespace Soul.SqlBatis.Entities
 		/// 
 		/// </summary>
 		[Key][Identity][Column("id")]
+		public override int? Id { get; set; }
+		/// <summary>
+		/// 
+		/// </summary>
+		[Column("name")]
+		public  string Name { get; set; }
+		/// <summary>
+		/// 
+		/// </summary>
+		[Column("num0")]
+		public  bool? Num0 { get; set; }
+		/// <summary>
+		/// 
+		/// </summary>
+		[Column("num1")]
+		public  short? Num1 { get; set; }
+		/// <summary>
+		/// 
+		/// </summary>
+		[Column("num2")]
+		public  short? Num2 { get; set; }
+		/// <summary>
+		/// 
+		/// </summary>
+		[Column("num3")]
+		public  int? Num3 { get; set; }
+		/// <summary>
+		/// 
+		/// </summary>
+		[Column("num4")]
+		public  long? Num4 { get; set; }
+	}
+
+	/// <summary>
+    /// VIEW
+    /// </summary>
+	[Table("v_student")]
+	public partial class VStudent : Entity
+	{
+		/// <summary>
+		/// 
+		/// </summary>
+		[Column("id")]
 		public override int? Id { get; set; }
 		/// <summary>
 		/// 

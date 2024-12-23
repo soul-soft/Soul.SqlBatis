@@ -1,8 +1,8 @@
 ﻿
-namespace Soul.SqlBatis.Test
+namespace Soul.SqlBatis.Infrastructure
 {
 
-    internal class MyDbContext : DbContext
+    public partial class MyDbContext : DbContext
     {
         public MyDbContext(Action<DbContextOptions> configure) : base(configure)
         {

@@ -35,8 +35,10 @@ namespace Soul.SqlBatis
             Options.Loggger?.Invoke(sql, param);
         }
 
-        public DbContext(DbContextOptions options)
+        public DbContext(Action<DbContextOptions> confgiure)
         {
+            var options = new DbContextOptions();
+            confgiure(options);
             Options = options;
             _connection = options.Connection;
             Command = new DatabaseCommand(this);
