@@ -122,7 +122,7 @@ namespace Soul.SqlBatis
 
         public bool IsIdentity()
         {
-            return (Property.Name == "Id" || HasAnnotation<IdentityAttribute>())
+            return HasAnnotation<IdentityAttribute>()
                 && !HasAnnotation<NotIdentityAttribute>();
         }
 
@@ -133,7 +133,7 @@ namespace Soul.SqlBatis
 
         public bool IsKey()
         {
-            return Property.Name == "Id" || HasAnnotation<KeyAttribute>();
+            return HasAnnotation<KeyAttribute>();
         }
 
         private bool HasAnnotation<TAnnotation>() where TAnnotation : Attribute
