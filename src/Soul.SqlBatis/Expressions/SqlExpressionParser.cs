@@ -63,10 +63,33 @@ namespace Soul.SqlBatis.Expressions
         {
             SqlBuilder.Append("(");
             Visit(node.Left);
-            SqlBuilder.Append($" {GetSqlOps(node.NodeType)} ");
+            if (node.NodeType == ExpressionType.Equal && (IsNullConstant(node.Right) || IsNullConstant(node.Left)))
+            {
+                SqlBuilder.Append($" IS ");
+            }
+            else if (node.NodeType == ExpressionType.NotEqual && (IsNullConstant(node.Right) || IsNullConstant( node.Left)))
+            {
+                SqlBuilder.Append($" IS NOT ");
+            }
+            else
+            {
+                SqlBuilder.Append($" {GetSqlOps(node.NodeType)} ");
+            }
             Visit(node.Right);
             SqlBuilder.Append(")");
             return node;
+        }
+
+        private bool IsNullConstant(Expression expression)
+        {
+            if (expression is ConstantExpression constantExpression)
+            {
+                return constantExpression.Value == null;
+            }
+            else
+            {
+                return false;
+            }
         }
 
 

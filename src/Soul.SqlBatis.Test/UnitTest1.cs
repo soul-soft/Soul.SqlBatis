@@ -8,8 +8,8 @@ namespace Soul.SqlBatis.Test
         [TestMethod]
         public void TestMethod1()
         {
-            var context = DbContextFactory.CreateDbContext();
-            var list = context.Set<Student>().Where(a => DbOps.InSet(a.Name, "0,fa")).ToList();
+            using var context = DbContextFactory.CreateDbContext();
+            var list = context.Set<Student>().Where(a => a.Name != null).ToList();
             context.SaveChanges();
         }
     }
