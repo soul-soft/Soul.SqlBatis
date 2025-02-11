@@ -7,7 +7,6 @@ namespace PgSql.Application
     {
         public static void Main()
         {
-
             var context = new DbContext(configure =>
             {
                 configure.UseLogger((sql, param) => 
