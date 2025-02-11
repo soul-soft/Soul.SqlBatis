@@ -163,7 +163,7 @@ namespace Soul.SqlBatis
             configureOptions?.Invoke(options);
             var alias = GetAlias();
             var parameters = Parameters;
-            var sqlBuilder = new SqlBuilder(DbContext.Options.SqlBuilderOptions);
+            var sqlBuilder = new SqlBuilder(DbContext.Options);
             var sqlExpressionContext = new SqlExpressionContext(alias, DbContext.Model, parameters, DbContext.Options.EmptyQuerySql);
 
             foreach (var item in Tokens)

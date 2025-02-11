@@ -11,6 +11,8 @@ namespace Soul.SqlBatis
 
         internal string KeywordsFormSql { get; set; }
 
+        internal string LimitFormatSql { get; set; }
+
         internal string LastIdentitySql { get; private set; } = "SELECT LAST_INSERT_ID()";
 
         internal bool QueryTracking { get; private set; }
@@ -24,8 +26,6 @@ namespace Soul.SqlBatis
         internal IDbContextPersister Persister { get; private set; }
 
         internal IEntityMapper EntityMapper { get; private set; } = new EntityMapper(new EntityMapperOptions());
-
-        internal SqlBuilderOptions SqlBuilderOptions { get; private set; } = new SqlBuilderOptions();
 
         public DbContextOptions UseModel(IModel model)
         {
@@ -76,7 +76,7 @@ namespace Soul.SqlBatis
             Connection = connection;
             LastIdentitySql = " RETURNING {0}";
             KeywordsFormSql = "\"{0}\"";
-            SqlBuilderOptions.LimitFormat = "LIMIT {1} OFFSET {0}";
+            LimitFormatSql = "LIMIT {1} OFFSET {0}";
             Model = new AnnotationModel(this);
             Persister = new DbContextPersister(this);
         }
@@ -86,7 +86,7 @@ namespace Soul.SqlBatis
             Connection = connection;
             KeywordsFormSql = "`{0}`";
             LastIdentitySql = ";SELECT LAST_INSERT_ID()";
-            SqlBuilderOptions.LimitFormat = "LIMIT {0},{1}";
+            LimitFormatSql = "LIMIT {0},{1}";
             Model = new AnnotationModel(this);
             Persister = new DbContextPersister(this);
         }

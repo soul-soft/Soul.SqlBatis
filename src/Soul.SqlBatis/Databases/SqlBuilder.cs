@@ -7,13 +7,13 @@ namespace Soul.SqlBatis
 {
     public class SqlBuilder
     {
-        private readonly SqlBuilderOptions _options;
+        private readonly DbContextOptions _options;
 
         private readonly Dictionary<string, List<string>> _tokens = new Dictionary<string, List<string>>();
 
-        public SqlBuilder(SqlBuilderOptions options = null)
+        public SqlBuilder(DbContextOptions options)
         {
-            _options = options ?? new SqlBuilderOptions();
+            _options = options;
         }
 
         public void AddToken(string type, string token)
@@ -27,7 +27,7 @@ namespace Soul.SqlBatis
 
         public SqlBuilder Clone()
         {
-            var sb = new SqlBuilder();
+            var sb = new SqlBuilder(_options);
             foreach (var item in _tokens)
             {
                 foreach (var token in item.Value)
@@ -208,7 +208,7 @@ namespace Soul.SqlBatis
                 {
                     count = Convert.ToInt32(_tokens[nameof(Take)].Last());
                 }
-                return string.Format(_options.LimitFormat, offset, count);
+                return string.Format(_options.LimitFormatSql, offset, count);
             }
         }
 

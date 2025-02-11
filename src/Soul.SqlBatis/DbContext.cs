@@ -45,6 +45,11 @@ namespace Soul.SqlBatis
             ChangeTracker = new ChangeTracker(options.Model);
         }
 
+        public virtual SqlBuilder CreateSqlBuilder()
+        {
+            return new SqlBuilder(Options);
+        }
+
         public virtual EntityEntry<T> Attach<T>(T entity)
         {
             var entry = ChangeTracker.Track(entity);
@@ -116,7 +121,7 @@ namespace Soul.SqlBatis
         {
             return new DbSet<T>(this, parameters);
         }
-        
+
         public IDbConnection GetDbConnection()
         {
             return _connection;
