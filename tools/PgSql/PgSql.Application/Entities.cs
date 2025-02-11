@@ -4,6 +4,7 @@ using System;
 using Soul.SqlBatis;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json;
 
 namespace Soul.SqlBatis.Entities
 {	
@@ -67,6 +68,16 @@ namespace Soul.SqlBatis.Entities
 		/// </summary>
 		
 		public decimal? M { get; set; }
+		/// <summary>
+		/// 
+		/// </summary>
+		
+		public float? F { get; set; }
+		/// <summary>
+		/// 
+		/// </summary>
+		
+		public JsonElement? Js { get; set; }
 	}
 
 	/// <summary>

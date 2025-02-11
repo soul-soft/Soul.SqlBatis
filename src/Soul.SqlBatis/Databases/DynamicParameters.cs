@@ -62,7 +62,7 @@ namespace Soul.SqlBatis
         {
             if (param == null) return;
 
-            var mapper = ObjectMapper.CreateMapper(param.GetType());
+            var mapper = DynamicParametersMapper.CreateMapper(param.GetType());
             var values = mapper(param);
             foreach (var item in values)
             {

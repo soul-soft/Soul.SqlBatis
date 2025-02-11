@@ -1,5 +1,6 @@
 ﻿using Soul.SqlBatis;
 using Soul.SqlBatis.Entities;
+using System.Text.Json;
 
 namespace PgSql.Application
 {
@@ -14,13 +15,23 @@ namespace PgSql.Application
                 {
                     Console.WriteLine(sql);
                 });
+                configure.UseEntityMapper(configureOptions => 
+                {
+                    configureOptions.UseTypeMapper((dr, i) => 
+                    {
+                        var json = dr.GetString(i);
+                        return JsonDocument.Parse(json).RootElement;
+                    });
+                });
                 configure.UseNpgsql(new Npgsql.NpgsqlConnection("Host=localhost;Port=5432;Username=postgres;Password=1024;Database=postgres;SSL Mode=Disable;"));
             });
             var sb1 = context.CreateSqlBuilder();
-            var ids = new int?[] { };
-            var list = context.Set<Students>()
-                .Where(a => ids.Contains(a.Id))
-                .ToPageResult(1, 5);
+            var stu = new Students()
+            {
+                Js = JsonDocument.Parse("{\"id\":1}").RootElement
+            };
+            context.Add(stu);
+            context.SaveChanges();
             context.SaveChanges();
         }
     }

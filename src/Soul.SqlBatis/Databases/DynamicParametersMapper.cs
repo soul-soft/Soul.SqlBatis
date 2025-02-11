@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace Soul.SqlBatis
 {
-    public static class ObjectMapper
+    public static class DynamicParametersMapper
     {
         private static readonly ConcurrentDictionary<Type, Delegate> _mappers = new ConcurrentDictionary<Type, Delegate>();
 
