@@ -21,7 +21,7 @@ namespace PgSql.Application
             };
             context.Add(student);
             context.SaveChanges();
-            var list = context.Set<Students>().ToPageResult(1, 5);
+            var list = context.Set<Students>().Where(a=>a.Id > 5).ToPageResult(1, 5);
             context.SaveChanges();
         }
     }
