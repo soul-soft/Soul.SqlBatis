@@ -96,11 +96,11 @@ var (list, total) = context.Set<Student>().ToPageList(1, 10);
 
 ```C#
 var count = context.Set<Student>().Count();
-var sum = context.Set<Student>().Sum(a => a.Id);
-var min = context.Set<Student>().Min(a => a.Id);
-var max = context.Set<Student>().Max(a => a.Id);
-var has = context.Set<Student>().Any(a => a.Id > 10);
-var avg = context.Set<Student>().Average(a => a.Id);
+var sum = context.Set<Student>().Where(a => a.Id > 0).Sum(a => a.Id);
+var min = context.Set<Student>().Where(a => a.Id > 0).Min(a => a.Id);
+var max = context.Set<Student>().Where(a => a.Id > 0).Max(a => a.Id);
+var has = context.Set<Student>().Where(a => a.Id > 0).Any(a => a.Id > 10);
+var avg = context.Set<Student>().Where(a => a.Id > 0).Average(a => a.Id);
 ```
 
 ### IN Query
