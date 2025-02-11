@@ -8,16 +8,10 @@
 ```C#
 var context = new MyDbContext(configure =>
 {
-    //logger
-    configure.UseLogger((sql, param) =>
-    {
-        Console.WriteLine(sql);
-        Debug.WriteLine(sql);
-    });
     //query tracking
     configure.UseQueryTracking();
     //connect
-    configure.UseConnection(new MySqlConnection("Server=127.0.0.1;User ID=root;Password=1024;Database=test"));
+    configure.UseMysql(new MySqlConnection("Server=127.0.0.1;User ID=root;Password=1024;Database=test"));
 });
 ```
 
