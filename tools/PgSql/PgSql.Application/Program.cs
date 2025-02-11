@@ -9,19 +9,18 @@ namespace PgSql.Application
         {
             var context = new DbContext(configure =>
             {
-                configure.UseLogger((sql, param) => 
+                configure.UseQueryTracking();
+                configure.UseLogger((sql, param) =>
                 {
                     Console.WriteLine(sql);
                 });
-                configure.UsePgSql(new Npgsql.NpgsqlConnection("Host=localhost;Port=5432;Username=postgres;Password=1024;Database=postgres;SSL Mode=Disable;"));
+                configure.UseNpgsql(new Npgsql.NpgsqlConnection("Host=localhost;Port=5432;Username=postgres;Password=1024;Database=postgres;SSL Mode=Disable;"));
             });
-            var student = new Students()
-            {
-                Name = "zs"
-            };
-            context.Add(student);
-            context.SaveChanges();
-            var list = context.Set<Students>().Where(a=>a.Id > 5).ToPageResult(1, 5);
+            var sb1 = context.CreateSqlBuilder();
+            var ids = new int?[] { };
+            var list = context.Set<Students>()
+                .Where(a => ids.Contains(a.Id))
+                .ToPageResult(1, 5);
             context.SaveChanges();
         }
     }

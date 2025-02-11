@@ -357,6 +357,11 @@ namespace Soul.SqlBatis
             return entity;
         }
 
+        public static T Single<T>(this IDbQueryable<T> queryable)
+        {
+            return First(queryable);
+        }
+
         public static async Task<T> FirstAsync<T>(this IDbQueryable<T> queryable)
         {
             var command = queryable.GetCommand();
@@ -370,6 +375,11 @@ namespace Soul.SqlBatis
             return entity;
         }
 
+        public static async Task<T> SingleAsync<T>(this IDbQueryable<T> queryable)
+        {
+            return await FirstAsync(queryable);
+        }
+
         public static T FirstOrDefault<T>(this IDbQueryable<T> queryable)
         {
             var command = queryable.GetCommand();
@@ -379,6 +389,11 @@ namespace Soul.SqlBatis
             return entity;
         }
 
+        public static T SingleOrDefault<T>(this IDbQueryable<T> queryable)
+        {
+            return FirstOrDefault(queryable);
+        }
+
         public static async Task<T> FirstOrDefaultAsync<T>(this IDbQueryable<T> queryable)
         {
             var command = queryable.GetCommand();
@@ -386,6 +401,11 @@ namespace Soul.SqlBatis
             var entity = await command.QueryFirstAsync<T>(sqler.QuerySql, param);
             queryable.Track(ref entity);
             return entity;
+        }
+
+        public static async Task<T> SingleOrDefaultAsync<T>(this IDbQueryable<T> queryable)
+        {
+            return await FirstOrDefaultAsync(queryable);
         }
 
         public static List<T> ToList<T>(this IDbQueryable<T> queryable)
@@ -417,7 +437,7 @@ namespace Soul.SqlBatis
                 configureOptions.HasDefaultColumns = false;
             });
             var pageSql = $"{queryer.QuerySql};\r\n{counter.CountSql}";
-            using (var grid = command.Multiple(pageSql, param))
+            using (var grid = command.QueryMultiple(pageSql, param))
             {
                 var list = grid.Read<T>();
                 var total = grid.ReadFirst<int>();
@@ -432,7 +452,7 @@ namespace Soul.SqlBatis
             var (queryer, param) = queryable.Build();
             var (counter, _) = queryable.Clone<int>().Build();
             var pageSql = $"{queryer.QuerySql};\r\n{counter.CountSql}";
-            using (var grid = command.Multiple(pageSql, param))
+            using (var grid = command.QueryMultiple(pageSql, param))
             {
                 var list = await grid.ReadAsync<T>();
                 var total = await grid.ReadFirstAsync<int>();

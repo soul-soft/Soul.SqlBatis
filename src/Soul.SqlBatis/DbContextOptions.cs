@@ -1,5 +1,4 @@
-﻿using Soul.SqlBatis.ChangeTracking;
-using Soul.SqlBatis.Databases;
+﻿using Soul.SqlBatis.Databases;
 using System;
 using System.Data;
 
@@ -13,7 +12,7 @@ namespace Soul.SqlBatis
 
         internal string LimitFormatSql { get; set; }
 
-        internal string LastIdentitySql { get; private set; } = "SELECT LAST_INSERT_ID()";
+        internal string LastIdentitySql { get; private set; } 
 
         internal bool QueryTracking { get; private set; }
 
@@ -71,12 +70,13 @@ namespace Soul.SqlBatis
             return this;
         }
 
-        public void UsePgSql(IDbConnection connection)
+        public void UseNpgsql(IDbConnection connection)
         {
             Connection = connection;
             LastIdentitySql = " RETURNING {0}";
             KeywordsFormSql = "\"{0}\"";
             LimitFormatSql = "LIMIT {1} OFFSET {0}";
+            EmptyQuerySql = "SELECT 1 WHERE 1 = 0";
             Model = new AnnotationModel(this);
             Persister = new DbContextPersister(this);
         }

@@ -21,7 +21,7 @@ namespace Soul.SqlBatis
         Task<List<T>> QueryAsync<T>(string sql, object param = null, Action<DbContextCommandOptions> configure = null);
         T QueryFirst<T>(string sql, object param = null, Action<DbContextCommandOptions> configure = null);
         Task<T> QueryFirstAsync<T>(string sql, object param = null, Action<DbContextCommandOptions> configure = null);
-        DbDataGrid Multiple(string sql, object param = null, Action<DbContextCommandOptions> configure = null);
+        DbDataGrid QueryMultiple(string sql, object param = null, Action<DbContextCommandOptions> configure = null);
     }
 
     public class DbContextCommand : IDbContextCommand
@@ -175,7 +175,7 @@ namespace Soul.SqlBatis
             });
         }
 
-        public DbDataGrid Multiple(string sql, object param = null, Action<DbContextCommandOptions> configure = null)
+        public DbDataGrid QueryMultiple(string sql, object param = null, Action<DbContextCommandOptions> configure = null)
         {
             return new DbDataGrid(_context, () => CreateCommand(sql, param, configure), _context.EntityMapper);
         }
