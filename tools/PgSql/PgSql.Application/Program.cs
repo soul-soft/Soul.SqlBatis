@@ -20,8 +20,7 @@ namespace PgSql.Application
             {
                 Name = "zs"
             };
-            context.Add(student);
-
+            var list = context.Set<Students>().ToPageResult(2, 5);
             context.SaveChanges();
         }
     }

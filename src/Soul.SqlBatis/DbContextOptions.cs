@@ -45,12 +45,6 @@ namespace Soul.SqlBatis
             return this;
         }
 
-        public DbContextOptions UseSqlBuilder(Action<SqlBuilderOptions> configureOptions)
-        {
-            configureOptions?.Invoke(SqlBuilderOptions);
-            return this;
-        }
-
         public DbContextOptions UseQueryTracking()
         {
             QueryTracking = true;
@@ -80,7 +74,7 @@ namespace Soul.SqlBatis
             Connection = connection;
             Persister = new DbContextPersister(this);
             LastIdentitySql = " RETURNING {0};";
-            SqlBuilderOptions.LimitFormat = "LIMIT {0} OFFSET {1}";
+            SqlBuilderOptions.LimitFormat = "LIMIT {1} OFFSET {0}";
             Model = new AnnotationModel("\"{0}\"");
         }
 
