@@ -14,19 +14,19 @@ namespace Soul.SqlBatis
         Func<IDataRecord, T> CreateMapper<T>(IDataRecord record);
     }
 
-    public interface ITypeMapperFactory
+    public interface ICustomTypeMapper
     {
-        MethodInfo GetTypeMapper(TypeMapperContext context);
+        MethodInfo GetTypeMapper(EntityMapperMatcherContext context);
     }
 
-    public class TypeMapperContext
+    public class EntityMapperMatcherContext
     {
         public Type EntityType { get; }
         public Type MemberType { get; }
         public Type FieldType { get; }
         public string FieldTypeName { get; }
 
-        public TypeMapperContext(Type entityType, Type memberType, Type fieldType, string fieldTypeName)
+        public EntityMapperMatcherContext(Type entityType, Type memberType, Type fieldType, string fieldTypeName)
         {
             EntityType = entityType;
             MemberType = memberType;
@@ -37,7 +37,7 @@ namespace Soul.SqlBatis
 
     public class EntityMapperOptions
     {
-        public ITypeMapperFactory TypeMapperFactory { get; set; }
+        public ICustomTypeMapper CustomMappers { get; set; }
 
         public bool MatchNamesWithUnderscores { get; set; } = true;
 
@@ -56,14 +56,14 @@ namespace Soul.SqlBatis
             return method;
         }
 
-        internal bool TryGetTypeMapper(TypeMapperContext context, out MethodInfo method)
+        internal bool TryCustomTypeMapper(EntityMapperMatcherContext context, out MethodInfo method)
         {
-            if (TypeMapperFactory == null)
+            if (CustomMappers == null)
             {
                 method = null;
                 return false;
             }
-            method = TypeMapperFactory.GetTypeMapper(context);
+            method = CustomMappers.GetTypeMapper(context);
             var hasMapperMethod = method != null;
             if (hasMapperMethod)
             {
@@ -250,8 +250,8 @@ namespace Soul.SqlBatis
         {
             var isDbNullCheck = Expression.Call(recordParameter, nameof(IDataRecord.IsDBNull), null, Expression.Constant(fieldBinding.FieldSort));
             Expression getValueCall;
-            var context = new TypeMapperContext(entityType, fieldBinding.MemberType, fieldBinding.FieldType, fieldBinding.FieldTypeName);
-            if (Options.TypeMapperFactory != null && Options.TryGetTypeMapper(context, out MethodInfo typeMethod) == true)
+            var context = new EntityMapperMatcherContext(entityType, fieldBinding.MemberType, fieldBinding.FieldType, fieldBinding.FieldTypeName);
+            if (Options.CustomMappers != null && Options.TryCustomTypeMapper(context, out MethodInfo typeMethod) == true)
             {
                 getValueCall = Expression.Call(typeMethod, recordParameter, Expression.Constant(fieldBinding.FieldSort));
             }
