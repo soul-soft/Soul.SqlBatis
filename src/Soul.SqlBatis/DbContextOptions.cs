@@ -53,7 +53,7 @@ namespace Soul.SqlBatis
             return this;
         }
 
-        public DbContextOptions UseEntityPersister(IDbContextPersister persister)
+        public DbContextOptions UsePersister(IDbContextPersister persister)
         {
             Persister = persister;
             return this;
