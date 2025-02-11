@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Soul.SqlBatis
 {
-    public interface IDatabaseCommand
+    public interface IDbContextCommand
     {
         int Execute(string sql, object param = null, Action<DbContextCommandOptions> configure = null);
         Task<int> ExecuteAsync(string sql, object param = null, Action<DbContextCommandOptions> configure = null);
@@ -24,11 +24,11 @@ namespace Soul.SqlBatis
         DbDataGrid QueryMultiple(string sql, object param = null, Action<DbContextCommandOptions> configure = null);
     }
 
-    public class DatabaseCommand : IDatabaseCommand
+    public class DbContextCommand : IDbContextCommand
     {
         private readonly DbContext _context;
 
-        public DatabaseCommand(DbContext context)
+        public DbContextCommand(DbContext context)
         {
             _context = context;
         }
@@ -182,7 +182,7 @@ namespace Soul.SqlBatis
 
         public DbCommand CreateAsyncCommand(string sql, object param, Action<DbContextCommandOptions> configure)
         {
-            return CreateCommand(sql,param,configure) as DbCommand 
+            return CreateCommand(sql, param, configure) as DbCommand
                 ?? throw new InvalidCastException("Failed to cast the created command to DbCommand. Please ensure that the CreateCommand method returns a valid DbCommand object.");
         }
 
@@ -216,7 +216,7 @@ namespace Soul.SqlBatis
             return command;
         }
 
-        private void SetParameter(IDbCommand command, string name, object value)
+        private void SetParameter(System.Data.IDbCommand command, string name, object value)
         {
             if (!command.CommandText.Contains("@" + name.TrimStart('@')))
             {
@@ -260,7 +260,7 @@ namespace Soul.SqlBatis
             }
         }
 
-        private void CreateParameter(IDbCommand command, string name, object value)
+        private void CreateParameter(System.Data.IDbCommand command, string name, object value)
         {
             var parameter = command.CreateParameter();
             parameter.Value = value ?? DBNull.Value;

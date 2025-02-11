@@ -1,6 +1,6 @@
 ﻿<#@ template language="C#" hostspecific="true"#>
 <#@ assembly name="System.Core" #>
-<#@ include file="$(SolutionDir)\References\MySqlHelper.ttinclude"#>
+<#@ include file="$(SolutionDir)\Soul.SqlbatisT4\MySqlHelper.ttinclude"#>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ output extension=".cs" #>

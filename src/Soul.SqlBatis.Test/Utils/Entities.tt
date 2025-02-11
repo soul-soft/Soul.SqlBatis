@@ -1,5 +1,5 @@
 ﻿<#@ template language="C#" hostspecific="true"#>
-<#@ include file="$(SolutionDir)\References\MySqlHelper.ttinclude"#>
+<#@ include file="$(SolutionDir)\Soul.SqlbatisT4\MySqlHelper.ttinclude"#>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <# 

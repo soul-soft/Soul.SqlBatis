@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PgSql.Application", "PgSql.Application\PgSql.Application.csproj", "{515CCAEF-85B0-4810-9EB2-C470B5CC7BAB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Soul.SqlBatis", "..\..\src\Soul.SqlBatis\Soul.SqlBatis.csproj", "{011E1DD1-D0F2-4EAF-8EF2-4FEEE59606EF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{515CCAEF-85B0-4810-9EB2-C470B5CC7BAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{515CCAEF-85B0-4810-9EB2-C470B5CC7BAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{515CCAEF-85B0-4810-9EB2-C470B5CC7BAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{515CCAEF-85B0-4810-9EB2-C470B5CC7BAB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{011E1DD1-D0F2-4EAF-8EF2-4FEEE59606EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{011E1DD1-D0F2-4EAF-8EF2-4FEEE59606EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{011E1DD1-D0F2-4EAF-8EF2-4FEEE59606EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{011E1DD1-D0F2-4EAF-8EF2-4FEEE59606EF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

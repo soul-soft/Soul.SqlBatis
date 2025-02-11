@@ -1,0 +1,264 @@
+﻿<#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data" #>
+<#@ assembly name="System.IO" #>
+<#@ assembly name="System.Xml" #>
+<#@ assembly name="netstandard" #>
+<#@ assembly name="$(SolutionDir)PgSql.References\Dapper.dll" #>
+<#@ assembly name="$(SolutionDir)PgSql.References\Npgsql.dll" #>
+<#@ assembly name="$(SolutionDir)PgSql.References\System.Buffers.dll" #>
+<#@ assembly name="$(SolutionDir)PgSql.References\Microsoft.Bcl.AsyncInterfaces.dll" #>
+<#@ assembly name="$(SolutionDir)PgSql.References\Microsoft.Bcl.HashCode.dll" #>
+<#@ assembly name="$(SolutionDir)PgSql.References\Microsoft.Extensions.DependencyInjection.Abstractions.dll" #>
+<#@ assembly name="$(SolutionDir)PgSql.References\Microsoft.Extensions.Logging.Abstractions.dll" #>
+<#@ assembly name="$(SolutionDir)PgSql.References\System.Collections.Immutable.dll" #>
+<#@ assembly name="$(SolutionDir)PgSql.References\System.Diagnostics.DiagnosticSource.dll" #>
+<#@ assembly name="$(SolutionDir)PgSql.References\System.Memory.dll" #>
+<#@ assembly name="$(SolutionDir)PgSql.References\System.Numerics.Vectors.dll" #>
+<#@ assembly name="$(SolutionDir)PgSql.References\System.Runtime.CompilerServices.Unsafe.dll" #>
+<#@ assembly name="$(SolutionDir)PgSql.References\System.Text.Encodings.Web.dll" #>
+<#@ assembly name="$(SolutionDir)PgSql.References\System.Text.Json.dll" #>
+<#@ assembly name="$(SolutionDir)PgSql.References\System.Threading.Channels.dll" #>
+<#@ assembly name="$(SolutionDir)PgSql.References\System.Threading.Tasks.Extensions.dll" #>
+<#@ assembly name="$(SolutionDir)PgSql.References\System.ValueTuple.dll" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Xml.Serialization" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="Npgsql" #>
+<#@ import namespace="Dapper" #>
+<#@ import namespace="Microsoft.VisualStudio.TextTemplating"#>
+
+<#+    
+
+class DbHelper 
+{
+    public static Configuration GetConfiguration(string connectionString)
+    {
+        var configuration = new Configuration();
+        configuration.Database.ConnectionString = connectionString;
+        return configuration;
+    }
+    
+    public static Configuration GetConfiguration(ITextTemplatingEngineHost host)
+    {
+        var solutionDir = host.ResolveAssemblyReference("$(SolutionDir)");
+        var serializer = new XmlSerializer(typeof(Configuration));
+        using var sr = new StringReader(File.ReadAllText($"{solutionDir}PgSql.Application\\SqlBatis.xml"));
+        return (Configuration)serializer.Deserialize(sr);
+    }
+
+    public static IEnumerable<Table> GetTables(Configuration configuration)
+    {      
+        var tableSql = @"
+SELECT 
+    table_name,
+    table_type,
+    table_schema,
+    pg_catalog.obj_description(t.table_name::regclass) AS description
+FROM 
+    information_schema.tables AS t
+WHERE 
+    t.table_schema = 'public' AND t.table_type IN ('BASE TABLE','VIEW') AND t.table_catalog = 'postgres'
+ORDER BY t.table_name
+";
+        var columnSql = @"
+SELECT
+    c.table_name,
+    c.table_schema,
+    c.column_name,
+    c.udt_name AS data_type,
+    CASE c.is_nullable WHEN 'YES' THEN 1 ELSE 0 END is_nullable,
+    pg_catalog.col_description(c.table_name::regclass::oid, c.ordinal_position) AS description,
+    CASE WHEN kcu.column_name IS NOT NULL THEN 1 ELSE 0 END AS is_primary_key,
+    CASE WHEN c.column_default LIKE 'nextval(%' THEN 1 ELSE 0 END AS is_identity
+FROM 
+    information_schema.columns c
+LEFT JOIN information_schema.key_column_usage kcu ON c.table_name = kcu.table_name AND c.column_name = kcu.column_name AND c.table_schema = kcu.table_schema
+LEFT JOIN information_schema.table_constraints tc ON kcu.table_name = tc.table_name AND kcu.table_schema = tc.table_schema AND kcu.constraint_name = tc.constraint_name AND tc.constraint_type = 'PRIMARY KEY'
+WHERE 
+    c.table_schema = 'public' AND c.table_catalog = 'postgres'
+ORDER BY
+    c.ordinal_position  
+";
+        DefaultTypeMap.MatchNamesWithUnderscores = true;
+        var connection = new NpgsqlConnection(configuration.Database.ConnectionString);
+        var tables = connection.Query<Table>(tableSql, new { connection.Database });
+        var columns = connection.Query<Column>(columnSql, new { connection.Database });
+      
+        foreach(var table in tables)
+        {
+            table.Name = UpperCamelCase(table.TableName);
+            table.Columns.AddRange(columns.Where(a => a.TableName == table.TableName));
+            var tableMapper = configuration.GetTableMapper(table.Name);
+            foreach(var column in columns) 
+            {
+                column.Name = UpperCamelCase(column.ColumnName);
+                var columnType = tableMapper?.GetColumnMapperType(column.Name);
+                if(!string.IsNullOrEmpty(columnType))
+                {
+                    column.Type = columnType;
+                }
+                else
+                {
+                    column.Type = GetCSharpType(column.DataType, column.IsNullable);
+                }
+            }
+        }
+        return tables;
+    }
+
+    public static string GetCSharpType(string columnType, bool isNullable)
+    {
+        var type = "string";
+        switch (columnType)
+        {
+            case "varchar": type = "string"; break;
+            case "bool": type = "bool"; break;
+            case "int2": type = "short"; break;
+            case "int4": type = "int"; break;
+            case "int8": type = "long"; break;
+            case "float4": type = "float"; break;
+            case "float8": type = "double"; break;
+            case "decimal": type = "decimal"; break;
+            case "numeric": type = "decimal"; break;
+            case "date": type = "DateTime"; break;
+            case "datetime": type = "DateTime"; break;
+            case "json": type = "JsonElement"; break;
+        }        
+        return $"{type}?";
+    }
+       
+    public static string UpperCamelCase(string name) 
+    {
+        var list = new List<string>();
+        foreach (var item in name.Split('_').Where(a => !string.IsNullOrEmpty(a)))
+        {
+            var names = item.ToArray().Select(s => char.ToLower(s)).ToArray();
+            names[0] = char.ToUpper(names[0]);
+            list.Add(new string(names));
+        }
+        return string.Join("", list);
+    }
+      
+    public static string LowerCamelCase(string name)
+    {
+        name = UpperCamelCase(name);
+        return char.ToLower(name[0]) + name.Substring(1);
+    }
+
+    public class Table 
+    {
+        public string Name { get; set; }
+        public string TableName { get; set; }
+        public string TableType { get; set; }
+        public string TableSchema { get; set; }
+        public string Description { get; set; }
+        public List<Column> Columns { get; set; } = new List<Column>();
+        
+        private string _extendsName = null;
+
+        public string GetExtendsName()
+        {
+            if(_extendsName != null)
+            {
+                return _extendsName;
+            }
+            if(TableType != "BASE TABLE")
+            {
+                return "";
+            }
+            var key = Columns.Where(a => a.IsPrimaryKey).FirstOrDefault();
+            if (key == null) 
+            {
+                return "";
+            }
+            if(key.Type == "int?")
+            {
+                return " : Entity";
+            }
+            return $" : Entity<{key.Type}>";
+        }
+    }
+   
+    public class Column 
+    {
+        public string Name { get; set; }
+        public string TableName { get; set; }
+        public string TableSchema { get; set; }
+        public string ColumnName { get; set; }
+        public string DataType { get; set; }
+        public string Description { get; set; }
+        public bool IsNullable { get; set; }
+        public bool IsIdentity { get; set; }
+        public bool IsPrimaryKey { get; set; }
+        public string Type { get; set; }
+
+        public string GetAttributes()
+        {
+            var list = new List<String>();
+            if(IsPrimaryKey)
+            {
+                list.Add("[Key]");
+            }
+            if(IsIdentity)
+            {
+                list.Add("[Identity]");
+            }
+            return string.Join("", list);
+        }
+    }
+}
+
+[XmlRoot("config")]
+public class Configuration
+{
+    [XmlElement("database")]
+    public DatabaseInfo Database { get; set; } = new DatabaseInfo();
+
+    [XmlArray("entities")]
+    public List<TableMapper> Entities { get; set; } = new List<TableMapper>();
+   
+    [XmlType("entity")]
+    public class TableMapper
+    {
+        [XmlAttribute("name")]
+        public string Name { get; set; }
+        
+        [XmlArray("properties")]
+        public List<ColumnMapper> Properties { get; set; } = new List<ColumnMapper>();
+       
+        public ColumnMapper GetColumnMapper(string name)
+        {
+            return Properties.Where(a => a.Name == name).FirstOrDefault();
+        }
+       
+        public string GetColumnMapperType(string name)
+        {
+            return GetColumnMapper(name).Type;
+        }
+    }
+   
+    [XmlType("property")]
+    public class ColumnMapper
+    {
+        [XmlAttribute("name")]
+        public string Name { get; set; }
+
+        [XmlAttribute("type")]
+        public string Type { get; set; }
+    }
+    
+    [XmlType("database")]
+    public class DatabaseInfo
+    {
+        [XmlAttribute("connectionString")]
+        public string ConnectionString { get; set; } 
+    }
+
+    public TableMapper GetTableMapper(string name)
+    {
+        return Entities.Where(a=>a.Name == name).FirstOrDefault();
+    }
+}	
+#>

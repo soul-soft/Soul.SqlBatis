@@ -2,8 +2,8 @@
 <#@ assembly name="System.Data" #>
 <#@ assembly name="System.IO" #>
 <#@ assembly name="System.Xml" #>
-<#@ assembly name="$(SolutionDir)\References\Dapper.dll" #>
-<#@ assembly name="$(SolutionDir)\References\MySqlConnector.dll" #>
+<#@ assembly name="$(SolutionDir)\Soul.SqlbatisT4\Dapper.dll" #>
+<#@ assembly name="$(SolutionDir)\Soul.SqlbatisT4\MySqlConnector.dll" #>
 <#@ import namespace="System.IO" #>
 <#@ import namespace="System.Xml.Serialization" #>
 <#@ import namespace="System.Linq" #>
@@ -28,7 +28,7 @@ class MysqlManager
     {
         var solutionDir = host.ResolveAssemblyReference("$(SolutionDir)");
         var serializer = new XmlSerializer(typeof(Configuration));
-        using var sr = new StringReader(File.ReadAllText($"{solutionDir}\\References\\config.xml"));
+        using var sr = new StringReader(File.ReadAllText($"{solutionDir}\\Soul.SqlbatisT4\\config.xml"));
         return (Configuration)serializer.Deserialize(sr);
     }
 

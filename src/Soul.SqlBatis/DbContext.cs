@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Soul.SqlBatis.ChangeTracking;
 using System.Threading.Tasks;
 using System.Data.Common;
+using Soul.SqlBatis.Databases;
 
 namespace Soul.SqlBatis
 {
@@ -14,7 +15,7 @@ namespace Soul.SqlBatis
 
         public IModel Model => Options.Model;
 
-        public IDatabaseCommand Command { get; private set; }
+        public IDbContextCommand Command { get; private set; }
 
         private IDbConnection _connection;
 
@@ -22,7 +23,7 @@ namespace Soul.SqlBatis
 
         public IDbTransaction CurrentTransaction => _transaction;
 
-        public IEntityPersister EntityPersister => Options.EntityPersister;
+        public IDbContextPersister Persister => Options.Persister;
 
         public IEntityMapper EntityMapper => Options.EntityMapper;
 
@@ -41,7 +42,7 @@ namespace Soul.SqlBatis
             configure(options);
             Options = options;
             _connection = options.Connection;
-            Command = new DatabaseCommand(this);
+            Command = new DbContextCommand(this);
             ChangeTracker = new ChangeTracker(options.Model);
         }
 
@@ -153,7 +154,7 @@ namespace Soul.SqlBatis
         {
             using (var transaction = BeginTransaction())
             {
-                var affectedRows = EntityPersister.SaveChanges(Command, ChangeTracker.GetChangedEntries());
+                var affectedRows = Persister.SaveChanges(Command, ChangeTracker.GetChangedEntries());
                 transaction.CommitTransaction();
                 ChangeTracker.ClearEntities();
                 return affectedRows;
@@ -164,7 +165,7 @@ namespace Soul.SqlBatis
         {
             using (var transaction = BeginTransaction())
             {
-                var affectedRows = await EntityPersister.SaveChangesAsync(Command, ChangeTracker.GetChangedEntries());
+                var affectedRows = await Persister.SaveChangesAsync(Command, ChangeTracker.GetChangedEntries());
                 transaction.CommitTransaction();
                 ChangeTracker.ClearEntities();
                 return affectedRows;

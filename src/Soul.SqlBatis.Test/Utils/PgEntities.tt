@@ -1,11 +1,11 @@
 ﻿<#@ template language="C#" hostspecific="true"#>
-<#@ include file="$(SolutionDir)\References\MySqlHelper.ttinclude"#>
+<#@ include file="$(SolutionDir)Soul.SqlbatisT4\PgSqlHelper.ttinclude"#>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <# 
 	//通过xml配置文件来配置，支持更加丰富的定制
-	var configuration = MysqlManager.GetConfiguration(Host);
-	//var configuration = MysqlManager.GetConfiguration("Server=localhost;Port=3306;User ID=root;Password=1024;Database=test");
+	//var configuration = MysqlManager.GetConfiguration(Host);
+	var configuration = MysqlManager.GetConfiguration("Host=localhost;Port=5432;Username=postgres;Password=1024;Database=postgres;SSL Mode=Disable;");
 	var tables = MysqlManager.GetTables(configuration);
 #>
 using System;
@@ -18,17 +18,16 @@ namespace Soul.SqlBatis.Entities
 <#foreach(var table in tables){#>
 
 	/// <summary>
-    /// <#=table.Description#>
+    /// <#=table.Description ?? string.Empty#>
     /// </summary>
 	[Table("<#=table.TableName#>")]
-	public partial class <#=table.Name#>
+	public partial class <#=table.TableName#> : Entity
 	{
 <#foreach(var column in table.Columns){#>
 		/// <summary>
-		/// <#=column.Description#>
+		/// <#=column.Description ?? string.Empty#>
 		/// </summary>
-		<#=column.IsPrimaryKey ? $"[Key]":""#><#=column.IsIdentity && column.IsPrimaryKey ? $"[Identity]":""#>[Column("<#=column.ColumnName#>")]
-		public <#=column.Type#> <#=column.Name#> { get; set; }
+		public <#=column.ColumnName == "Id" ? "override" : ""#> <#=column.Type#> <#=column.ColumnName#> { get; set; }
 <#}#>
 	}
 <#}#>

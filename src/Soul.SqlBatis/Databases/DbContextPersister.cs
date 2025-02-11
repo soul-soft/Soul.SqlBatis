@@ -1,18 +1,26 @@
-﻿using System.Collections.Generic;
+﻿using Soul.SqlBatis.ChangeTracking;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Soul.SqlBatis.ChangeTracking
+namespace Soul.SqlBatis.Databases
 {
-    public interface IEntityPersister
+    public interface IDbContextPersister
     {
-        int SaveChanges(IDatabaseCommand command, IEnumerable<IEntityEntry> entries);
-        Task<int> SaveChangesAsync(IDatabaseCommand command, IEnumerable<IEntityEntry> entries);
+        int SaveChanges(IDbContextCommand command, IEnumerable<IEntityEntry> entries);
+        Task<int> SaveChangesAsync(IDbContextCommand command, IEnumerable<IEntityEntry> entries);
     }
 
-    internal class EntityPersister : IEntityPersister
+    internal class DbContextPersister : IDbContextPersister
     {
-        public int SaveChanges(IDatabaseCommand command, IEnumerable<IEntityEntry> entries)
+        private readonly DbContextOptions _options;
+        
+        public DbContextPersister(DbContextOptions options)
+        {
+            _options = options;
+        }
+
+        public int SaveChanges(IDbContextCommand command, IEnumerable<IEntityEntry> entries)
         {
             var affectedRows = 0;
             foreach (var entry in entries)
@@ -33,7 +41,7 @@ namespace Soul.SqlBatis.ChangeTracking
             return affectedRows;
         }
 
-        public async Task<int> SaveChangesAsync(IDatabaseCommand command, IEnumerable<IEntityEntry> entries)
+        public async Task<int> SaveChangesAsync(IDbContextCommand command, IEnumerable<IEntityEntry> entries)
         {
             var affectedRows = 0;
             foreach (var entry in entries)
@@ -54,7 +62,7 @@ namespace Soul.SqlBatis.ChangeTracking
             return affectedRows;
         }
 
-        private int Insert(IDatabaseCommand command, IEntityEntry entry)
+        private int Insert(IDbContextCommand command, IEntityEntry entry)
         {
             var (sql, param) = BuildInsertCommand(entry);
             if (entry.Members.Any(a => a.IsIdentity()))
@@ -70,19 +78,19 @@ namespace Soul.SqlBatis.ChangeTracking
             }
         }
 
-        private int Update(IDatabaseCommand command, IEntityEntry entry)
+        private int Update(IDbContextCommand command, IEntityEntry entry)
         {
             var (sql, param) = BuildUpdateCommand(entry);
             return command.Execute(sql, param);
         }
 
-        private int Delete(IDatabaseCommand command, IEntityEntry entry)
+        private int Delete(IDbContextCommand command, IEntityEntry entry)
         {
             var (sql, param) = BuildDeleteCommand(entry);
             return command.Execute(sql, param);
         }
 
-        private async Task<int> InsertAsync(IDatabaseCommand command, IEntityEntry entry)
+        private async Task<int> InsertAsync(IDbContextCommand command, IEntityEntry entry)
         {
             var (sql, param) = BuildInsertCommand(entry);
             if (entry.Members.Any(a => a.IsIdentity()))
@@ -98,13 +106,13 @@ namespace Soul.SqlBatis.ChangeTracking
             }
         }
 
-        private Task<int> UpdateAsync(IDatabaseCommand command, IEntityEntry entry)
+        private Task<int> UpdateAsync(IDbContextCommand command, IEntityEntry entry)
         {
             var (sql, param) = BuildUpdateCommand(entry);
             return command.ExecuteAsync(sql, param);
         }
 
-        private Task<int> DeleteAsync(IDatabaseCommand command, IEntityEntry entry)
+        private Task<int> DeleteAsync(IDbContextCommand command, IEntityEntry entry)
         {
             var (sql, param) = BuildDeleteCommand(entry);
             return command.ExecuteAsync(sql, param);
@@ -115,10 +123,11 @@ namespace Soul.SqlBatis.ChangeTracking
             var members = entry.Members.Where(a => !a.IsIdentity() && !a.IsNotMapped()).ToList();
             var columns = string.Join(",", members.Select(s => s.ColumnName));
             var paramNames = string.Join(",", members.Select(s => $"@{s.Property.Name}"));
-            var sql = $"INSERT INTO {entry.TableName}({columns}) VALUES ({paramNames})";
+            var sql = $"INSERT INTO {entry.TableName} ({columns}) VALUES ({paramNames})";
             if (entry.Members.Any(a => a.IsIdentity()))
             {
-                sql += ";SELECT LAST_INSERT_ID()";
+                var column = entry.Members.Where(a => a.IsIdentity()).First();
+                sql += $"{string.Format(_options.LastIdentitySql, column.ColumnName)}";
             }
             var param = new DynamicParameters();
             foreach (var item in members)

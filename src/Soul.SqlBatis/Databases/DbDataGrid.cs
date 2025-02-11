@@ -10,13 +10,13 @@ namespace Soul.SqlBatis.Databases
     public class DbDataGrid : IDisposable
     {
         private IDataReader _reader;
-        private IDbCommand _command;
+        private System.Data.IDbCommand _command;
         private bool _closeConnection;
         private readonly DbContext _context;
-        private Func<IDbCommand> _createCommand;
+        private Func<System.Data.IDbCommand> _createCommand;
         private readonly IEntityMapper _entityMapper;
 
-        public DbDataGrid(DbContext context, Func<IDbCommand> createCommand, IEntityMapper entityMapper)
+        public DbDataGrid(DbContext context, Func<System.Data.IDbCommand> createCommand, IEntityMapper entityMapper)
         {
             _context = context;
             _createCommand = createCommand;
@@ -107,7 +107,7 @@ namespace Soul.SqlBatis.Databases
             if (_reader == null)
             {
                 _command = _createCommand();
-                _reader = await (_command as DbCommand).ExecuteReaderAsync();
+                _reader = await (_command as System.Data.Common.DbCommand).ExecuteReaderAsync();
             }
             else
             {

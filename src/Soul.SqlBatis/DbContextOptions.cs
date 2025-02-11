@@ -1,4 +1,5 @@
 ﻿using Soul.SqlBatis.ChangeTracking;
+using Soul.SqlBatis.Databases;
 using System;
 using System.Data;
 
@@ -8,15 +9,17 @@ namespace Soul.SqlBatis
     {
         internal string EmptyQuerySql { get; private set; } = "SELECT NULL";
 
+        internal string LastIdentitySql { get; private set; } = "SELECT LAST_INSERT_ID()";
+
         internal bool QueryTracking { get; private set; }
 
         internal IDbConnection Connection { get; private set; }
 
         internal Action<string, object> Loggger { get; private set; }
 
-        internal IModel Model { get; private set; } = new AnnotationModel("`{0}`");
+        internal IModel Model { get; private set; }
 
-        internal IEntityPersister EntityPersister { get; private set; } = new EntityPersister();
+        internal IDbContextPersister Persister { get; private set; }
 
         internal IEntityMapper EntityMapper { get; private set; } = new EntityMapper(new EntityMapperOptions());
 
@@ -42,12 +45,6 @@ namespace Soul.SqlBatis
             return this;
         }
 
-        public DbContextOptions UseConnection(IDbConnection connection)
-        {
-            Connection = connection;
-            return this;
-        }
-
         public DbContextOptions UseSqlBuilder(Action<SqlBuilderOptions> configureOptions)
         {
             configureOptions?.Invoke(SqlBuilderOptions);
@@ -60,9 +57,9 @@ namespace Soul.SqlBatis
             return this;
         }
 
-        public DbContextOptions UseEntityPersister(IEntityPersister entityPersister)
+        public DbContextOptions UseEntityPersister(IDbContextPersister persister)
         {
-            EntityPersister = entityPersister;
+            Persister = persister;
             return this;
         }
 
@@ -76,6 +73,24 @@ namespace Soul.SqlBatis
         {
             Loggger = logger;
             return this;
+        }
+
+        public void UsePgSql(IDbConnection connection)
+        {
+            Connection = connection;
+            Persister = new DbContextPersister(this);
+            LastIdentitySql = " RETURNING {0};";
+            SqlBuilderOptions.LimitFormat = "LIMIT {0} OFFSET {1}";
+            Model = new AnnotationModel("\"{0}\"");
+        }
+
+        public void UseMySql(IDbConnection connection)
+        {
+            Connection = connection;
+            Persister = new DbContextPersister(this);
+            LastIdentitySql = ";SELECT LAST_INSERT_ID()";
+            SqlBuilderOptions.LimitFormat = "LIMIT {0},{1}";
+            Model = new AnnotationModel("\"{0}\"");
         }
     }
 }

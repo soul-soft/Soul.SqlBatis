@@ -1,3 +1,4 @@
+using Npgsql;
 using Soul.SqlBatis.Entities;
 
 namespace Soul.SqlBatis.Test
@@ -8,6 +9,7 @@ namespace Soul.SqlBatis.Test
         [TestMethod]
         public void TestMethod1()
         {
+            new NpgsqlConnection("");
             using var context = DbContextFactory.CreateDbContext();
             var list = context.Set<Student>().Where(a => a.Name != null).ToList();
             context.SaveChanges();

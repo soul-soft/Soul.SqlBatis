@@ -17,6 +17,7 @@
     <PackageReference Include="MSTest.TestAdapter" Version="2.2.10" />
     <PackageReference Include="MSTest.TestFramework" Version="2.2.10" />
     <PackageReference Include="MySqlConnector" Version="2.3.7" />
+    <PackageReference Include="Npgsql" Version="9.0.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,6 +29,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Utils\PgEntities.tt">
+      <LastGenOutput>PgEntities.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
     <None Update="Utils\Entities.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Entities.cs</LastGenOutput>
@@ -52,6 +57,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Utils\PgEntities.cs">
+      <DependentUpon>PgEntities.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
     <Compile Update="Utils\Entities.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

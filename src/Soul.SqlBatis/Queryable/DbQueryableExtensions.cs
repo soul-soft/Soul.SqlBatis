@@ -56,7 +56,7 @@ namespace Soul.SqlBatis
             return dbQueryable;
         }
 
-        private static IDatabaseCommand GetCommand<T>(this IDbQueryable<T> queryable)
+        private static IDbContextCommand GetCommand<T>(this IDbQueryable<T> queryable)
         {
             return queryable.GetDbContext().Command;
         }
