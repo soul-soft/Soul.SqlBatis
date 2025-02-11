@@ -9,6 +9,8 @@ namespace Soul.SqlBatis
     {
         internal string EmptyQuerySql { get; private set; } = "SELECT NULL";
 
+        internal string KeywordsFormSql { get; set; }
+
         internal string LastIdentitySql { get; private set; } = "SELECT LAST_INSERT_ID()";
 
         internal bool QueryTracking { get; private set; }
@@ -72,19 +74,21 @@ namespace Soul.SqlBatis
         public void UsePgSql(IDbConnection connection)
         {
             Connection = connection;
-            Persister = new DbContextPersister(this);
-            LastIdentitySql = " RETURNING {0};";
+            LastIdentitySql = " RETURNING {0}";
+            KeywordsFormSql = "\"{0}\"";
             SqlBuilderOptions.LimitFormat = "LIMIT {1} OFFSET {0}";
-            Model = new AnnotationModel("\"{0}\"");
+            Model = new AnnotationModel(this);
+            Persister = new DbContextPersister(this);
         }
 
         public void UseMySql(IDbConnection connection)
         {
             Connection = connection;
-            Persister = new DbContextPersister(this);
+            KeywordsFormSql = "`{0}`";
             LastIdentitySql = ";SELECT LAST_INSERT_ID()";
             SqlBuilderOptions.LimitFormat = "LIMIT {0},{1}";
-            Model = new AnnotationModel("\"{0}\"");
+            Model = new AnnotationModel(this);
+            Persister = new DbContextPersister(this);
         }
     }
 }

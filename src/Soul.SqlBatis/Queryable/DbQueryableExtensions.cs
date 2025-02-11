@@ -417,7 +417,7 @@ namespace Soul.SqlBatis
                 configureOptions.HasDefaultColumns = false;
             });
             var pageSql = $"{queryer.QuerySql};\r\n{counter.CountSql}";
-            using (var grid = command.QueryMultiple(pageSql, param))
+            using (var grid = command.Multiple(pageSql, param))
             {
                 var list = grid.Read<T>();
                 var total = grid.ReadFirst<int>();
@@ -432,7 +432,7 @@ namespace Soul.SqlBatis
             var (queryer, param) = queryable.Build();
             var (counter, _) = queryable.Clone<int>().Build();
             var pageSql = $"{queryer.QuerySql};\r\n{counter.CountSql}";
-            using (var grid = command.QueryMultiple(pageSql, param))
+            using (var grid = command.Multiple(pageSql, param))
             {
                 var list = await grid.ReadAsync<T>();
                 var total = await grid.ReadFirstAsync<int>();

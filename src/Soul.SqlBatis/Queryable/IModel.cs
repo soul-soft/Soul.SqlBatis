@@ -33,18 +33,18 @@ namespace Soul.SqlBatis
 
     internal class AnnotationModel : IModel
     {
-        private readonly string _format;
+        private readonly DbContextOptions _options;
 
         private static readonly ConcurrentDictionary<Type, IEntityType> _entityTypes = new ConcurrentDictionary<Type, IEntityType>();
 
-        public AnnotationModel(string format)
+        public AnnotationModel(DbContextOptions options)
         {
-            _format = format;
+            _options = options;
         }
 
         public string Format(string name)
         {
-            return string.Format(_format, name);
+            return string.Format(_options.KeywordsFormSql, name);
         }
 
         public IEntityType FindEntityType(Type type)
@@ -75,8 +75,17 @@ namespace Soul.SqlBatis
         {
             get
             {
-                var name = GetAnnotation<TableAttribute>()?.Name ?? DeclaringType.Name;
-                return _model.Format(name);
+                var tableAttribute = GetAnnotation<TableAttribute>();
+                var name = tableAttribute?.Name ?? DeclaringType.Name;
+                var schema = tableAttribute?.Schema;
+                if (string.IsNullOrEmpty(schema)) 
+                {
+                    return _model.Format(name);
+                }
+                else
+                {
+                    return $"{_model.Format(schema)}.{_model.Format(name)}";
+                }
             }
         }
 

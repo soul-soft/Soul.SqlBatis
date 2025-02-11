@@ -1,11 +1,10 @@
-﻿using System;
+﻿using Soul.SqlBatis.ChangeTracking;
+using Soul.SqlBatis.Databases;
+using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Collections.Generic;
-using Soul.SqlBatis.ChangeTracking;
 using System.Threading.Tasks;
-using System.Data.Common;
-using Soul.SqlBatis.Databases;
 
 namespace Soul.SqlBatis
 {
@@ -107,8 +106,6 @@ namespace Soul.SqlBatis
                 Remove(item);
             }
         }
-
-     
 
         public virtual DbSet<T> Set<T>() where T : class
         {
