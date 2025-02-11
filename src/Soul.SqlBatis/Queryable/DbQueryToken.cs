@@ -1,7 +1,7 @@
 ﻿using System;
 namespace Soul.SqlBatis
 {
-    public enum DbQueryableType
+    public enum DbQueryMethod
     {
         As,
         Take,
@@ -15,18 +15,18 @@ namespace Soul.SqlBatis
         Setters
     }
 
-    public struct DbQueryableToken
+    public struct DbQueryToken
     {
         public object Value { get; }
 
-        public DbQueryableToken(object value)
+        public DbQueryToken(object value)
         {
             Value = value;
         }
 
-        public static DbQueryableToken New<TToken>(TToken token)
+        public static DbQueryToken New<TToken>(TToken token)
         {
-            return new DbQueryableToken(token);
+            return new DbQueryToken(token);
         }
         
         public T As<T>()

@@ -16,7 +16,7 @@ namespace Soul.SqlBatis
                 return;
             }
             var context = queryable.GetDbContext();
-            if (context.Options.QueryTracking && !query.Tokens.Any(a => a.Key == DbQueryableType.Select))
+            if (context.Options.QueryTracking && !query.Tokens.Any(a => a.Key == DbQueryMethod.Select))
             {
                 entity = (T)context.Attach(entity).Entity;
             }
@@ -34,7 +34,7 @@ namespace Soul.SqlBatis
                 return;
             }
             var context = queryable.GetDbContext();
-            if (context.Options.QueryTracking && !query.Tokens.Any(a => a.Key == DbQueryableType.Select))
+            if (context.Options.QueryTracking && !query.Tokens.Any(a => a.Key == DbQueryMethod.Select))
             {
                 for (var i = 0; i < entities.Count; i++)
                 {
@@ -485,7 +485,7 @@ namespace Soul.SqlBatis
         public static int ExecuteUpdate<T>(this IDbQueryable<T> queryable, Expression<Func<DbUpdateQueryable<T>, DbUpdateQueryable<T>>> setters)
         {
             var query = queryable.GetDbQueryable();
-            query.AddToken(DbQueryableType.Setters, setters);
+            query.AddToken(DbQueryMethod.Setters, setters);
             var (sqler, param) = query.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -498,7 +498,7 @@ namespace Soul.SqlBatis
         public static Task<int> ExecuteUpdateAsync<T>(this IDbQueryable<T> queryable, Expression<Func<DbUpdateQueryable<T>, DbUpdateQueryable<T>>> setters)
         {
             var query = queryable.GetDbQueryable();
-            query.AddToken(DbQueryableType.Setters, setters);
+            query.AddToken(DbQueryMethod.Setters, setters);
             var (sqler, param) = query.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
