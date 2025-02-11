@@ -25,7 +25,7 @@ namespace PgSql.Application
                 });
                 configure.UseNpgsql(new Npgsql.NpgsqlConnection("Host=localhost;Port=5432;Username=postgres;Password=1024;Database=postgres;SSL Mode=Disable;"));
             });
-            var list = context.Set<Students>().Sum(s=>s.Age);
+            var list = context.Set<Students>().ToList();
             context.SaveChanges();
         }
     }

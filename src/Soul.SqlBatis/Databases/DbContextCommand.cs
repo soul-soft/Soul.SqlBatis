@@ -216,7 +216,7 @@ namespace Soul.SqlBatis
             return command;
         }
 
-        private void SetParameter(System.Data.IDbCommand command, string name, object value)
+        private void SetParameter(IDbCommand command, string name, object value)
         {
             if (!command.CommandText.Contains("@" + name.TrimStart('@')))
             {
@@ -260,7 +260,7 @@ namespace Soul.SqlBatis
             }
         }
 
-        private void CreateParameter(System.Data.IDbCommand command, string name, object value)
+        private void CreateParameter(IDbCommand command, string name, object value)
         {
             var parameter = command.CreateParameter();
             parameter.Value = value ?? DBNull.Value;
