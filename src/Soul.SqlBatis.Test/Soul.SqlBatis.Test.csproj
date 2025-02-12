@@ -29,10 +29,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Utils\PgEntities.tt">
-      <LastGenOutput>PgEntities.cs</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
     <None Update="Utils\Entities.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Entities.cs</LastGenOutput>
@@ -57,11 +53,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Utils\PgEntities.cs">
-      <DependentUpon>PgEntities.tt</DependentUpon>
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-    </Compile>
     <Compile Update="Utils\Entities.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -72,6 +63,10 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>MyDbContext.tt</DependentUpon>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="ChangeTracking\" />
   </ItemGroup>
 
 </Project>
