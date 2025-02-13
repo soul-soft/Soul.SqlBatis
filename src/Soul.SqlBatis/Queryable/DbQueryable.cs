@@ -45,6 +45,12 @@ namespace Soul.SqlBatis
             return this;
         }
 
+        public IDbQueryable<T> AsTracking()
+        {
+            IsTracking = true;
+            return this;
+        }
+
         public IDbQueryable<T> AsNoTracking()
         {
             IsTracking = false;
