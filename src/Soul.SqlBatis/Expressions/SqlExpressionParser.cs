@@ -97,7 +97,7 @@ namespace Soul.SqlBatis.Expressions
         {
             if (IsParameterExpression(node))
             {
-                var entityType = Context.Model.FindEntityType(node.Member.DeclaringType);
+                var entityType = Context.Model.FindEntityType(node.Expression.Type);
                 var property = entityType.GetProperty(node.Member.Name);
                 var columnName = property.ColumnName;
                 if (!string.IsNullOrEmpty(Context.Alias))
