@@ -21,7 +21,7 @@ namespace Soul.SqlBatis
         internal DbQueryable(DbContext context, Type entityType, DynamicParameters parameters)
         {
             DbContext = context;
-            IsTracking = context.Options.QueryTracking;
+            IsTracking = context.Options.EnabledQueryTracking;
             EntityType = context.Model.FindEntityType(typeof(T));
             Parameters = parameters;
         }

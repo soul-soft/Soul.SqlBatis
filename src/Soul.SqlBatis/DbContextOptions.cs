@@ -14,7 +14,7 @@ namespace Soul.SqlBatis
 
         internal string LastIdentitySql { get; private set; } 
 
-        internal bool QueryTracking { get; private set; }
+        internal bool EnabledQueryTracking { get; private set; }
 
         internal IDbConnection Connection { get; private set; }
 
@@ -48,7 +48,7 @@ namespace Soul.SqlBatis
 
         public DbContextOptions UseQueryTracking()
         {
-            QueryTracking = true;
+            EnabledQueryTracking = true;
             return this;
         }
 
