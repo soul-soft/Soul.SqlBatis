@@ -3,23 +3,23 @@
 <#@ assembly name="System.IO" #>
 <#@ assembly name="System.Xml" #>
 <#@ assembly name="netstandard" #>
-<#@ assembly name="$(SolutionDir)PgSql.References\Dapper.dll" #>
-<#@ assembly name="$(SolutionDir)PgSql.References\Npgsql.dll" #>
-<#@ assembly name="$(SolutionDir)PgSql.References\System.Buffers.dll" #>
-<#@ assembly name="$(SolutionDir)PgSql.References\Microsoft.Bcl.AsyncInterfaces.dll" #>
-<#@ assembly name="$(SolutionDir)PgSql.References\Microsoft.Bcl.HashCode.dll" #>
-<#@ assembly name="$(SolutionDir)PgSql.References\Microsoft.Extensions.DependencyInjection.Abstractions.dll" #>
-<#@ assembly name="$(SolutionDir)PgSql.References\Microsoft.Extensions.Logging.Abstractions.dll" #>
-<#@ assembly name="$(SolutionDir)PgSql.References\System.Collections.Immutable.dll" #>
-<#@ assembly name="$(SolutionDir)PgSql.References\System.Diagnostics.DiagnosticSource.dll" #>
-<#@ assembly name="$(SolutionDir)PgSql.References\System.Memory.dll" #>
-<#@ assembly name="$(SolutionDir)PgSql.References\System.Numerics.Vectors.dll" #>
-<#@ assembly name="$(SolutionDir)PgSql.References\System.Runtime.CompilerServices.Unsafe.dll" #>
-<#@ assembly name="$(SolutionDir)PgSql.References\System.Text.Encodings.Web.dll" #>
-<#@ assembly name="$(SolutionDir)PgSql.References\System.Text.Json.dll" #>
-<#@ assembly name="$(SolutionDir)PgSql.References\System.Threading.Channels.dll" #>
-<#@ assembly name="$(SolutionDir)PgSql.References\System.Threading.Tasks.Extensions.dll" #>
-<#@ assembly name="$(SolutionDir)PgSql.References\System.ValueTuple.dll" #>
+<#@ assembly name="$(SolutionDir)SqlBatis.Npgsql\Dapper.dll" #>
+<#@ assembly name="$(SolutionDir)SqlBatis.Npgsql\Npgsql.dll" #>
+<#@ assembly name="$(SolutionDir)SqlBatis.Npgsql\System.Buffers.dll" #>
+<#@ assembly name="$(SolutionDir)SqlBatis.Npgsql\Microsoft.Bcl.AsyncInterfaces.dll" #>
+<#@ assembly name="$(SolutionDir)SqlBatis.Npgsql\Microsoft.Bcl.HashCode.dll" #>
+<#@ assembly name="$(SolutionDir)SqlBatis.Npgsql\Microsoft.Extensions.DependencyInjection.Abstractions.dll" #>
+<#@ assembly name="$(SolutionDir)SqlBatis.Npgsql\Microsoft.Extensions.Logging.Abstractions.dll" #>
+<#@ assembly name="$(SolutionDir)SqlBatis.Npgsql\System.Collections.Immutable.dll" #>
+<#@ assembly name="$(SolutionDir)SqlBatis.Npgsql\System.Diagnostics.DiagnosticSource.dll" #>
+<#@ assembly name="$(SolutionDir)SqlBatis.Npgsql\System.Memory.dll" #>
+<#@ assembly name="$(SolutionDir)SqlBatis.Npgsql\System.Numerics.Vectors.dll" #>
+<#@ assembly name="$(SolutionDir)SqlBatis.Npgsql\System.Runtime.CompilerServices.Unsafe.dll" #>
+<#@ assembly name="$(SolutionDir)SqlBatis.Npgsql\System.Text.Encodings.Web.dll" #>
+<#@ assembly name="$(SolutionDir)SqlBatis.Npgsql\System.Text.Json.dll" #>
+<#@ assembly name="$(SolutionDir)SqlBatis.Npgsql\System.Threading.Channels.dll" #>
+<#@ assembly name="$(SolutionDir)SqlBatis.Npgsql\System.Threading.Tasks.Extensions.dll" #>
+<#@ assembly name="$(SolutionDir)SqlBatis.Npgsql\System.ValueTuple.dll" #>
 <#@ import namespace="System.IO" #>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
@@ -40,11 +40,11 @@ class DbHelper
         return configuration;
     }
     
-    public static Configuration GetConfiguration(ITextTemplatingEngineHost host)
+    public static Configuration GetConfiguration(ITextTemplatingEngineHost host, string path)
     {
         var solutionDir = host.ResolveAssemblyReference("$(SolutionDir)");
         var serializer = new XmlSerializer(typeof(Configuration));
-        using var sr = new StringReader(File.ReadAllText($"{solutionDir}PgSql.Application\\SqlBatis.xml"));
+        using var sr = new StringReader(File.ReadAllText(path));
         return (Configuration)serializer.Deserialize(sr);
     }
 
@@ -59,7 +59,7 @@ SELECT
 FROM 
     information_schema.tables AS t
 WHERE 
-    t.table_schema = 'public' AND t.table_type IN ('BASE TABLE','VIEW') AND t.table_catalog = 'postgres'
+    t.table_schema = 'public' AND t.table_type IN ('BASE TABLE','VIEW') AND t.table_catalog = @Database
 ORDER BY t.table_name
 ";
         var columnSql = @"
@@ -77,7 +77,7 @@ FROM
 LEFT JOIN information_schema.key_column_usage kcu ON c.table_name = kcu.table_name AND c.column_name = kcu.column_name AND c.table_schema = kcu.table_schema
 LEFT JOIN information_schema.table_constraints tc ON kcu.table_name = tc.table_name AND kcu.table_schema = tc.table_schema AND kcu.constraint_name = tc.constraint_name AND tc.constraint_type = 'PRIMARY KEY'
 WHERE 
-    c.table_schema = 'public' AND c.table_catalog = 'postgres'
+    c.table_schema = 'public' AND c.table_catalog = @Database
 ORDER BY
     c.ordinal_position  
 ";
