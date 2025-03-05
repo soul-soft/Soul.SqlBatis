@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace Soul.SqlBatis.Test
 {
-    internal class TypeMapperFactory : ITypeMapperFactory
+    internal class TypeMapperFactory : ICustomTypeMapper
     {
         public static T GetJson<T>(IDataRecord record, int i)
         {
@@ -15,13 +15,13 @@ namespace Soul.SqlBatis.Test
             ?? throw new NullReferenceException();
         }
 
-        public MethodInfo? GetTypeMapper(TypeMapperContext context)
+        public MethodInfo GetTypeMapper(EntityTypeMapperContext context)
         {
             if ("json".Equals(context.FieldTypeName, StringComparison.OrdinalIgnoreCase) && context.MemberType != typeof(string))
             {
                 return GetType().GetMethod(nameof(GetJson))!.MakeGenericMethod(context.MemberType);
             }
-            return null;
+            return null!;
         }
     }
 }

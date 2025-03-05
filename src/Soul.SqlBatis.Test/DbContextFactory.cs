@@ -46,11 +46,11 @@ namespace Soul.SqlBatis.Test
                         var span = new Span<byte>(buffer, 0, (int)count);
                         return span.ToArray();
                     });
+                    configureOptions.UseDefaultValueExpression<int>();
                     //注册映射工厂
-                    configureOptions.TypeMapperFactory = new TypeMapperFactory();
+                    configureOptions.CustomTypeMapper = new TypeMapperFactory();
                 });
-                configure.UseQueryTracking();
-                configure.UseConnection(new MySqlConnection("Server=127.0.0.1;User ID=root;Password=1024;Database=test"));
+                configure.UseQueryTracking();          
             });
         }
     }

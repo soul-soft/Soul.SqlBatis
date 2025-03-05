@@ -16,17 +16,17 @@ namespace Soul.SqlBatis
 
     public interface ICustomTypeMapper
     {
-        MethodInfo GetTypeMapper(EntityMapperMatcherContext context);
+        MethodInfo GetTypeMapper(EntityTypeMapperContext context);
     }
 
-    public class EntityMapperMatcherContext
+    public class EntityTypeMapperContext
     {
         public Type EntityType { get; }
         public Type MemberType { get; }
         public Type FieldType { get; }
         public string FieldTypeName { get; }
 
-        public EntityMapperMatcherContext(Type entityType, Type memberType, Type fieldType, string fieldTypeName)
+        public EntityTypeMapperContext(Type entityType, Type memberType, Type fieldType, string fieldTypeName)
         {
             EntityType = entityType;
             MemberType = memberType;
@@ -37,33 +37,35 @@ namespace Soul.SqlBatis
 
     public class EntityMapperOptions
     {
-        public ICustomTypeMapper CustomMappers { get; set; }
+        public ICustomTypeMapper CustomTypeMapper { get; set; }
 
         public bool MatchNamesWithUnderscores { get; set; } = true;
 
-        private readonly Dictionary<Type, Delegate> _typeMappers = new Dictionary<Type, Delegate>();
+        private readonly Dictionary<Type, Delegate> _delegateMappers = new Dictionary<Type, Delegate>();
 
         public void UseTypeMapper<TResunt>(Func<IDataRecord, int, TResunt> func)
         {
             var type = Nullable.GetUnderlyingType(typeof(TResunt)) ?? typeof(TResunt);
-            _typeMappers[type] = func;
+            _delegateMappers[type] = func;
         }
+
+        public Func<EntityTypeMapperContext, Expression> DbNullHandler { get; set; }
 
         internal Delegate GetTypeMapper(Type type)
         {
             var unNullableType = Nullable.GetUnderlyingType(type) ?? type;
-            _typeMappers.TryGetValue(unNullableType, out var method);
+            _delegateMappers.TryGetValue(unNullableType, out var method);
             return method;
         }
 
-        internal bool TryCustomTypeMapper(EntityMapperMatcherContext context, out MethodInfo method)
+        internal bool TryCustomTypeMapper(EntityTypeMapperContext context, out MethodInfo method)
         {
-            if (CustomMappers == null)
+            if (CustomTypeMapper == null)
             {
                 method = null;
                 return false;
             }
-            method = CustomMappers.GetTypeMapper(context);
+            method = CustomTypeMapper.GetTypeMapper(context);
             var hasMapperMethod = method != null;
             if (hasMapperMethod)
             {
@@ -90,13 +92,13 @@ namespace Soul.SqlBatis
             return hasMapperMethod;
         }
     }
-   
+
     internal class EntityMapper : IEntityMapper
     {
         private static readonly ConcurrentDictionary<string, Delegate> _mappers = new ConcurrentDictionary<string, Delegate>();
 
         internal EntityMapperOptions Options { get; }
-      
+
         public EntityMapper()
             : this(new EntityMapperOptions())
         {
@@ -249,35 +251,36 @@ namespace Soul.SqlBatis
         private Expression BuildValueExpression(ParameterExpression recordParameter, Type entityType, EntityMemberBinding fieldBinding)
         {
             var isDbNullCheck = Expression.Call(recordParameter, nameof(IDataRecord.IsDBNull), null, Expression.Constant(fieldBinding.FieldSort));
-            Expression getValueCall;
-            var context = new EntityMapperMatcherContext(entityType, fieldBinding.MemberType, fieldBinding.FieldType, fieldBinding.FieldTypeName);
-            if (Options.CustomMappers != null && Options.TryCustomTypeMapper(context, out MethodInfo typeMethod) == true)
+            Expression valueExpression;
+            var context = new EntityTypeMapperContext(entityType, fieldBinding.MemberType, fieldBinding.FieldType, fieldBinding.FieldTypeName);
+            if (Options.CustomTypeMapper != null && Options.TryCustomTypeMapper(context, out MethodInfo typeMethod) == true)
             {
-                getValueCall = Expression.Call(typeMethod, recordParameter, Expression.Constant(fieldBinding.FieldSort));
+                valueExpression = Expression.Call(typeMethod, recordParameter, Expression.Constant(fieldBinding.FieldSort));
             }
             else if (Options.GetTypeMapper(fieldBinding.MemberType) != null)
             {
                 var fun = Options.GetTypeMapper(fieldBinding.MemberType);
-                getValueCall = Expression.Invoke(Expression.Constant(fun), recordParameter, Expression.Constant(fieldBinding.FieldSort));
+                valueExpression = Expression.Invoke(Expression.Constant(fun), recordParameter, Expression.Constant(fieldBinding.FieldSort));
             }
             else
             {
                 var defaultTypeMethod = GetDefaultTypeMapper(fieldBinding.FieldType)
                     ?? throw new NotImplementedException($"No mapping implemented from field type {fieldBinding.FieldType} to member type {fieldBinding.MemberType}.");
-                getValueCall = Expression.Call(recordParameter, defaultTypeMethod, Expression.Constant(fieldBinding.FieldSort));
+                valueExpression = Expression.Call(recordParameter, defaultTypeMethod, Expression.Constant(fieldBinding.FieldSort));
 
-                if (!fieldBinding.MemberType.IsAssignableFrom(getValueCall.Type))
+                if (!fieldBinding.MemberType.IsAssignableFrom(valueExpression.Type))
                 {
-                    getValueCall = ConvertValueExpression(getValueCall, fieldBinding.MemberType);
+                    valueExpression = ConvertValueExpression(valueExpression, fieldBinding.MemberType);
                 }
             }
 
-            if (getValueCall.Type != fieldBinding.MemberType)
+            if (valueExpression.Type != fieldBinding.MemberType)
             {
-                getValueCall = Expression.Convert(getValueCall, fieldBinding.MemberType);
+                valueExpression = Expression.Convert(valueExpression, fieldBinding.MemberType);
             }
-
-            return Expression.Condition(isDbNullCheck, Expression.Default(fieldBinding.MemberType), getValueCall);
+            var defaultValueExpression = Options.DbNullHandler(context) 
+                ?? Expression.Default(fieldBinding.MemberType);
+            return Expression.Condition(isDbNullCheck, defaultValueExpression, valueExpression);
         }
 
         protected bool HasTypeMapper(Type memberType, Type fieldType)
