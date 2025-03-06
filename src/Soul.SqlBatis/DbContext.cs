@@ -3,8 +3,10 @@ using Soul.SqlBatis.Databases;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace Soul.SqlBatis
 {
@@ -18,9 +20,9 @@ namespace Soul.SqlBatis
 
         private IDbConnection _connection;
 
-        private IDbTransaction _transaction;
+        private DbContextTransaction _transaction;
 
-        public IDbTransaction CurrentTransaction => _transaction;
+        public DbContextTransaction CurrentTransaction => _transaction;
 
         public IDbContextPersister Persister => Options.Persister;
 
@@ -129,8 +131,9 @@ namespace Soul.SqlBatis
 
         public IDbTransaction GetDbTransaction()
         {
-            return _transaction;
+            return _transaction.DbTransaction;
         }
+
 
         public virtual DbContextTransaction BeginTransaction()
         {
@@ -142,35 +145,71 @@ namespace Soul.SqlBatis
                     _connection.Open();
                     closeConnection = true;
                 }
-                _transaction = _connection.BeginTransaction();
+                _transaction = new DbContextTransaction(_connection.BeginTransaction(), () =>
+                {
+                    _transaction = null;
+                    if (closeConnection)
+                        _connection.Close();
+                });
+                return _transaction;
             }
-            return new DbContextTransaction(_transaction, () =>
+            else
             {
-                _transaction = null;
-                if (closeConnection)
-                    _connection.Close();
-            });
+                return _transaction;
+            }
         }
 
         public virtual int SaveChanges()
         {
-            using (var transaction = BeginTransaction())
+            var transaction = CurrentTransaction;
+            var isTransactionOwner = CurrentTransaction == null;
+            try
             {
+                if (transaction == null)
+                {
+                    transaction = BeginTransaction();
+                }
                 var affectedRows = Persister.SaveChanges(Command, ChangeTracker.GetChangedEntries());
-                transaction.CommitTransaction();
+                if (isTransactionOwner)
+                {
+                    transaction.CommitTransaction();
+                }
                 ChangeTracker.ClearEntities();
                 return affectedRows;
+            }
+            finally
+            {
+                if (isTransactionOwner)
+                {
+                    transaction?.Dispose();
+                }
             }
         }
 
         public virtual async Task<int> SaveChangesAsync()
         {
-            using (var transaction = BeginTransaction())
+            var transaction = CurrentTransaction;
+            var isTransactionOwner = CurrentTransaction == null;
+            try
             {
+                if (transaction == null)
+                {
+                    transaction = BeginTransaction();
+                }
                 var affectedRows = await Persister.SaveChangesAsync(Command, ChangeTracker.GetChangedEntries());
-                transaction.CommitTransaction();
+                if (isTransactionOwner)
+                {
+                    transaction.CommitTransaction();
+                }
                 ChangeTracker.ClearEntities();
                 return affectedRows;
+            }
+            finally
+            {
+                if (isTransactionOwner)
+                {
+                    transaction?.Dispose();
+                }
             }
         }
 

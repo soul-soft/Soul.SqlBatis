@@ -193,7 +193,7 @@ namespace Soul.SqlBatis
             configure?.Invoke(commandOptions);
             var command = _context.GetDbConnection().CreateCommand();
             command.CommandText = sql;
-            command.Transaction = _context.CurrentTransaction;
+            command.Transaction = _context.GetDbTransaction();
             command.CommandType = commandOptions.CommandType;
             command.CommandTimeout = commandOptions.CommandTimeout;
             if (param != null)

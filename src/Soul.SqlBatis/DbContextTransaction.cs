@@ -9,6 +9,8 @@ namespace Soul.SqlBatis
         private Action _callback;
         private IDbTransaction _transaction;
 
+        public IDbTransaction DbTransaction => _transaction;
+
         internal DbContextTransaction(IDbTransaction transaction, Action callback)
         {
             _callback = callback;
