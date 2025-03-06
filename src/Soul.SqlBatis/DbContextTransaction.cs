@@ -5,8 +5,8 @@ namespace Soul.SqlBatis
 {
     public class DbContextTransaction : IDisposable
     {
-        private bool _isSubmit = false;
         private Action _callback;
+        private bool _isSubmit = false;
         private IDbTransaction _transaction;
 
         public IDbTransaction DbTransaction => _transaction;
