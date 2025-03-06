@@ -131,7 +131,7 @@ namespace Soul.SqlBatis
 
         public IDbTransaction GetDbTransaction()
         {
-            return _transaction.DbTransaction;
+            return _transaction?.DbTransaction;
         }
 
 
