@@ -264,6 +264,10 @@ namespace Soul.SqlBatis
         {
             var parameter = command.CreateParameter();
             parameter.Value = value ?? DBNull.Value;
+            if (value is Enum && value!=null)
+            {
+                parameter.Value = Convert.ToInt32(value);
+            }
             parameter.ParameterName = name;
             command.Parameters.Add(parameter);
         }
