@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Soul.SqlBatis.Databases;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
@@ -262,6 +263,11 @@ namespace Soul.SqlBatis
                 var fun = Options.GetTypeMapper(fieldBinding.MemberType);
                 valueExpression = Expression.Invoke(Expression.Constant(fun), recordParameter, Expression.Constant(fieldBinding.FieldSort));
             }
+            else if (fieldBinding.MemberUnderlyingType.IsEnum)
+            {
+                var enumTypeMethod = typeof(DefaultTypeMapper).GetMethod(nameof(DefaultTypeMapper.EnumValueMapper)).MakeGenericMethod(fieldBinding.MemberUnderlyingType);
+                valueExpression = Expression.Call(enumTypeMethod, recordParameter, Expression.Constant(fieldBinding.FieldSort));
+            }
             else
             {
                 var defaultTypeMethod = GetDefaultTypeMapper(fieldBinding.FieldType)
@@ -309,6 +315,8 @@ namespace Soul.SqlBatis
             return method;
         }
 
+     
+
         protected Expression ConvertValueExpression(Expression valueExpression, Type targetType)
         {
             var underlyingTargetType = Nullable.GetUnderlyingType(targetType) ?? targetType;
@@ -331,6 +339,7 @@ namespace Soul.SqlBatis
         class EntityMemberBinding
         {
             public Type MemberType { get; }
+            public Type MemberUnderlyingType { get; }
             public string MemberName { get; }
             public Type FieldType { get; }
             public string FieldName { get; }
@@ -345,6 +354,7 @@ namespace Soul.SqlBatis
                 FieldName = fieldName;
                 FieldSort = fieldSort;
                 FieldTypeName = fieldTypeName;
+                MemberUnderlyingType = Nullable.GetUnderlyingType(memberType) ?? memberType;
             }
         }
     }
