@@ -16,7 +16,7 @@ namespace Soul.SqlBatis
                 return;
             }
             var context = queryable.GetDbContext();
-            if (context.Options.EnabledQueryTracking && !query.Tokens.Any(a => a.Key == DbQueryMethod.Select))
+            if ((context.Options.EnabledQueryTracking || query.IsTracking) && !query.Tokens.Any(a => a.Key == DbQueryMethod.Select))
             {
                 entity = (T)context.Attach(entity).Entity;
             }
@@ -34,7 +34,7 @@ namespace Soul.SqlBatis
                 return;
             }
             var context = queryable.GetDbContext();
-            if (context.Options.EnabledQueryTracking && !query.Tokens.Any(a => a.Key == DbQueryMethod.Select))
+            if ((context.Options.EnabledQueryTracking || query.IsTracking) && !query.Tokens.Any(a => a.Key == DbQueryMethod.Select))
             {
                 for (var i = 0; i < entities.Count; i++)
                 {
