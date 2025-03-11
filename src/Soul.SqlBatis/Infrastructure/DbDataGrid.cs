@@ -4,7 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Soul.SqlBatis.Databases
+namespace Soul.SqlBatis.Infrastructure
 {
     public class DbDataGrid : IDisposable
     {

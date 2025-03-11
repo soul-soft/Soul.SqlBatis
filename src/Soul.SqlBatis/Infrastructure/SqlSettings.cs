@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 
-namespace Soul.SqlBatis.Databases
+namespace Soul.SqlBatis.Infrastructure
 {
     public class SqlSettings
     {

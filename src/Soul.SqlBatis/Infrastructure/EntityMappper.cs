@@ -6,14 +6,15 @@ using System.Collections.Concurrent;
 using System.Text;
 using System.Linq.Expressions;
 using System.Linq;
+using System.Collections;
 
-namespace Soul.SqlBatis.Databases
+namespace Soul.SqlBatis.Infrastructure
 {
     internal class EntityMappper
     {
         private readonly SqlSettings _settings;
 
-        private static readonly ConcurrentDictionary<string, Delegate> _mappers = new ConcurrentDictionary<string, Delegate>();
+        private static readonly ConcurrentDictionary<EntityBindings, Delegate> _mappers = new ConcurrentDictionary<EntityBindings, Delegate>();
 
         public EntityMappper(SqlSettings settings)
         {
@@ -29,15 +30,14 @@ namespace Soul.SqlBatis.Databases
         public Func<IDataRecord, T> CreateMapper<T>(IDataRecord record)
         {
             var bindings = GetEntityMemberBindings(typeof(T), record);
-            var cacheKey = CreateEntityMapperCacheKey(bindings);
-            return _mappers.GetOrAdd(cacheKey, _ =>
+            return _mappers.GetOrAdd(bindings, _ =>
             {
-                if (bindings.BindingType == EntityBindingType.TypeMapper)
+                if (bindings.BindType == EntityBindingType.TypeMapper)
                 {
                     var lambda = CreateTypeMapperExpression<T>(bindings[0]);
                     return lambda.Compile();
                 }
-                else if ((bindings.BindingType == EntityBindingType.MemberBindngs))
+                else if ((bindings.BindType == EntityBindingType.MemberBindngs))
                 {
                     var lambda = CreateMemberBindingsExpression<T>(bindings);
                     return lambda.Compile();
@@ -69,7 +69,7 @@ namespace Soul.SqlBatis.Databases
         /// <typeparam name="T"></typeparam>
         /// <param name="bindings"></param>
         /// <returns></returns>
-        private Expression<Func<IDataRecord, T>> CreateMemberBindingsExpression<T>(List<EntityBinding> bindings)
+        private Expression<Func<IDataRecord, T>> CreateMemberBindingsExpression<T>(EntityBindings bindings)
         {
             var parameter = Expression.Parameter(typeof(IDataRecord));
             var memberBindings = new List<MemberBinding>();
@@ -88,16 +88,16 @@ namespace Soul.SqlBatis.Databases
         /// <typeparam name="T"></typeparam>
         /// <param name="bindings"></param>
         /// <returns></returns>
-        private Expression<Func<IDataRecord, T>> CreateConstructorExpression<T>(List<EntityBinding> bindings)
+        private Expression<Func<IDataRecord, T>> CreateConstructorExpression<T>(EntityBindings bindings)
         {
             var parameter = Expression.Parameter(typeof(IDataRecord));
-            var memberBindings = new List<MemberBinding>();
+            var arguments = new List<Expression>();
             foreach (var item in bindings)
             {
                 var expression = CreateNullableValueExpression(parameter, item);
-                memberBindings.Add(Expression.Bind(item.Member.AsPropertyInfo(), expression));
+                arguments.Add(expression);
             }
-            var body = Expression.MemberInit(Expression.New(typeof(T)), memberBindings);
+            var body = Expression.New(bindings.Constructor, arguments);
             return Expression.Lambda<Func<IDataRecord, T>>(body, parameter);
         }
 
@@ -132,7 +132,7 @@ namespace Soul.SqlBatis.Databases
             var underlyPropertyType = GetUnderlyingType(binding.Member.Type);
             if (underlyPropertyType.IsEnum)
             {
-                var method = typeof(IDataRecord).GetMethod(nameof(IDataRecord.GetInt32), new Type[] { typeof(int) });
+                var method = typeof(DefaultTypeMapper).GetMethod(nameof(DefaultTypeMapper.EnumTypeMapper)).MakeGenericMethod(underlyPropertyType);
                 return Expression.Call(parameter, method, Expression.Constant(binding.Field.Index));
             }
             var mapper = _settings.GetTypeMapper(underlyPropertyType);
@@ -142,7 +142,7 @@ namespace Soul.SqlBatis.Databases
             }
             else
             {
-                throw new NotSupportedException($"{binding.Field.Type} to {binding.Member.Type}");
+                throw new NotSupportedException($"Mapping from field '{binding.Field.Name}' of type '{binding.Field.Type}' to member '{binding.Member.Name}' of type '{binding.Member.Type}' is not supported.");
             }
         }
 
@@ -166,15 +166,16 @@ namespace Soul.SqlBatis.Databases
         /// </summary>
         /// <param name="bindings"></param>
         /// <returns></returns>
-        private string CreateEntityMapperCacheKey(EntityBindings bindings)
+        private string CreateEntityMapperCacheKey(Type entityType, EntityBindings bindings)
         {
             var sb = new StringBuilder();
-            if (bindings.BindingType == EntityBindingType.TypeMapper)
+            if (bindings.BindType == EntityBindingType.TypeMapper)
             {
-                sb.Append($"{bindings[0].Field.Name}:{bindings[0].Field.Type.FullName}");
+                sb.Append($"{bindings[0].Field.Type.FullName}");
             }
             else
             {
+                sb.AppendLine($"{entityType.FullName}");
                 foreach (var item in bindings)
                 {
                     sb.AppendLine($"{item.Field.Name}:{item.Field.Type.FullName}|{item.Member.Name}:{item.Member.Type.FullName}");
@@ -195,49 +196,53 @@ namespace Soul.SqlBatis.Databases
             var constructors = entityType.GetConstructors();
             if (_settings.ContainsTypeMapper(underlyingEntityType) && record.FieldCount == 1)
             {
+                //如果存在映射器
                 var bidnings = new List<EntityBinding>();
                 var fieldName = record.GetName(0);
                 var fieldType = record.GetFieldType(0);
-                var filedInfo = new FieldInfo(fieldName, fieldType, 0);
-                var memberInfo = new MemberInfo(string.Empty, underlyingEntityType, null);
+                var filedInfo = new EntityFieldInfo(fieldName, fieldType, 0);
+                var memberInfo = new EntityMemberInfo(string.Empty, underlyingEntityType, null);
                 bidnings.Add(new EntityBinding(filedInfo, memberInfo));
-                return new EntityBindings(EntityBindingType.TypeMapper, bidnings);
+                return new EntityBindings(entityType, EntityBindingType.TypeMapper, bidnings);
             }
             else if (constructors.Any(a => a.GetParameters().Length == 0))
             {
+                //如果存在无参构造
                 var bidnings = new List<EntityBinding>();
                 for (int i = 0; i < record.FieldCount; i++)
                 {
-                    var member = FindEntityTypePropertyInfo(entityType, record.GetName(i));
+                    var fieldName = record.GetName(i);
+                    var member = FindEntityMemberInfo(entityType, fieldName);
                     if (member == null)
                     {
                         continue;
                     }
-                    var fieldName = record.GetName(i);
                     var fieldType = record.GetFieldType(i);
-                    var filedInfo = new FieldInfo(fieldName, fieldType, i);
-                    var memberInfo = new MemberInfo(member.Name, member.PropertyType, member);
+                    var filedInfo = new EntityFieldInfo(fieldName, fieldType, i);
+                    var memberInfo = new EntityMemberInfo(member.Name, member.PropertyType, member);
                     bidnings.Add(new EntityBinding(filedInfo, memberInfo));
                 }
-                return new EntityBindings(EntityBindingType.Constructor, bidnings);
+                return new EntityBindings(entityType, EntityBindingType.MemberBindngs, bidnings);
             }
             else
             {
                 var bidnings = new List<EntityBinding>();
+                var constructor = entityType.GetConstructors().OrderByDescending(a => a.GetParameters().Length).First();
                 for (int i = 0; i < record.FieldCount; i++)
                 {
-                    var member = FindEntityTypePropertyInfo(entityType, record.GetName(i));
-                    if (member == null)
+                    var fieldName = record.GetName(i);
+                    var parameter = FindEntityParameterInfo(constructor, fieldName);
+                    if (parameter == null)
                     {
                         continue;
                     }
-                    var fieldName = record.GetName(i);
                     var fieldType = record.GetFieldType(i);
-                    var filedInfo = new FieldInfo(fieldName, fieldType, i);
-                    var memberInfo = new MemberInfo(member.Name, member.PropertyType, member);
+                    var filedInfo = new EntityFieldInfo(fieldName, fieldType, i);
+                    var memberInfo = new EntityMemberInfo(parameter.Name, parameter.ParameterType, parameter);
                     bidnings.Add(new EntityBinding(filedInfo, memberInfo));
                 }
-                return new EntityBindings(EntityBindingType.TypeMapper, bidnings);
+
+                return new EntityBindings(entityType, EntityBindingType.Constructor, bidnings, constructor);
             }
         }
 
@@ -247,7 +252,7 @@ namespace Soul.SqlBatis.Databases
         /// <param name="type"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        private PropertyInfo FindEntityTypePropertyInfo(Type type, string name)
+        private PropertyInfo FindEntityMemberInfo(Type type, string name)
         {
             foreach (var item in type.GetProperties())
             {
@@ -266,9 +271,9 @@ namespace Soul.SqlBatis.Databases
         /// <param name="type"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        private PropertyInfo FindEntityTypeParameterInfo(Type type, string name)
+        private ParameterInfo FindEntityParameterInfo(ConstructorInfo constructor, string name)
         {
-            foreach (var item in type.GetProperties())
+            foreach (var item in constructor.GetParameters())
             {
                 if (item.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
                     || item.Name.Replace("_", string.Empty).Equals(name, StringComparison.OrdinalIgnoreCase))
@@ -290,13 +295,13 @@ namespace Soul.SqlBatis.Databases
         }
     }
 
-    public struct FieldInfo
+    public struct EntityFieldInfo
     {
         public string Name { get; }
         public Type Type { get; }
         public int Index { get; }
 
-        public FieldInfo(string fieldName, Type fieldType, int fieldIndex)
+        public EntityFieldInfo(string fieldName, Type fieldType, int fieldIndex)
         {
             Name = fieldName;
             Type = fieldType;
@@ -304,30 +309,36 @@ namespace Soul.SqlBatis.Databases
         }
     }
 
-    public struct MemberInfo
+    public struct EntityMemberInfo
     {
         public string Name { get; set; }
         public Type Type { get; set; }
         public object Data { get; set; }
 
-        public MemberInfo(string name, Type type, object data)
+        public EntityMemberInfo(string name, Type type, object data)
         {
             Name = name;
             Type = type;
             Data = data;
         }
 
-        public System.Reflection.MemberInfo AsPropertyInfo()
+        public MemberInfo AsPropertyInfo()
         {
             return Data as PropertyInfo;
         }
+
+        public ParameterInfo AsParameterInfo()
+        {
+            return Data as ParameterInfo;
+        }
+
     }
 
-    public struct EntityBinding
+    public class EntityBinding
     {
-        public FieldInfo Field { get; }
-        public MemberInfo Member { get; }
-        public EntityBinding(FieldInfo field, MemberInfo member)
+        public EntityFieldInfo Field { get; }
+        public EntityMemberInfo Member { get; }
+        public EntityBinding(EntityFieldInfo field, EntityMemberInfo member)
         {
             Field = field;
             Member = member;
@@ -336,11 +347,88 @@ namespace Soul.SqlBatis.Databases
 
     public class EntityBindings : List<EntityBinding>
     {
-        public EntityBindingType BindingType { get; }
+        public Type EntityType { get; }
 
-        public EntityBindings(EntityBindingType bindingType, IEnumerable<EntityBinding> bindings) : base(bindings)
+        public EntityBindingType BindType { get; }
+
+        public ConstructorInfo Constructor { get; }
+
+        public EntityBindings(Type entityType, EntityBindingType bindingType, IEnumerable<EntityBinding> bindings) : base(bindings)
         {
-            BindingType = bindingType;
+            EntityType = entityType;
+            BindType = bindingType;
+        }
+
+        public EntityBindings(Type entityType, EntityBindingType bindingType, IEnumerable<EntityBinding> bindings, ConstructorInfo constructor) : this(entityType, bindingType, bindings)
+        {
+            Constructor = constructor;
+        }
+
+        public override int GetHashCode()
+        {
+            return EntityType.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+            var other = obj as EntityBindings;
+            if (other == null)
+            {
+                return false;
+            }
+            if (EntityType != other.EntityType)
+            {
+                return false;
+            }
+            if (BindType != other.BindType)
+            {
+                return false;
+            }
+            if (Count != other.Count)
+            {
+                return false;
+            }
+            if (other.BindType == EntityBindingType.Constructor && Constructor != other.Constructor)
+            {
+                return false;
+            }
+            if (other.BindType != EntityBindingType.TypeMapper)
+            {
+                for (int i = 0; i < other.Count; i++)
+                {
+                    var otherEntry = other[i];
+                    var thisEntry = this[i];
+                    if (otherEntry.Field.Type != thisEntry.Field.Type)
+                    {
+                        return false;
+                    }
+                    if (otherEntry.Field.Name != thisEntry.Field.Name)
+                    {
+                        return false;
+                    }
+                    if (otherEntry.Field.Index != thisEntry.Field.Index)
+                    {
+                        return false;
+                    }
+                    if (otherEntry.Member.Type != thisEntry.Member.Type)
+                    {
+                        return false;
+                    }
+                    if (otherEntry.Member.Name != thisEntry.Member.Name)
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
     }
 
@@ -349,5 +437,18 @@ namespace Soul.SqlBatis.Databases
         TypeMapper,
         Constructor,
         MemberBindngs,
+    }
+
+    public static class DefaultTypeMapper
+    {
+        public static T EnumTypeMapper<T>(IDataRecord record, int index)
+        {
+            var value = record.GetInt32(index);
+            if (value is T result)
+            {
+                return result;
+            }
+            return (T)Enum.Parse(typeof(T), value.ToString());
+        }
     }
 }

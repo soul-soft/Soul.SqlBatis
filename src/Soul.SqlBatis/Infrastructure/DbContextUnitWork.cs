@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Soul.SqlBatis.Databases
+namespace Soul.SqlBatis.Infrastructure
 {
     internal class DbContextUnitWork
     {

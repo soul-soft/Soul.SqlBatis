@@ -1,4 +1,4 @@
-﻿using Soul.SqlBatis.Databases;
+﻿using Soul.SqlBatis.Infrastructure;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

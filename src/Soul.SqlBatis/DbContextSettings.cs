@@ -1,4 +1,4 @@
-﻿using Soul.SqlBatis.Databases;
+﻿using Soul.SqlBatis.Infrastructure;
 using System;
 
 namespace Soul.SqlBatis
@@ -30,7 +30,7 @@ namespace Soul.SqlBatis
             }
             else if (type == DbType.Npgsql)
             {
-                configure(MySql);
+                configure(Npgsql);
             }
         }
 

@@ -1,5 +1,5 @@
 ﻿using Soul.SqlBatis.ChangeTracking;
-using Soul.SqlBatis.Databases;
+using Soul.SqlBatis.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Data;
