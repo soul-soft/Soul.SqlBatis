@@ -27,7 +27,7 @@ namespace Soul.SqlBatis.Infrastructure
             return null;
         }
 
-        internal bool ContainsTypeMapper(Type type)
+        internal bool HasTypeMapper(Type type)
         {
             return _typeMappers.ContainsKey(type);
         }

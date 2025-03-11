@@ -1,10 +1,17 @@
 ﻿using Npgsql;
 using Soul.SqlBatis;
-using Soul.SqlBatis.Test;
 using Soul.SqlBatis.Test.Entities;
 
 
-Fata.F();
+DbContextSettings.Configure(DbType.Npgsql, configure =>
+{
+    configure.UseDbNullMapper(-1);
+    configure.UseDbNullMapper(Array.Empty<int>());
+    configure.UseTypeMapper((record, i) =>
+    {
+        return ((NpgsqlDataReader)record).GetFieldValue<int[]>(i);
+    });
+});
 var context = new DbContext(configureOptions =>
 {
     configureOptions.UseLogger((sql, param) =>
@@ -15,4 +22,5 @@ var context = new DbContext(configureOptions =>
 });
 var list1 = context.Set<Student>().ToList();
 var list2 = context.Set<Student>().ToList();
+
 Console.WriteLine();

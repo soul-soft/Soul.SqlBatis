@@ -1,12 +1,11 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
-using System.Reflection;
-using System.Collections.Concurrent;
-using System.Text;
-using System.Linq.Expressions;
 using System.Linq;
-using System.Collections;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Text;
 
 namespace Soul.SqlBatis.Infrastructure
 {
@@ -37,7 +36,7 @@ namespace Soul.SqlBatis.Infrastructure
                     var lambda = CreateTypeMapperExpression<T>(bindings[0]);
                     return lambda.Compile();
                 }
-                else if ((bindings.BindType == EntityBindingType.MemberBindngs))
+                else if (bindings.BindType == EntityBindingType.MemberBindngs)
                 {
                     var lambda = CreateMemberBindingsExpression<T>(bindings);
                     return lambda.Compile();
@@ -111,12 +110,11 @@ namespace Soul.SqlBatis.Infrastructure
         {
             var test = Expression.Call(parameter, typeof(IDataRecord).GetMethod(nameof(IDataRecord.IsDBNull)), Expression.Constant(binding.Field.Index));
             var ifFalse = CreateValueExpression(parameter, binding);
-            var underlyMemberType = GetUnderlyingType(binding.Member.Type);
-            if (ifFalse.Type != underlyMemberType)
+            if (ifFalse.Type != binding.Member.Type)
             {
                 ifFalse = Expression.Convert(ifFalse, binding.Member.Type);
             }
-            var ifTrue = CreateNullableValueExpression(underlyMemberType);
+            var ifTrue = CreateNullableValueExpression(binding.Member.Type);
             return Expression.Condition(test, ifTrue, ifFalse);
         }
 
@@ -133,11 +131,11 @@ namespace Soul.SqlBatis.Infrastructure
             if (underlyPropertyType.IsEnum)
             {
                 var method = typeof(DefaultTypeMapper).GetMethod(nameof(DefaultTypeMapper.EnumTypeMapper)).MakeGenericMethod(underlyPropertyType);
-                return Expression.Call(parameter, method, Expression.Constant(binding.Field.Index));
+                return Expression.Call(method, parameter, Expression.Constant(binding.Field.Index));
             }
-            var mapper = _settings.GetTypeMapper(underlyPropertyType);
-            if (mapper != null)
+            if (_settings.HasTypeMapper(underlyPropertyType))
             {
+                var mapper = _settings.GetTypeMapper(underlyPropertyType);
                 return Expression.Invoke(Expression.Constant(mapper), parameter, Expression.Constant(binding.Field.Index));
             }
             else
@@ -153,12 +151,17 @@ namespace Soul.SqlBatis.Infrastructure
         /// <returns></returns>
         private Expression CreateNullableValueExpression(Type type)
         {
-            var nullMapper = _settings.GetDbNullMapper(type);
+            var nullMapper = _settings.GetDbNullMapper(GetUnderlyingType(type));
             if (nullMapper == null)
             {
                 return Expression.Default(type);
             }
-            return Expression.Constant(nullMapper);
+            var expression = Expression.Constant(nullMapper);
+            if (expression.Type != type)
+            {
+                return Expression.Convert(expression, type);
+            }
+            return expression;
         }
 
         /// <summary>
@@ -194,14 +197,14 @@ namespace Soul.SqlBatis.Infrastructure
         {
             var underlyingEntityType = GetUnderlyingType(entityType);
             var constructors = entityType.GetConstructors();
-            if (_settings.ContainsTypeMapper(underlyingEntityType) && record.FieldCount == 1)
+            if (_settings.HasTypeMapper(underlyingEntityType) && record.FieldCount == 1)
             {
                 //如果存在映射器
                 var bidnings = new List<EntityBinding>();
                 var fieldName = record.GetName(0);
                 var fieldType = record.GetFieldType(0);
                 var filedInfo = new EntityFieldInfo(fieldName, fieldType, 0);
-                var memberInfo = new EntityMemberInfo(string.Empty, underlyingEntityType, null);
+                var memberInfo = new EntityMemberInfo(string.Empty, entityType, null);
                 bidnings.Add(new EntityBinding(filedInfo, memberInfo));
                 return new EntityBindings(entityType, EntityBindingType.TypeMapper, bidnings);
             }
@@ -326,12 +329,6 @@ namespace Soul.SqlBatis.Infrastructure
         {
             return Data as PropertyInfo;
         }
-
-        public ParameterInfo AsParameterInfo()
-        {
-            return Data as ParameterInfo;
-        }
-
     }
 
     public class EntityBinding
