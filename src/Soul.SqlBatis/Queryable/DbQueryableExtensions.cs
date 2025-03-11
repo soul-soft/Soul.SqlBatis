@@ -56,9 +56,9 @@ namespace Soul.SqlBatis
             return dbQueryable;
         }
 
-        private static IDbContextCommand GetCommand<T>(this IDbQueryable<T> queryable)
+        private static SqlMapper GetSqlMapper<T>(this IDbQueryable<T> queryable)
         {
-            return queryable.GetDbContext().Command;
+            return queryable.GetDbContext().Sql;
         }
 
         private static DbContext GetDbContext<T>(this IDbQueryable<T> queryable)
@@ -69,7 +69,7 @@ namespace Soul.SqlBatis
 
         public static bool Any<T>(this IDbQueryable<T> queryable)
         {
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -80,7 +80,7 @@ namespace Soul.SqlBatis
 
         public static Task<bool> AnyAsync<T>(this IDbQueryable<T> queryable)
         {
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -92,7 +92,7 @@ namespace Soul.SqlBatis
         public static bool Any<T>(this IDbQueryable<T> queryable, Expression<Func<T, bool>> expression)
         {
             queryable.Where(expression);
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -104,7 +104,7 @@ namespace Soul.SqlBatis
         public static Task<bool> AnyAsync<T>(this IDbQueryable<T> queryable, Expression<Func<T, bool>> expression)
         {
             queryable.Where(expression);
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -115,7 +115,7 @@ namespace Soul.SqlBatis
 
         public static T Min<T>(this IDbQueryable<T> queryable)
         {
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -126,7 +126,7 @@ namespace Soul.SqlBatis
 
         public static Task<T> MinAsync<T>(this IDbQueryable<T> queryable)
         {
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -138,7 +138,7 @@ namespace Soul.SqlBatis
         public static TResult Min<T, TResult>(this IDbQueryable<T> queryable, Expression<Func<T, TResult>> expression)
         {
             queryable.Select(expression);
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -150,7 +150,7 @@ namespace Soul.SqlBatis
         public static Task<TResult> MinAsync<T, TResult>(this IDbQueryable<T> queryable, Expression<Func<T, TResult>> expression)
         {
             queryable.Select(expression);
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -162,7 +162,7 @@ namespace Soul.SqlBatis
 
         public static T Max<T>(this IDbQueryable<T> queryable)
         {
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -173,7 +173,7 @@ namespace Soul.SqlBatis
 
         public static Task<T> MaxAsync<T>(this IDbQueryable<T> queryable)
         {
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -185,7 +185,7 @@ namespace Soul.SqlBatis
         public static TResult Max<T, TResult>(this IDbQueryable<T> queryable, Expression<Func<T, TResult>> expression)
         {
             queryable.Select(expression);
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -197,7 +197,7 @@ namespace Soul.SqlBatis
         public static Task<TResult> MaxAsync<T, TResult>(this IDbQueryable<T> queryable, Expression<Func<T, TResult>> expression)
         {
             queryable.Select(expression);
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -208,7 +208,7 @@ namespace Soul.SqlBatis
 
         public static T Average<T>(this IDbQueryable<T> queryable)
         {
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -219,7 +219,7 @@ namespace Soul.SqlBatis
 
         public static Task<T> AverageAsync<T>(this IDbQueryable<T> queryable)
         {
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -231,7 +231,7 @@ namespace Soul.SqlBatis
         public static TResult Average<T, TResult>(this IDbQueryable<T> queryable, Expression<Func<T, TResult>> expression)
         {
             queryable.Select(expression);
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -243,7 +243,7 @@ namespace Soul.SqlBatis
         public static Task<TResult> AverageAsync<T, TResult>(this IDbQueryable<T> queryable, Expression<Func<T, TResult>> expression)
         {
             queryable.Select(expression);
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -254,7 +254,7 @@ namespace Soul.SqlBatis
 
         public static T Sum<T>(this IDbQueryable<T> queryable)
         {
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -265,7 +265,7 @@ namespace Soul.SqlBatis
 
         public static Task<T> SumAsync<T>(this IDbQueryable<T> queryable)
         {
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -277,7 +277,7 @@ namespace Soul.SqlBatis
         public static TResult Sum<T, TResult>(this IDbQueryable<T> queryable, Expression<Func<T, TResult>> expression)
         {
             queryable.Select(expression);
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -289,7 +289,7 @@ namespace Soul.SqlBatis
         public static Task<TResult> SumAsync<T, TResult>(this IDbQueryable<T> queryable, Expression<Func<T, TResult>> expression)
         {
             queryable.Select(expression);
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -300,7 +300,7 @@ namespace Soul.SqlBatis
 
         public static int Count<T>(this IDbQueryable<T> queryable)
         {
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -311,7 +311,7 @@ namespace Soul.SqlBatis
 
         public static Task<int> CountAsync<T>(this IDbQueryable<T> queryable)
         {
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -323,7 +323,7 @@ namespace Soul.SqlBatis
         public static int Count<T, TResult>(this IDbQueryable<T> queryable, Expression<Func<T, TResult>> expression)
         {
             queryable.Select(expression);
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -335,7 +335,7 @@ namespace Soul.SqlBatis
         public static Task<int> CountAsync<T, TResult>(this IDbQueryable<T> queryable, Expression<Func<T, TResult>> expression)
         {
             queryable.Select(expression);
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -346,7 +346,7 @@ namespace Soul.SqlBatis
 
         public static T First<T>(this IDbQueryable<T> queryable)
         {
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build();
             var entity = command.QueryFirst<T>(sqler.QuerySql, param);
             if (entity == null)
@@ -364,7 +364,7 @@ namespace Soul.SqlBatis
 
         public static async Task<T> FirstAsync<T>(this IDbQueryable<T> queryable)
         {
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build();
             var entity = await command.QueryFirstAsync<T>(sqler.QuerySql, param);
             if (entity == null)
@@ -382,7 +382,7 @@ namespace Soul.SqlBatis
 
         public static T FirstOrDefault<T>(this IDbQueryable<T> queryable)
         {
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build();
             var entity = command.QueryFirst<T>(sqler.QuerySql, param);
             queryable.Track(ref entity);
@@ -396,7 +396,7 @@ namespace Soul.SqlBatis
 
         public static async Task<T> FirstOrDefaultAsync<T>(this IDbQueryable<T> queryable)
         {
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build();
             var entity = await command.QueryFirstAsync<T>(sqler.QuerySql, param);
             queryable.Track(ref entity);
@@ -410,7 +410,7 @@ namespace Soul.SqlBatis
 
         public static List<T> ToList<T>(this IDbQueryable<T> queryable)
         {
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build();
             var entities = command.Query<T>(sqler.QuerySql, param);
             queryable.Track(entities);
@@ -419,7 +419,7 @@ namespace Soul.SqlBatis
 
         public static async Task<List<T>> ToListAsync<T>(this IDbQueryable<T> queryable)
         {
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build();
             var entities = await command.QueryAsync<T>(sqler.QuerySql, param);
             queryable.Track(entities);
@@ -429,7 +429,7 @@ namespace Soul.SqlBatis
         public static (List<T>, int) ToPageResult<T>(this IDbQueryable<T> queryable, int pageIndex, int pageSize)
         {
             queryable.Skip((pageIndex - 1) * pageSize).Take(pageSize);
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (queryer, param) = queryable.Build();
             var (counter, _) = queryable.Clone<int>().Build(configureOptions =>
             {
@@ -448,7 +448,7 @@ namespace Soul.SqlBatis
         public static async Task<(List<T>, int)> ToPageResultAsync<T>(this IDbQueryable<T> queryable, int pageIndex, int pageSize)
         {
             queryable.Skip((pageIndex - 1) * pageSize).Take(pageSize);
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             var (queryer, param) = queryable.Build();
             var (counter, _) = queryable.Clone<int>().Build();
             var pageSql = $"{queryer.QuerySql};\r\n{counter.CountSql}";
@@ -467,7 +467,7 @@ namespace Soul.SqlBatis
                 configureOptions.HasColumnsAlias = false;
                 configureOptions.HasDefaultColumns = false;
             });
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             return command.Execute(sqler.DeleteSql, param);
         }
 
@@ -478,7 +478,7 @@ namespace Soul.SqlBatis
                 configureOptions.HasColumnsAlias = false;
                 configureOptions.HasDefaultColumns = false;
             });
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             return command.ExecuteAsync(sqler.DeleteSql, param);
         }
 
@@ -491,7 +491,7 @@ namespace Soul.SqlBatis
                 configureOptions.HasColumnsAlias = false;
                 configureOptions.HasDefaultColumns = false;
             });
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             return command.Execute(sqler.UpdateSql, param);
         }
 
@@ -504,7 +504,7 @@ namespace Soul.SqlBatis
                 configureOptions.HasColumnsAlias = false;
                 configureOptions.HasDefaultColumns = false;
             });
-            var command = queryable.GetCommand();
+            var command = queryable.GetSqlMapper();
             return command.ExecuteAsync(sqler.UpdateSql, param);
         }
     }

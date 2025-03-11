@@ -22,6 +22,7 @@ namespace Soul.SqlBatis
 
         internal IModel Model { get; private set; }
 
+        internal SqlOptions SqlOptions { get; private set; }
 
         public DbContextOptions UseModel(IModel model)
         {
@@ -41,6 +42,11 @@ namespace Soul.SqlBatis
             return this;
         }
 
+        public void UseTypeMapper()
+        {
+            
+        }
+
         public void UseNpgsql(IDbConnection connection)
         {
             Connection = connection;
@@ -49,6 +55,7 @@ namespace Soul.SqlBatis
             LimitFormatSql = "LIMIT {1} OFFSET {0}";
             EmptyQuerySql = "SELECT 1 WHERE 1 = 0";
             Model = new AnnotationModel(this);
+            SqlOptions = new SqlOptions();
         }
 
         public void UseMySql(IDbConnection connection)
@@ -58,6 +65,7 @@ namespace Soul.SqlBatis
             LastIdentitySql = ";SELECT LAST_INSERT_ID()";
             LimitFormatSql = "LIMIT {0},{1}";
             Model = new AnnotationModel(this);
+            SqlOptions = new SqlOptions();
         }
     }
 }
