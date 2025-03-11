@@ -3,9 +3,9 @@ using System;
 
 namespace Soul.SqlBatis
 {
-    public class DbContextSettings
+    public static class DbContextSettings
     {
-        public SqlSettings MySql = new SqlSettings()
+        internal static SqlSettings MySql = new SqlSettings()
         {
             IdentifierFormat = "`{0}`",
             EmptyQuerySql = "SELECT NULL",
@@ -13,7 +13,7 @@ namespace Soul.SqlBatis
             IdentitySql = ";SELECT LAST_INSERT_ID()",
         };
 
-        public SqlSettings Npgsql = new SqlSettings()
+        internal static SqlSettings Npgsql = new SqlSettings()
         {
             IdentifierFormat = "\"{0}\"",
             EmptyQuerySql = "SELECT 1 WHERE 1 = 0",
@@ -21,16 +21,79 @@ namespace Soul.SqlBatis
             IdentitySql = " RETURNING {0}",
         };
 
-        public void ConfigureMysql(DbType dbType,Action<SqlSettings> settings)
+
+        public static void Configure(DbType type, Action<SqlSettings> configure)
         {
-            if (dbType == DbType.MySql)
+            if (type == DbType.MySql)
             {
-                settings(MySql);
+                configure(MySql);
             }
-            else if (dbType == DbType.Npgsql)
+            else if (type == DbType.Npgsql)
             {
-                settings(Npgsql);
+                configure(MySql);
             }
+        }
+
+        static DbContextSettings()
+        {
+            UseDefaultTypeMappers(MySql);
+            UseDefaultTypeMappers(Npgsql);
+        }
+
+        private static void UseDefaultTypeMappers(SqlSettings settings)
+        {
+            settings.UseTypeMapper((record, i) =>
+            {
+                return record.GetInt16(i);
+            });
+            settings.UseTypeMapper((record, i) =>
+            {
+                return record.GetInt32(i);
+            });
+            settings.UseTypeMapper((record, i) =>
+            {
+                return record.GetInt64(i);
+            });
+            settings.UseTypeMapper((record, i) =>
+            {
+                return record.GetDecimal(i);
+            });
+            settings.UseTypeMapper((record, i) =>
+            {
+                return record.GetString(i);
+            });
+            settings.UseTypeMapper((record, i) =>
+            {
+                return record.GetBoolean(i);
+            });
+            settings.UseTypeMapper((record, i) =>
+            {
+                return record.GetFloat(i);
+            });
+            settings.UseTypeMapper((record, i) =>
+            {
+                return record.GetDouble(i);
+            });
+            settings.UseTypeMapper((record, i) =>
+            {
+                return record.GetDateTime(i);
+            });
+            settings.UseTypeMapper((record, i) =>
+            {
+                return record.GetGuid(i);
+            });
+            settings.UseTypeMapper((record, i) =>
+            {
+                return record.GetByte(i);
+            });
+            settings.UseTypeMapper((record, i) =>
+            {
+                return record.GetChar(i);
+            });
+            settings.UseTypeMapper((record, i) =>
+            {
+                return record.GetValue(i);
+            });
         }
     }
 }

@@ -27,6 +27,11 @@ namespace Soul.SqlBatis.Databases
             return null;
         }
 
+        internal bool ContainsTypeMapper(Type type)
+        {
+            return _typeMappers.ContainsKey(type);
+        }
+
         internal object GetDbNullMapper(Type type)
         {
             if (_nullMappers.ContainsKey(type))

@@ -45,23 +45,23 @@ namespace Soul.SqlBatis
         {
             _options = new DbContextOptions();
             configureOptions(_options);
-            var sqlSettings = GetSqlSettings();
+            var settings = GetSettings();
             _connection = _options.Connection;
-            _sql = new SqlMapper(this, sqlSettings);
-            _model = new AnnotationModel(sqlSettings);
-            _unitWork = new DbContextUnitWork(this, sqlSettings);
+            _sql = new SqlMapper(this, settings);
+            _model = new AnnotationModel(settings);
+            _unitWork = new DbContextUnitWork(this, settings);
             _changeTracker = new ChangeTracker(_model);
         }
 
-        internal SqlSettings GetSqlSettings()
+        internal SqlSettings GetSettings()
         {
             if (Options.DbType == DbType.MySql)
             {
-                return Settings.MySql;
+                return DbContextSettings.MySql;
             }
             else if (Options.DbType == DbType.Npgsql)
             {
-                return Settings.Npgsql;
+                return DbContextSettings.Npgsql;
             }
             else
             {
@@ -71,7 +71,7 @@ namespace Soul.SqlBatis
 
         public virtual SqlBuilder CreateSqlBuilder()
         {
-            return new SqlBuilder(GetSqlSettings());
+            return new SqlBuilder(GetSettings());
         }
 
         public virtual EntityEntry<T> Attach<T>(T entity)
@@ -258,8 +258,5 @@ namespace Soul.SqlBatis
                 _disposed = true;
             }
         }
-
-
-        public static DbContextSettings Settings { get; } = new DbContextSettings();
     }
 }

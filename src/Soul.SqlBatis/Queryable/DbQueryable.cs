@@ -170,7 +170,7 @@ namespace Soul.SqlBatis
             var alias = GetAlias();
             var parameters = Parameters;
             var sqlBuilder = DbContext.CreateSqlBuilder();
-            var sqlExpressionContext = new SqlExpressionContext(alias, DbContext.Model, parameters, DbContext.GetSqlSettings());
+            var sqlExpressionContext = new SqlExpressionContext(alias, DbContext.Model, parameters, DbContext.GetSettings());
 
             foreach (var item in Tokens)
             {
