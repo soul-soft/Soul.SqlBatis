@@ -12,8 +12,10 @@ namespace Soul.SqlBatis
     {
         private bool _disposed;
 
-        public IModel Model => Options.Model;
-        
+        private IModel _model;
+
+        public IModel Model => _model;
+
         private SqlMapper _sql;
 
         public SqlMapper Sql => _sql;
@@ -30,27 +32,46 @@ namespace Soul.SqlBatis
 
         public IChangeTracker ChangeTracker => _changeTracker;
 
-        public DbContextOptions Options { get; private set; }
+        private DbContextOptions _options;
+
+        public DbContextOptions Options => _options;
 
         internal void WriteLog(string sql, object param)
         {
             Options.Loggger?.Invoke(sql, param);
         }
 
-        public DbContext(Action<DbContextOptions> configure)
+        public DbContext(Action<DbContextOptions> configureOptions)
         {
-            var options = new DbContextOptions();
-            configure(options);
-            Options = options;
-            _connection = options.Connection;
-            _sql = new SqlMapper(this);
-            _unitWork = new DbContextUnitWork(this);
-            _changeTracker = new ChangeTracker(options.Model);
+            _options = new DbContextOptions();
+            configureOptions(_options);
+            var sqlSettings = GetSqlSettings();
+            _connection = _options.Connection;
+            _sql = new SqlMapper(this, sqlSettings);
+            _model = new AnnotationModel(sqlSettings);
+            _unitWork = new DbContextUnitWork(this, sqlSettings);
+            _changeTracker = new ChangeTracker(_model);
+        }
+
+        internal SqlSettings GetSqlSettings()
+        {
+            if (Options.DbType == DbType.MySql)
+            {
+                return Settings.MySql;
+            }
+            else if (Options.DbType == DbType.Npgsql)
+            {
+                return Settings.Npgsql;
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
         }
 
         public virtual SqlBuilder CreateSqlBuilder()
         {
-            return new SqlBuilder(Options);
+            return new SqlBuilder(GetSqlSettings());
         }
 
         public virtual EntityEntry<T> Attach<T>(T entity)
@@ -237,5 +258,8 @@ namespace Soul.SqlBatis
                 _disposed = true;
             }
         }
+
+
+        public static DbContextSettings Settings { get; } = new DbContextSettings();
     }
 }

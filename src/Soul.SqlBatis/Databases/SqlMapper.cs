@@ -13,11 +13,13 @@ namespace Soul.SqlBatis
     {
         private readonly DbContext _context;
         private readonly EntityMappper _mapper;
+        private readonly SqlSettings _settings;
 
-        public SqlMapper(DbContext context)
+        internal SqlMapper(DbContext context, SqlSettings settings)
         {
             _context = context;
-            _mapper = new EntityMappper(context.Options.SqlOptions);
+            _settings = settings;
+            _mapper = new EntityMappper(settings);
         }
 
         public virtual int Execute(string sql, object param = null, Action<DbCommandOptions> configure = null)
@@ -96,7 +98,7 @@ namespace Soul.SqlBatis
                 using (var command = CreateCommand(sql, param, configure))
                 using (var reader = command.ExecuteReader())
                 {
-                    var mapper = _context.EntityMapper.CreateMapper<T>(reader);
+                    var mapper = _mapper.CreateMapper<T>(reader);
                     while (reader.Read())
                     {
                         var entity = mapper(reader);
@@ -115,7 +117,7 @@ namespace Soul.SqlBatis
                 using (var command = CreateAsyncCommand(sql, param, configure))
                 using (var reader = await command.ExecuteReaderAsync())
                 {
-                    var mapper = _context.EntityMapper.CreateMapper<T>(reader);
+                    var mapper = _mapper.CreateMapper<T>(reader);
                     while (reader.Read())
                     {
                         var entity = mapper(reader);
@@ -133,7 +135,7 @@ namespace Soul.SqlBatis
                 using (var command = CreateAsyncCommand(sql, param, configure))
                 using (var reader = command.ExecuteReader())
                 {
-                    var mapper = _context.EntityMapper.CreateMapper<T>(reader);
+                    var mapper = _mapper.CreateMapper<T>(reader);
                     while (reader.Read())
                     {
                         var entity = mapper(reader);
@@ -151,7 +153,7 @@ namespace Soul.SqlBatis
                 using (var command = CreateAsyncCommand(sql, param, configure))
                 using (var reader = await command.ExecuteReaderAsync())
                 {
-                    var mapper = _context.EntityMapper.CreateMapper<T>(reader);
+                    var mapper = _mapper.CreateMapper<T>(reader);
                     while (reader.Read())
                     {
                         var entity = mapper(reader);
@@ -164,7 +166,7 @@ namespace Soul.SqlBatis
 
         public DbDataGrid QueryMultiple(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
-            return new DbDataGrid(_context, () => CreateCommand(sql, param, configure), _context.EntityMapper);
+            return new DbDataGrid(_context, () => CreateCommand(sql, param, configure), _mapper);
         }
 
         public DbCommand CreateAsyncCommand(string sql, object param, Action<DbCommandOptions> configure)
@@ -225,7 +227,7 @@ namespace Soul.SqlBatis
                     }
                     if (values == null || values.Count == 0)
                     {
-                        return $"IN ({_context.Options.EmptyQuerySql})";
+                        return $"IN ({_settings.EmptyQuerySql})";
                     }
                     else
                     {

@@ -305,7 +305,7 @@ namespace Soul.SqlBatis.Expressions
             SqlBuilder.Append(" IN ");
             if (values.Count == 0)
             {
-                SqlBuilder.Append($"({Context.EmptyQuerySql})");
+                SqlBuilder.Append($"({Context.SqlSettings.EmptyQuerySql})");
             }
             else if (member.Type != typeof(string))
             {

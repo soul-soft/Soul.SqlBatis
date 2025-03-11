@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -10,13 +9,13 @@ namespace Soul.SqlBatis.Databases
     public class DbDataGrid : IDisposable
     {
         private IDataReader _reader;
-        private System.Data.IDbCommand _command;
+        private IDbCommand _command;
         private bool _closeConnection;
         private readonly DbContext _context;
-        private Func<System.Data.IDbCommand> _createCommand;
-        private readonly IEntityMapper _entityMapper;
+        private Func<IDbCommand> _createCommand;
+        private readonly EntityMappper _entityMapper;
 
-        public DbDataGrid(DbContext context, Func<System.Data.IDbCommand> createCommand, IEntityMapper entityMapper)
+        internal DbDataGrid(DbContext context, Func<IDbCommand> createCommand, EntityMappper entityMapper)
         {
             _context = context;
             _createCommand = createCommand;

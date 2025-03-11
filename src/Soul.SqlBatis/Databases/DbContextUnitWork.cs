@@ -8,10 +8,12 @@ namespace Soul.SqlBatis.Databases
     internal class DbContextUnitWork
     {
         private readonly DbContext _context;
+        private readonly SqlSettings _sqlSettings;
         
-        public DbContextUnitWork(DbContext context)
+        public DbContextUnitWork(DbContext context,SqlSettings sqlSettings)
         {
             _context = context;
+            _sqlSettings = sqlSettings;
         }
 
         public int SaveChanges(IEnumerable<IEntityEntry> entries)
@@ -121,7 +123,7 @@ namespace Soul.SqlBatis.Databases
             if (entry.Members.Any(a => a.IsIdentity()))
             {
                 var column = entry.Members.Where(a => a.IsIdentity()).First();
-                sql += $"{string.Format(_context.Options.LastIdentitySql, column.ColumnName)}";
+                sql += $"{string.Format(_sqlSettings.IdentitySql, column.ColumnName)}";
             }
             var param = new DynamicParameters();
             foreach (var item in members)

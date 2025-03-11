@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Soul.SqlBatis.Databases;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -33,18 +34,18 @@ namespace Soul.SqlBatis
 
     internal class AnnotationModel : IModel
     {
-        private readonly DbContextOptions _options;
+        private readonly SqlSettings _options;
 
         private static readonly ConcurrentDictionary<Type, IEntityType> _entityTypes = new ConcurrentDictionary<Type, IEntityType>();
 
-        public AnnotationModel(DbContextOptions options)
+        public AnnotationModel(SqlSettings options)
         {
             _options = options;
         }
 
         public string Format(string name)
         {
-            return string.Format(_options.KeywordsFormSql, name);
+            return string.Format(_options.IdentifierFormat, name);
         }
 
         public IEntityType FindEntityType(Type type)

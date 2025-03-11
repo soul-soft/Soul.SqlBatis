@@ -1,18 +1,20 @@
-﻿namespace Soul.SqlBatis.Expressions
+﻿using Soul.SqlBatis.Databases;
+
+namespace Soul.SqlBatis.Expressions
 {
     public class SqlExpressionContext
     {
         public string Alias { get; }
         public IModel Model { get; }
-        public string EmptyQuerySql { get; }
+        public SqlSettings SqlSettings { get; }
         public DynamicParameters Parameters { get; }
 
-        public SqlExpressionContext(string alias, IModel model, DynamicParameters parameters,string emptyQuerySql)
+        public SqlExpressionContext(string alias, IModel model, DynamicParameters parameters, SqlSettings sqlSettings)
         {
             Alias = alias;
             Model = model;
             Parameters = parameters;
-            EmptyQuerySql = emptyQuerySql;
+            SqlSettings = sqlSettings;
         }
     }
 }
