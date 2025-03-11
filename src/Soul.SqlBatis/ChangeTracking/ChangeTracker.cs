@@ -58,7 +58,7 @@ namespace Soul.SqlBatis.ChangeTracking
         {
             if (!_references.ContainsKey(entity))
             {
-                var mapper = DynamicParametersMapper.CreateMapper(typeof(T));
+                var mapper = ObjectMapper.CreateMapper(typeof(T));
                 var values = mapper(entity);
                 var entityType = _model.FindEntityType(typeof(T));
                 var members = new List<MemberEntry>();
