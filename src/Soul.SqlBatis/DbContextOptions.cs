@@ -7,8 +7,6 @@ namespace Soul.SqlBatis
     {
         internal DbType DbType { get; private set; }
 
-        internal bool EnabledQueryTracking { get; private set; }
-
         internal IDbConnection Connection { get; private set; }
 
         internal Action<string, object> Loggger { get; private set; }

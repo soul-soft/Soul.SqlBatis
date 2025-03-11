@@ -9,8 +9,6 @@ namespace Soul.SqlBatis
     {
         private readonly SqlSettings _settings;
 
-        private readonly DbContextOptions _options;
-
         private readonly Dictionary<string, List<string>> _tokens = new Dictionary<string, List<string>>();
 
         internal SqlBuilder(SqlSettings settings)

@@ -18,10 +18,10 @@ namespace Soul.SqlBatis
 
         public Dictionary<DbQueryMethod, List<DbQueryToken>> Tokens { get; } = new Dictionary<DbQueryMethod, List<DbQueryToken>>();
 
-        internal DbQueryable(DbContext context, Type entityType, DynamicParameters parameters)
+        internal DbQueryable(DbContext context, DynamicParameters parameters)
         {
             DbContext = context;
-            IsTracking = context.Options.EnabledQueryTracking;
+            IsTracking = false;
             EntityType = context.Model.FindEntityType(typeof(T));
             Parameters = parameters;
         }
