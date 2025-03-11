@@ -22,39 +22,10 @@ namespace Soul.SqlBatis
 
         internal IModel Model { get; private set; }
 
-        internal IDbContextPersister Persister { get; private set; }
-
-        internal IEntityMapper EntityMapper { get; private set; } = new EntityMapper(new EntityMapperOptions());
 
         public DbContextOptions UseModel(IModel model)
         {
             Model = model;
-            return this;
-        }
-
-        public DbContextOptions UseEntityMapper(IEntityMapper entityMapper)
-        {
-            EntityMapper = entityMapper;
-            return this;
-        }
-
-        public DbContextOptions UseEntityMapper(Action<EntityMapperOptions> configureOptions)
-        {
-            var options = new EntityMapperOptions();
-            configureOptions(options);
-            EntityMapper = new EntityMapper(options);
-            return this;
-        }
-
-        public DbContextOptions UseQueryTracking()
-        {
-            EnabledQueryTracking = true;
-            return this;
-        }
-
-        public DbContextOptions UsePersister(IDbContextPersister persister)
-        {
-            Persister = persister;
             return this;
         }
 
@@ -78,7 +49,6 @@ namespace Soul.SqlBatis
             LimitFormatSql = "LIMIT {1} OFFSET {0}";
             EmptyQuerySql = "SELECT 1 WHERE 1 = 0";
             Model = new AnnotationModel(this);
-            Persister = new DbContextPersister(this);
         }
 
         public void UseMySql(IDbConnection connection)
@@ -88,7 +58,6 @@ namespace Soul.SqlBatis
             LastIdentitySql = ";SELECT LAST_INSERT_ID()";
             LimitFormatSql = "LIMIT {0},{1}";
             Model = new AnnotationModel(this);
-            Persister = new DbContextPersister(this);
         }
     }
 }

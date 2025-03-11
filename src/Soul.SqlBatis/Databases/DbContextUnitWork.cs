@@ -5,117 +5,111 @@ using System.Threading.Tasks;
 
 namespace Soul.SqlBatis.Databases
 {
-    public interface IDbContextPersister
+    internal class DbContextUnitWork
     {
-        int SaveChanges(IDbContextCommand command, IEnumerable<IEntityEntry> entries);
-        Task<int> SaveChangesAsync(IDbContextCommand command, IEnumerable<IEntityEntry> entries);
-    }
-
-    internal class DbContextPersister : IDbContextPersister
-    {
-        private readonly DbContextOptions _options;
+        private readonly DbContext _context;
         
-        public DbContextPersister(DbContextOptions options)
+        public DbContextUnitWork(DbContext context)
         {
-            _options = options;
+            _context = context;
         }
 
-        public int SaveChanges(IDbContextCommand command, IEnumerable<IEntityEntry> entries)
+        public int SaveChanges(IEnumerable<IEntityEntry> entries)
         {
             var affectedRows = 0;
             foreach (var entry in entries)
             {
                 if (entry.State == EntityState.Added)
                 {
-                    affectedRows += Insert(command, entry);
+                    affectedRows += Insert(entry);
                 }
                 else if (entry.State == EntityState.Modified)
                 {
-                    affectedRows += Update(command, entry);
+                    affectedRows += Update(entry);
                 }
                 else if (entry.State == EntityState.Deleted)
                 {
-                    affectedRows += Delete(command, entry);
+                    affectedRows += Delete(entry);
                 }
             }
             return affectedRows;
         }
 
-        public async Task<int> SaveChangesAsync(IDbContextCommand command, IEnumerable<IEntityEntry> entries)
+        public async Task<int> SaveChangesAsync(IEnumerable<IEntityEntry> entries)
         {
             var affectedRows = 0;
             foreach (var entry in entries)
             {
                 if (entry.State == EntityState.Added)
                 {
-                    affectedRows += await InsertAsync(command, entry);
+                    affectedRows += await InsertAsync(entry);
                 }
                 else if (entry.State == EntityState.Modified)
                 {
-                    affectedRows += await UpdateAsync(command, entry);
+                    affectedRows += await UpdateAsync(entry);
                 }
                 else if (entry.State == EntityState.Deleted)
                 {
-                    affectedRows += await DeleteAsync(command, entry);
+                    affectedRows += await DeleteAsync( entry);
                 }
             }
             return affectedRows;
         }
 
-        private int Insert(IDbContextCommand command, IEntityEntry entry)
+        private int Insert(IEntityEntry entry)
         {
             var (sql, param) = BuildInsertCommand(entry);
             if (entry.Members.Any(a => a.IsIdentity()))
             {
-                var obj = command.ExecuteScalar(sql, param);
+                var obj = _context.Sql.ExecuteScalar(sql, param);
                 var identityProperty = entry.Members.Where(a => a.IsIdentity()).First();
                 identityProperty.SetValue(obj);
                 return 1;
             }
             else
             {
-                return command.Execute(sql, param);
+                return _context.Sql.Execute(sql, param);
             }
         }
 
-        private int Update(IDbContextCommand command, IEntityEntry entry)
+        private int Update(IEntityEntry entry)
         {
             var (sql, param) = BuildUpdateCommand(entry);
-            return command.Execute(sql, param);
+            return _context.Sql.Execute(sql, param);
         }
 
-        private int Delete(IDbContextCommand command, IEntityEntry entry)
+        private int Delete(IEntityEntry entry)
         {
             var (sql, param) = BuildDeleteCommand(entry);
-            return command.Execute(sql, param);
+            return _context.Sql.Execute(sql, param);
         }
 
-        private async Task<int> InsertAsync(IDbContextCommand command, IEntityEntry entry)
+        private async Task<int> InsertAsync(IEntityEntry entry)
         {
             var (sql, param) = BuildInsertCommand(entry);
             if (entry.Members.Any(a => a.IsIdentity()))
             {
-                var obj = await command.ExecuteScalarAsync(sql, param);
+                var obj = await _context.Sql.ExecuteScalarAsync(sql, param);
                 var identityProperty = entry.Members.Where(a => a.IsIdentity()).First();
                 identityProperty.SetValue(obj);
                 return 1;
             }
             else
             {
-                return await command.ExecuteAsync(sql, param);
+                return await _context.Sql.ExecuteAsync(sql, param);
             }
         }
 
-        private Task<int> UpdateAsync(IDbContextCommand command, IEntityEntry entry)
+        private Task<int> UpdateAsync(IEntityEntry entry)
         {
             var (sql, param) = BuildUpdateCommand(entry);
-            return command.ExecuteAsync(sql, param);
+            return _context.Sql.ExecuteAsync(sql, param);
         }
 
-        private Task<int> DeleteAsync(IDbContextCommand command, IEntityEntry entry)
+        private Task<int> DeleteAsync(IEntityEntry entry)
         {
             var (sql, param) = BuildDeleteCommand(entry);
-            return command.ExecuteAsync(sql, param);
+            return _context.Sql.ExecuteAsync(sql, param);
         }
 
         private (string, DynamicParameters) BuildInsertCommand(IEntityEntry entry)
@@ -127,7 +121,7 @@ namespace Soul.SqlBatis.Databases
             if (entry.Members.Any(a => a.IsIdentity()))
             {
                 var column = entry.Members.Where(a => a.IsIdentity()).First();
-                sql += $"{string.Format(_options.LastIdentitySql, column.ColumnName)}";
+                sql += $"{string.Format(_context.Options.LastIdentitySql, column.ColumnName)}";
             }
             var param = new DynamicParameters();
             foreach (var item in members)

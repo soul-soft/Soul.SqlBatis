@@ -15,7 +15,7 @@ namespace Soul.SqlBatis.Test
             ?? throw new NullReferenceException();
         }
 
-        public MethodInfo GetTypeMapper(EntityTypeMapperContext context)
+        public MethodInfo GetTypeMapper(EntityMapperFieldInfo context)
         {
             if ("json".Equals(context.FieldTypeName, StringComparison.OrdinalIgnoreCase) && context.MemberType != typeof(string))
             {

@@ -9,31 +9,18 @@ using System.Threading.Tasks;
 
 namespace Soul.SqlBatis
 {
-    public interface IDbContextCommand
-    {
-        int Execute(string sql, object param = null, Action<DbContextCommandOptions> configure = null);
-        Task<int> ExecuteAsync(string sql, object param = null, Action<DbContextCommandOptions> configure = null);
-        object ExecuteScalar(string sql, object param = null, Action<DbContextCommandOptions> configure = null);
-        Task<object> ExecuteScalarAsync(string sql, object param = null, Action<DbContextCommandOptions> configure = null);
-        T ExecuteScalar<T>(string sql, object param = null, Action<DbContextCommandOptions> configure = null);
-        Task<T> ExecuteScalarAsync<T>(string sql, object param = null, Action<DbContextCommandOptions> configure = null);
-        List<T> Query<T>(string sql, object param = null, Action<DbContextCommandOptions> configure = null);
-        Task<List<T>> QueryAsync<T>(string sql, object param = null, Action<DbContextCommandOptions> configure = null);
-        T QueryFirst<T>(string sql, object param = null, Action<DbContextCommandOptions> configure = null);
-        Task<T> QueryFirstAsync<T>(string sql, object param = null, Action<DbContextCommandOptions> configure = null);
-        DbDataGrid QueryMultiple(string sql, object param = null, Action<DbContextCommandOptions> configure = null);
-    }
-
-    public class DbContextCommand : IDbContextCommand
+    public class SqlMapper
     {
         private readonly DbContext _context;
+        private readonly EntityMapper _mapper;
 
-        public DbContextCommand(DbContext context)
+        public SqlMapper(DbContext context)
         {
             _context = context;
+            _mapper = new EntityMapper();
         }
 
-        public virtual int Execute(string sql, object param = null, Action<DbContextCommandOptions> configure = null)
+        public virtual int Execute(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
             return Start(() =>
             {
@@ -44,7 +31,7 @@ namespace Soul.SqlBatis
             });
         }
 
-        public virtual Task<int> ExecuteAsync(string sql, object param = null, Action<DbContextCommandOptions> configure = null)
+        public virtual Task<int> ExecuteAsync(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
             return StartAsync(() =>
             {
@@ -55,7 +42,7 @@ namespace Soul.SqlBatis
             });
         }
 
-        public virtual object ExecuteScalar(string sql, object param = null, Action<DbContextCommandOptions> configure = null)
+        public virtual object ExecuteScalar(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
             return Start(() =>
             {
@@ -66,7 +53,7 @@ namespace Soul.SqlBatis
             });
         }
 
-        public virtual Task<object> ExecuteScalarAsync(string sql, object param = null, Action<DbContextCommandOptions> configure = null)
+        public virtual Task<object> ExecuteScalarAsync(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
             return StartAsync(() =>
             {
@@ -77,7 +64,7 @@ namespace Soul.SqlBatis
             });
         }
 
-        public virtual T ExecuteScalar<T>(string sql, object param = null, Action<DbContextCommandOptions> configure = null)
+        public virtual T ExecuteScalar<T>(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
             return Start(() =>
             {
@@ -89,7 +76,7 @@ namespace Soul.SqlBatis
             });
         }
 
-        public virtual Task<T> ExecuteScalarAsync<T>(string sql, object param = null, Action<DbContextCommandOptions> configure = null)
+        public virtual Task<T> ExecuteScalarAsync<T>(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
             return StartAsync(async () =>
             {
@@ -101,7 +88,7 @@ namespace Soul.SqlBatis
             });
         }
 
-        public virtual List<T> Query<T>(string sql, object param = null, Action<DbContextCommandOptions> configure = null)
+        public virtual List<T> Query<T>(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
             return Start(() =>
             {
@@ -120,7 +107,7 @@ namespace Soul.SqlBatis
             });
         }
 
-        public virtual Task<List<T>> QueryAsync<T>(string sql, object param = null, Action<DbContextCommandOptions> configure = null)
+        public virtual Task<List<T>> QueryAsync<T>(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
             return StartAsync(async () =>
             {
@@ -139,7 +126,7 @@ namespace Soul.SqlBatis
             });
         }
 
-        public virtual T QueryFirst<T>(string sql, object param = null, Action<DbContextCommandOptions> configure = null)
+        public virtual T QueryFirst<T>(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
             return Start(() =>
             {
@@ -157,7 +144,7 @@ namespace Soul.SqlBatis
             });
         }
 
-        public virtual Task<T> QueryFirstAsync<T>(string sql, object param = null, Action<DbContextCommandOptions> configure = null)
+        public virtual Task<T> QueryFirstAsync<T>(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
             return StartAsync(async () =>
             {
@@ -175,21 +162,21 @@ namespace Soul.SqlBatis
             });
         }
 
-        public DbDataGrid QueryMultiple(string sql, object param = null, Action<DbContextCommandOptions> configure = null)
+        public DbDataGrid QueryMultiple(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
             return new DbDataGrid(_context, () => CreateCommand(sql, param, configure), _context.EntityMapper);
         }
 
-        public DbCommand CreateAsyncCommand(string sql, object param, Action<DbContextCommandOptions> configure)
+        public DbCommand CreateAsyncCommand(string sql, object param, Action<DbCommandOptions> configure)
         {
             return CreateCommand(sql, param, configure) as DbCommand
                 ?? throw new InvalidCastException("Failed to cast the created command to DbCommand. Please ensure that the CreateCommand method returns a valid DbCommand object.");
         }
 
-        public IDbCommand CreateCommand(string sql, object param, Action<DbContextCommandOptions> configure)
+        public IDbCommand CreateCommand(string sql, object param, Action<DbCommandOptions> configure)
         {
             _context.WriteLog(sql, param);
-            var commandOptions = new DbContextCommandOptions();
+            var commandOptions = new DbCommandOptions();
             configure?.Invoke(commandOptions);
             var command = _context.GetDbConnection().CreateCommand();
             command.CommandText = sql;

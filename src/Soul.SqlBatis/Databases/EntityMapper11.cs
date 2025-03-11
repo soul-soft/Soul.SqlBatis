@@ -15,19 +15,14 @@ namespace Soul.SqlBatis
         Func<IDataRecord, T> CreateMapper<T>(IDataRecord record);
     }
 
-    public interface ICustomTypeMapper
-    {
-        MethodInfo GetTypeMapper(EntityTypeMapperContext context);
-    }
-
-    public class EntityTypeMapperContext
+    public class EntityMapperFieldInfo
     {
         public Type EntityType { get; }
         public Type MemberType { get; }
         public Type FieldType { get; }
         public string FieldTypeName { get; }
 
-        public EntityTypeMapperContext(Type entityType, Type memberType, Type fieldType, string fieldTypeName)
+        public EntityMapperFieldInfo(Type entityType, Type memberType, Type fieldType, string fieldTypeName)
         {
             EntityType = entityType;
             MemberType = memberType;
@@ -35,6 +30,13 @@ namespace Soul.SqlBatis
             FieldTypeName = fieldTypeName;
         }
     }
+
+
+    public interface ICustomTypeMapper
+    {
+        MethodInfo GetTypeMapper(EntityMapperFieldInfo context);
+    }
+
 
     public class EntityMapperOptions
     {
@@ -50,7 +52,7 @@ namespace Soul.SqlBatis
             _delegateMappers[type] = func;
         }
 
-        public Func<EntityTypeMapperContext, Expression> DbNullHandler { get; set; }
+        public Func<EntityMapperFieldInfo, Expression> DbNullHandler { get; set; }
 
         internal Delegate GetTypeMapper(Type type)
         {
@@ -59,7 +61,7 @@ namespace Soul.SqlBatis
             return method;
         }
 
-        internal bool TryCustomTypeMapper(EntityTypeMapperContext context, out MethodInfo method)
+        internal bool TryCustomTypeMapper(EntityMapperFieldInfo context, out MethodInfo method)
         {
             if (CustomTypeMapper == null)
             {
@@ -94,18 +96,18 @@ namespace Soul.SqlBatis
         }
     }
 
-    internal class EntityMapper : IEntityMapper
+    internal class EntityMapper11 : IEntityMapper
     {
         private static readonly ConcurrentDictionary<string, Delegate> _mappers = new ConcurrentDictionary<string, Delegate>();
 
         internal EntityMapperOptions Options { get; }
 
-        public EntityMapper()
+        public EntityMapper11()
             : this(new EntityMapperOptions())
         {
         }
 
-        public EntityMapper(EntityMapperOptions options)
+        public EntityMapper11(EntityMapperOptions options)
         {
             Options = options;
         }
@@ -253,7 +255,7 @@ namespace Soul.SqlBatis
         {
             var isDbNullCheck = Expression.Call(recordParameter, nameof(IDataRecord.IsDBNull), null, Expression.Constant(fieldBinding.FieldSort));
             Expression valueExpression;
-            var context = new EntityTypeMapperContext(entityType, fieldBinding.MemberType, fieldBinding.FieldType, fieldBinding.FieldTypeName);
+            var context = new EntityMapperFieldInfo(entityType, fieldBinding.MemberType, fieldBinding.FieldType, fieldBinding.FieldTypeName);
             if (Options.CustomTypeMapper != null && Options.TryCustomTypeMapper(context, out MethodInfo typeMethod) == true)
             {
                 valueExpression = Expression.Call(typeMethod, recordParameter, Expression.Constant(fieldBinding.FieldSort));

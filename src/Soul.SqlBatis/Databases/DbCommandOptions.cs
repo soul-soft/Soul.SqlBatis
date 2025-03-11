@@ -2,7 +2,7 @@
 
 namespace Soul.SqlBatis
 {
-    public class DbContextCommandOptions
+    public class DbCommandOptions
     {
         public CommandType CommandType { get; set; } = CommandType.Text;
         public int CommandTimeout { get; set; } = 30;

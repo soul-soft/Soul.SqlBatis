@@ -13,20 +13,22 @@ namespace Soul.SqlBatis
         private bool _disposed;
 
         public IModel Model => Options.Model;
+        
+        private SqlMapper _sql;
 
-        public IDbContextCommand Command { get; private set; }
+        public SqlMapper Sql => _sql;
 
         private IDbConnection _connection;
 
         private DbContextTransaction _transaction;
 
+        private readonly DbContextUnitWork _unitWork;
+
         public DbContextTransaction CurrentTransaction => _transaction;
 
-        public IDbContextPersister Persister => Options.Persister;
+        private readonly IChangeTracker _changeTracker;
 
-        public IEntityMapper EntityMapper => Options.EntityMapper;
-
-        public IChangeTracker ChangeTracker { get; private set; }
+        public IChangeTracker ChangeTracker => _changeTracker;
 
         public DbContextOptions Options { get; private set; }
 
@@ -41,8 +43,9 @@ namespace Soul.SqlBatis
             configure(options);
             Options = options;
             _connection = options.Connection;
-            Command = new DbContextCommand(this);
-            ChangeTracker = new ChangeTracker(options.Model);
+            _sql = new SqlMapper(this);
+            _unitWork = new DbContextUnitWork(this);
+            _changeTracker = new ChangeTracker(options.Model);
         }
 
         public virtual SqlBuilder CreateSqlBuilder()
@@ -167,7 +170,7 @@ namespace Soul.SqlBatis
                 {
                     transaction = BeginTransaction();
                 }
-                var affectedRows = Persister.SaveChanges(Command, ChangeTracker.GetChangedEntries());
+                var affectedRows = _unitWork.SaveChanges(ChangeTracker.GetChangedEntries());
                 if (isTransactionOwner)
                 {
                     transaction.CommitTransaction();
@@ -194,7 +197,7 @@ namespace Soul.SqlBatis
                 {
                     transaction = BeginTransaction();
                 }
-                var affectedRows = await Persister.SaveChangesAsync(Command, ChangeTracker.GetChangedEntries());
+                var affectedRows = await _unitWork.SaveChangesAsync(ChangeTracker.GetChangedEntries());
                 if (isTransactionOwner)
                 {
                     transaction.CommitTransaction();
