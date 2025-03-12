@@ -11,6 +11,8 @@ namespace Soul.SqlBatis
 
         private readonly Dictionary<string, List<string>> _tokens = new Dictionary<string, List<string>>();
 
+        internal Dictionary<string, List<string>> Tokens => _tokens;
+
         internal SqlBuilder(SqlSettings settings)
         {
             _settings = settings;

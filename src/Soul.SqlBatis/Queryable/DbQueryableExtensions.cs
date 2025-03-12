@@ -410,9 +410,11 @@ namespace Soul.SqlBatis
 
         public static List<T> ToList<T>(this IDbQueryable<T> queryable)
         {
-            queryable.Ordering();
             var command = queryable.GetSqlMapper();
-            var (sqler, param) = queryable.Build();
+            var (sqler, param) = queryable.Build(configureOptions => 
+            {
+                configureOptions.UseDefaultOrder = true;
+            });
             var entities = command.Query<T>(sqler.QuerySql, param);
             queryable.Track(entities);
             return entities;
@@ -420,30 +422,24 @@ namespace Soul.SqlBatis
 
         public static async Task<List<T>> ToListAsync<T>(this IDbQueryable<T> queryable)
         {
-            queryable.Ordering();
             var command = queryable.GetSqlMapper();
-            var (sqler, param) = queryable.Build();
+            var (sqler, param) = queryable.Build(configureOptions =>
+            {
+                configureOptions.UseDefaultOrder = true;
+            });
             var entities = await command.QueryAsync<T>(sqler.QuerySql, param);
             queryable.Track(entities);
             return entities;
         }
-
-        private static IDbQueryable<T> Ordering<T>(this IDbQueryable<T> queryable)
-        {
-            var query = queryable.GetDbQueryable();
-            if (query.EntityType.GetProperties().Any(a => a.IsKey()))
-            {
-                var property = query.EntityType.GetProperties().Where(a => a.IsKey()).First();
-                queryable.OrderBy($"{property.ColumnName} ASC");
-            }
-            return queryable;
-        }
-
+      
         public static (List<T>, int) ToPageResult<T>(this IDbQueryable<T> queryable, int pageIndex, int pageSize)
         {
             queryable.Skip((pageIndex - 1) * pageSize).Take(pageSize);
             var command = queryable.GetSqlMapper();
-            var (queryer, param) = queryable.Build();
+            var (queryer, param) = queryable.Build(configureOptions =>
+            {
+                configureOptions.UseDefaultOrder = true;
+            });
             var (counter, _) = queryable.Clone<int>().Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -462,7 +458,10 @@ namespace Soul.SqlBatis
         {
             queryable.Skip((pageIndex - 1) * pageSize).Take(pageSize);
             var command = queryable.GetSqlMapper();
-            var (queryer, param) = queryable.Build();
+            var (queryer, param) = queryable.Build(configureOptions =>
+            {
+                configureOptions.UseDefaultOrder = true;
+            });
             var (counter, _) = queryable.Clone<int>().Build();
             var pageSql = $"{queryer.QuerySql};\r\n{counter.CountSql}";
             using (var grid = command.QueryMultiple(pageSql, param))
