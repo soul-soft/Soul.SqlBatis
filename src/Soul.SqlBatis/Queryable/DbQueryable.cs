@@ -16,7 +16,7 @@ namespace Soul.SqlBatis
 
         public DynamicParameters Parameters { get; }
 
-        public Dictionary<DbQueryMethod, List<DbQueryToken>> Tokens { get; } = new Dictionary<DbQueryMethod, List<DbQueryToken>>();
+        public Dictionary<DbQueryTokenType, List<DbQueryToken>> Tokens { get; } = new Dictionary<DbQueryTokenType, List<DbQueryToken>>();
 
         internal DbQueryable(DbContext context, DynamicParameters parameters)
         {
@@ -41,7 +41,7 @@ namespace Soul.SqlBatis
 
         public IDbQueryable<T> As(string name)
         {
-            AddToken(DbQueryMethod.As, name);
+            AddToken(DbQueryTokenType.As, name);
             return this;
         }
 
@@ -72,77 +72,77 @@ namespace Soul.SqlBatis
 
         public IDbQueryable<T> GroupBy(string expression, bool flag = true)
         {
-            AddToken(DbQueryMethod.GroupBy, expression, flag);
+            AddToken(DbQueryTokenType.GroupBy, expression, flag);
             return this;
         }
 
         public IDbQueryable<T> GroupBy<TResult>(Expression<Func<T, TResult>> expression, bool flag = true)
         {
-            AddToken(DbQueryMethod.GroupBy, (Expression)expression, flag);
+            AddToken(DbQueryTokenType.GroupBy, (Expression)expression, flag);
             return this;
         }
 
         public IDbQueryable<T> OrderBy(string expression, bool flag = true)
         {
-            AddToken(DbQueryMethod.OrderBy, expression, flag);
+            AddToken(DbQueryTokenType.OrderBy, expression, flag);
             return this;
         }
 
         public IDbQueryable<T> OrderBy<TResult>(Expression<Func<T, TResult>> expression, bool flag = true)
         {
-            AddToken(DbQueryMethod.OrderBy, (Expression)expression, flag);
+            AddToken(DbQueryTokenType.OrderBy, (Expression)expression, flag);
             return this;
         }
 
         public IDbQueryable<T> OrderByDescending<TResult>(Expression<Func<T, TResult>> expression, bool flag = true)
         {
-            AddToken(DbQueryMethod.OrderByDescending, (Expression)expression, flag);
+            AddToken(DbQueryTokenType.OrderByDescending, (Expression)expression, flag);
             return this;
         }
 
         public IDbQueryable<TResult> Select<TResult>(Expression<Func<T, TResult>> expression)
         {
-            AddToken(DbQueryMethod.Select, (Expression)expression, true);
+            AddToken(DbQueryTokenType.Select, (Expression)expression, true);
             return Clone<TResult>();
         }
 
         public IDbQueryable<T> Skip(int offset)
         {
-            AddToken(DbQueryMethod.Skip, offset);
+            AddToken(DbQueryTokenType.Skip, offset);
             return this;
         }
 
         public IDbQueryable<T> Take(int count)
         {
-            AddToken(DbQueryMethod.Take, count);
+            AddToken(DbQueryTokenType.Take, count);
             return this;
         }
 
         public IDbQueryable<T> Where(string expression, bool flag = true)
         {
-            AddToken(DbQueryMethod.Where, expression, flag);
+            AddToken(DbQueryTokenType.Where, expression, flag);
             return this;
         }
 
         public IDbQueryable<T> Where(Expression<Func<T, bool>> expression, bool flag = true)
         {
-            AddToken(DbQueryMethod.Where, (Expression)expression, flag);
+            AddToken(DbQueryTokenType.Where, (Expression)expression, flag);
             return this;
         }
 
         public IDbQueryable<T> Having(string expression, bool flag = true)
         {
-            AddToken(DbQueryMethod.Having, expression, flag);
+            AddToken(DbQueryTokenType.Having, expression, flag);
             return this;
         }
 
         public IDbQueryable<T> Having<TResult>(Expression<Func<T, TResult>> expression, bool flag = true)
         {
-            AddToken(DbQueryMethod.Having, (Expression)expression, flag);
+            AddToken(DbQueryTokenType.Having, (Expression)expression, flag);
             return this;
         }
 
-        public void AddToken<TToken>(DbQueryMethod type, TToken token, bool flag = true)
+        public void AddToken<TToken>(DbQueryTokenType type, TToken token, bool flag = true)
         {
             if (!flag)
                 return;
@@ -155,11 +155,11 @@ namespace Soul.SqlBatis
 
         private string GetAlias()
         {
-            if (!Tokens.ContainsKey(DbQueryMethod.As))
+            if (!Tokens.ContainsKey(DbQueryTokenType.As))
             {
                 return string.Empty;
             }
-            var name = Tokens[DbQueryMethod.As].Last().As<string>();
+            var name = Tokens[DbQueryTokenType.As].Last().As<string>();
             return DbContext.Model.Format(name);
         }
 
@@ -174,17 +174,17 @@ namespace Soul.SqlBatis
 
             foreach (var item in Tokens)
             {
-                if (item.Key == DbQueryMethod.Take)
+                if (item.Key == DbQueryTokenType.Take)
                 {
                     var token = item.Value.Last();
                     sqlBuilder.Take(token.As<int>());
                 }
-                else if (item.Key == DbQueryMethod.Skip)
+                else if (item.Key == DbQueryTokenType.Skip)
                 {
                     var token = item.Value.Last();
                     sqlBuilder.Skip(token.As<int>());
                 }
-                else if (item.Key == DbQueryMethod.Select)
+                else if (item.Key == DbQueryTokenType.Select)
                 {
                     var token = item.Value.Last();
                     if (token.Is<Expression>())
@@ -203,7 +203,7 @@ namespace Soul.SqlBatis
                         }
                     }
                 }
-                else if (item.Key == DbQueryMethod.Where)
+                else if (item.Key == DbQueryTokenType.Where)
                 {
                     item.Value.ForEach(token =>
                     {
@@ -218,7 +218,7 @@ namespace Soul.SqlBatis
                         }
                     });
                 }
-                else if (item.Key == DbQueryMethod.GroupBy)
+                else if (item.Key == DbQueryTokenType.GroupBy)
                 {
                     item.Value.ForEach(token =>
                     {
@@ -236,7 +236,7 @@ namespace Soul.SqlBatis
                         }
                     });
                 }
-                else if (item.Key == DbQueryMethod.Having)
+                else if (item.Key == DbQueryTokenType.Having)
                 {
                     item.Value.ForEach(token =>
                     {
@@ -251,7 +251,7 @@ namespace Soul.SqlBatis
                         }
                     });
                 }
-                else if (item.Key == DbQueryMethod.OrderBy)
+                else if (item.Key == DbQueryTokenType.OrderBy)
                 {
                     item.Value.ForEach(token =>
                     {
@@ -260,7 +260,7 @@ namespace Soul.SqlBatis
                             var columns = SqlColumnExpressionParser.Parse(sqlExpressionContext, token.As<Expression>());
                             foreach (var column in columns)
                             {
-                                sqlBuilder.OrderBy($"{column.Value}");
+                                sqlBuilder.OrderBy($"{column.Value} ASC");
                             }
                         }
                         else if (token.Is<string>())
@@ -269,7 +269,7 @@ namespace Soul.SqlBatis
                         }
                     });
                 }
-                else if (item.Key == DbQueryMethod.OrderByDescending)
+                else if (item.Key == DbQueryTokenType.OrderByDescending)
                 {
                     item.Value.ForEach(token =>
                     {
@@ -288,7 +288,7 @@ namespace Soul.SqlBatis
                         }
                     });
                 }
-                else if (item.Key == DbQueryMethod.Setters)
+                else if (item.Key == DbQueryTokenType.Setters)
                 {
                     var token = item.Value.Last();
                     if (token.Is<Expression>())
@@ -302,7 +302,7 @@ namespace Soul.SqlBatis
                 }
             }
 
-            if (options.HasDefaultColumns && !Tokens.ContainsKey(DbQueryMethod.Select))
+            if (options.HasDefaultColumns && !Tokens.ContainsKey(DbQueryTokenType.Select))
             {
                 var columns = EntityType.GetProperties()
                         .Where(a => !a.IsNotMapped())

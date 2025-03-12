@@ -8,7 +8,7 @@ namespace Soul.SqlBatis
 {
     public static class DbQueryableExtensions
     {
-        private static void Track<T>(this IDbQueryable<T> queryable,ref T entity)
+        private static void Track<T>(this IDbQueryable<T> queryable, ref T entity)
         {
             var query = queryable.GetDbQueryable();
             if (!query.IsTracking || entity == null)
@@ -16,7 +16,7 @@ namespace Soul.SqlBatis
                 return;
             }
             var context = queryable.GetDbContext();
-            if (!query.Tokens.Any(a => a.Key == DbQueryMethod.Select))
+            if (!query.Tokens.Any(a => a.Key == DbQueryTokenType.Select))
             {
                 entity = (T)context.Attach(entity).Entity;
             }
@@ -34,7 +34,7 @@ namespace Soul.SqlBatis
                 return;
             }
             var context = queryable.GetDbContext();
-            if (!query.Tokens.Any(a => a.Key == DbQueryMethod.Select))
+            if (!query.Tokens.Any(a => a.Key == DbQueryTokenType.Select))
             {
                 for (var i = 0; i < entities.Count; i++)
                 {
@@ -410,6 +410,7 @@ namespace Soul.SqlBatis
 
         public static List<T> ToList<T>(this IDbQueryable<T> queryable)
         {
+            queryable.Ordering();
             var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build();
             var entities = command.Query<T>(sqler.QuerySql, param);
@@ -419,11 +420,23 @@ namespace Soul.SqlBatis
 
         public static async Task<List<T>> ToListAsync<T>(this IDbQueryable<T> queryable)
         {
+            queryable.Ordering();
             var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build();
             var entities = await command.QueryAsync<T>(sqler.QuerySql, param);
             queryable.Track(entities);
             return entities;
+        }
+
+        private static IDbQueryable<T> Ordering<T>(this IDbQueryable<T> queryable)
+        {
+            var query = queryable.GetDbQueryable();
+            if (query.EntityType.GetProperties().Any(a => a.IsKey()))
+            {
+                var property = query.EntityType.GetProperties().Where(a => a.IsKey()).First();
+                queryable.OrderBy($"{property.ColumnName} ASC");
+            }
+            return queryable;
         }
 
         public static (List<T>, int) ToPageResult<T>(this IDbQueryable<T> queryable, int pageIndex, int pageSize)
@@ -485,7 +498,7 @@ namespace Soul.SqlBatis
         public static int ExecuteUpdate<T>(this IDbQueryable<T> queryable, Expression<Func<DbUpdateQueryable<T>, DbUpdateQueryable<T>>> setters)
         {
             var query = queryable.GetDbQueryable();
-            query.AddToken(DbQueryMethod.Setters, setters);
+            query.AddToken(DbQueryTokenType.Setters, setters);
             var (sqler, param) = query.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;
@@ -498,7 +511,7 @@ namespace Soul.SqlBatis
         public static Task<int> ExecuteUpdateAsync<T>(this IDbQueryable<T> queryable, Expression<Func<DbUpdateQueryable<T>, DbUpdateQueryable<T>>> setters)
         {
             var query = queryable.GetDbQueryable();
-            query.AddToken(DbQueryMethod.Setters, setters);
+            query.AddToken(DbQueryTokenType.Setters, setters);
             var (sqler, param) = query.Build(configureOptions =>
             {
                 configureOptions.HasColumnsAlias = false;

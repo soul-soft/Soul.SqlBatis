@@ -125,7 +125,7 @@ namespace Soul.SqlBatis
                 {
                     return string.Empty;
                 }
-                var expression = _tokens[nameof(GroupBy)].Aggregate((x, y) => $"{x}, {y}");
+                var expression = _tokens[nameof(GroupBy)].Aggregate((x, y) => $"{x},\n\t{y}");
                 return $"GROUP BY\r\n\t{expression}";
             }
         }
@@ -138,7 +138,7 @@ namespace Soul.SqlBatis
                 {
                     return string.Empty;
                 }
-                var expression = _tokens[nameof(Having)].Aggregate((x, y) => $"{x}, {y}");
+                var expression = _tokens[nameof(Having)].Aggregate((x, y) => $"{x},\n\t{y}");
                 return $"HAVING\r\n\t{expression}";
             }
         }
@@ -151,7 +151,7 @@ namespace Soul.SqlBatis
                 {
                     return string.Empty;
                 }
-                var expression = _tokens[nameof(OrderBy)].Aggregate((x, y) => $"{x}, {y}");
+                var expression = _tokens[nameof(OrderBy)].Aggregate((x, y) => $"{x},\n\t{y}");
                 return $"ORDER BY\r\n\t{expression}";
             }
         }

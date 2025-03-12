@@ -1,7 +1,7 @@
 ﻿using System;
 namespace Soul.SqlBatis
 {
-    public enum DbQueryMethod
+    public enum DbQueryTokenType
     {
         As,
         Take,
