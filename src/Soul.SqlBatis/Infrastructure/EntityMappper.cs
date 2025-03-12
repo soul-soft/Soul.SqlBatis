@@ -296,12 +296,12 @@ namespace Soul.SqlBatis.Infrastructure
         {
             if (bindings.BindType == EntityBindingType.TypeMapper)
             {
-                return $"{bindings[0].Field.Type}->{entityTye.FullName}";
+                return $"{bindings[0].Field.Type}->{entityTye.FullName}|{bindings.BindType}";
             }
             else
             {
                 var sb = new StringBuilder();
-                sb.AppendLine($"{entityTye.FullName}|{bindings.Count}");
+                sb.AppendLine($"{entityTye.FullName}|{bindings.Count}|{bindings.BindType}");
                 foreach (var item in bindings)
                 {
                     sb.Append($"{item.Field.Name}[{item.Field.Index}]->{item.Member.Name}|");
