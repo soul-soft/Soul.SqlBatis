@@ -318,13 +318,10 @@ namespace Soul.SqlBatis
                 view = $"{view} AS {alias}";
             }
             sqlBuilder.From(view);
-            if (options.UseDefaultOrder)
+            if (options.UseDefaultOrder && EntityType.GetProperties().Any(a => a.IsKey()))
             {
-                if (EntityType.GetProperties().Any(a => a.IsKey()))
-                {
-                    var keyProperty = EntityType.GetProperties().Where(a => a.IsKey()).First();
-                    sqlBuilder.OrderBy($"{keyProperty.ColumnName} ASC", UsingDefaultOrder(sqlBuilder, keyProperty.ColumnName));
-                }
+                var column = EntityType.GetProperties().Where(a => a.IsKey()).First();
+                sqlBuilder.OrderBy($"{column.ColumnName} ASC", UsingDefaultOrder(sqlBuilder, column.ColumnName));
             }
             return (sqlBuilder, parameters);
         }
