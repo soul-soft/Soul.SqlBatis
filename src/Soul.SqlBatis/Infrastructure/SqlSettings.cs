@@ -9,6 +9,9 @@ namespace Soul.SqlBatis.Infrastructure
         private readonly Dictionary<Type, object> _nullMappers = new Dictionary<Type, object>();
         
         private readonly Dictionary<Type, Delegate> _typeMappers = new Dictionary<Type, Delegate>();
+        
+        private readonly Dictionary<Type, Func<object, object>> _parameMappers = new Dictionary<Type, Func<object, object>>();
+
 
         internal string EmptyQuerySql { get; set; }
 
@@ -41,6 +44,16 @@ namespace Soul.SqlBatis.Infrastructure
             return null;
         }
 
+        internal bool HasParamMapper(Type type)
+        {
+            return _parameMappers.ContainsKey(type);
+        }
+
+        internal Func<object, object> GetParamMapper(Type type)
+        {
+            return _parameMappers[type];
+        }
+
         public SqlSettings UseDbNullMapper<T>(T value)
         {
             _nullMappers[typeof(T)] = value;
@@ -50,6 +63,12 @@ namespace Soul.SqlBatis.Infrastructure
         public SqlSettings UseTypeMapper<T>(Func<IDataRecord, int, T> mapper)
         {
             _typeMappers[typeof(T)] = mapper;
+            return this;
+        }
+
+        public SqlSettings UseParamMapper<T>(Func<object, object> mapper)
+        {
+            _parameMappers[typeof(T)] = mapper;
             return this;
         }
     }

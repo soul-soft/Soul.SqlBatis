@@ -252,10 +252,22 @@ namespace Soul.SqlBatis
         private void CreateParameter(IDbCommand command, string name, object value)
         {
             var parameter = command.CreateParameter();
-            parameter.Value = value ?? DBNull.Value;
-            if (value is Enum && value!=null)
+            if (value == null)
+            {
+                parameter.Value = DBNull.Value;
+            }
+            else if (value is Enum)
             {
                 parameter.Value = Convert.ToInt32(value);
+            }
+            else if (_settings.HasParamMapper(value.GetType()))
+            {
+                var mapper = _settings.GetParamMapper(value.GetType());
+                parameter.Value = mapper(value);
+            }
+            else
+            {
+                parameter.Value = value;
             }
             parameter.ParameterName = name;
             command.Parameters.Add(parameter);
