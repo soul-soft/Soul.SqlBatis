@@ -13,7 +13,7 @@ namespace Soul.SqlBatis.Infrastructure
     {
         private readonly SqlSettings _settings;
 
-        private static readonly ConcurrentDictionary<EntityBindings, Delegate> _mappers = new ConcurrentDictionary<EntityBindings, Delegate>();
+        private static readonly ConcurrentDictionary<string, Delegate> _mappers = new ConcurrentDictionary<string, Delegate>();
 
         public EntityMappper(SqlSettings settings)
         {
@@ -29,7 +29,8 @@ namespace Soul.SqlBatis.Infrastructure
         public Func<IDataRecord, T> CreateMapper<T>(IDataRecord record)
         {
             var bindings = GetEntityMemberBindings(typeof(T), record);
-            return _mappers.GetOrAdd(bindings, _ =>
+            var cacheKey = GetEntityMapperCacheKey(typeof(T), bindings);
+            return _mappers.GetOrAdd(cacheKey, _ =>
             {
                 if (bindings.BindType == EntityBindingType.TypeMapper)
                 {
@@ -286,6 +287,28 @@ namespace Soul.SqlBatis.Infrastructure
             }
             return null;
         }
+        /// <summary>
+        /// 生成映射器缓存key
+        /// </summary>
+        /// <param name="bindings"></param>
+        /// <returns></returns>
+        private string GetEntityMapperCacheKey(Type entityTye,EntityBindings bindings)
+        {
+            if (bindings.BindType == EntityBindingType.TypeMapper)
+            {
+                return $"{bindings[0].Field.Type}->{entityTye.FullName}";
+            }
+            else
+            {
+                var sb = new StringBuilder();
+                sb.AppendLine($"{entityTye.FullName}|{bindings.Count}");
+                foreach (var item in bindings)
+                {
+                    sb.Append($"{item.Field.Name}[{item.Field.Index}]->{item.Member.Name}|");
+                }
+                return sb.ToString();
+            }
+        }
 
         /// <summary>
         /// 移除掉Nullable类型嵌套
@@ -359,73 +382,6 @@ namespace Soul.SqlBatis.Infrastructure
         public EntityBindings(Type entityType, EntityBindingType bindingType, IEnumerable<EntityBinding> bindings, ConstructorInfo constructor) : this(entityType, bindingType, bindings)
         {
             Constructor = constructor;
-        }
-
-        public override int GetHashCode()
-        {
-            return EntityType.GetHashCode();
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null || GetType() != obj.GetType())
-            {
-                return false;
-            }
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-            var other = obj as EntityBindings;
-            if (other == null)
-            {
-                return false;
-            }
-            if (EntityType != other.EntityType)
-            {
-                return false;
-            }
-            if (BindType != other.BindType)
-            {
-                return false;
-            }
-            if (Count != other.Count)
-            {
-                return false;
-            }
-            if (other.BindType == EntityBindingType.Constructor && Constructor != other.Constructor)
-            {
-                return false;
-            }
-            if (other.BindType != EntityBindingType.TypeMapper)
-            {
-                for (int i = 0; i < other.Count; i++)
-                {
-                    var otherEntry = other[i];
-                    var thisEntry = this[i];
-                    if (otherEntry.Field.Type != thisEntry.Field.Type)
-                    {
-                        return false;
-                    }
-                    if (otherEntry.Field.Name != thisEntry.Field.Name)
-                    {
-                        return false;
-                    }
-                    if (otherEntry.Field.Index != thisEntry.Field.Index)
-                    {
-                        return false;
-                    }
-                    if (otherEntry.Member.Type != thisEntry.Member.Type)
-                    {
-                        return false;
-                    }
-                    if (otherEntry.Member.Name != thisEntry.Member.Name)
-                    {
-                        return false;
-                    }
-                }
-            }
-            return true;
         }
     }
 
