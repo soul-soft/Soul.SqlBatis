@@ -1,0 +1,248 @@
+﻿<#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data" #>
+<#@ assembly name="System.IO" #>
+<#@ assembly name="System.Xml" #>
+<#@ assembly name="$(SolutionDir)\Soul.SqlbatisT4\Dapper.dll" #>
+<#@ assembly name="$(SolutionDir)\Soul.SqlbatisT4\MySqlConnector.dll" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Xml.Serialization" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="MySqlConnector" #>
+<#@ import namespace="Dapper" #>
+<#@ import namespace="Microsoft.VisualStudio.TextTemplating"#>
+
+<#+    
+
+class MysqlManager 
+{
+    public static Configuration GetConfiguration(string connectionString)
+    {
+        var configuration = new Configuration();
+        configuration.Database.ConnectionString = connectionString;
+        return configuration;
+    }
+    
+    public static Configuration GetConfiguration(ITextTemplatingEngineHost host)
+    {
+        var solutionDir = host.ResolveAssemblyReference("$(SolutionDir)");
+        var serializer = new XmlSerializer(typeof(Configuration));
+        using var sr = new StringReader(File.ReadAllText($"{solutionDir}\\Soul.SqlbatisT4\\config.xml"));
+        return (Configuration)serializer.Deserialize(sr);
+    }
+
+    public static IEnumerable<Table> GetTables(Configuration configuration)
+    {      
+        var tableSql = @"
+            SELECT
+	            t.TABLE_NAME,
+	            t.TABLE_TYPE,
+	            t.TABLE_COMMENT	      
+            FROM
+	            INFORMATION_SCHEMA.TABLES AS t
+            WHERE 
+                t.TABLE_SCHEMA = @Database
+            ORDER 
+                BY t.TABLE_NAME";
+        var columnSql = @"
+            SELECT
+                c.TABLE_NAME,
+	            c.COLUMN_NAME,
+                c.COLUMN_COMMENT,
+                c.COLUMN_DEFAULT,
+                c.IS_NULLABLE,
+                c.DATA_TYPE,
+                c.COLUMN_TYPE,
+                c.COLUMN_KEY,
+                c.EXTRA	      
+            FROM
+	            INFORMATION_SCHEMA.COLUMNS AS c
+            WHERE 
+                c.TABLE_SCHEMA = @Database
+            ORDER 
+                BY c.COLUMN_NAME";
+        DefaultTypeMap.MatchNamesWithUnderscores = true;
+        var connection = new MySqlConnection(configuration.Database.ConnectionString);
+        var tables = connection.Query<TableDTO>(tableSql, new { connection.Database });
+        var allColumns = connection.Query<ColumnDTO>(columnSql, new { connection.Database });
+        foreach (var tableDto in tables)
+        {
+            var columnDtos = allColumns.Where(a => a.TableName == tableDto.TableName);
+            var tableName = GetCSharpName(tableDto.TableName);
+            var tableDescription = tableDto.TableComment;
+            var table = new Table(tableName, tableDto.TableName, tableDescription);
+            var entity = configuration.GetEntity(tableName);
+            foreach (var item in columnDtos)
+            {
+                var columnName = GetCSharpName(item.ColumnName);
+                var columnDescription = item.ColumnComment;
+                var columnIsIdentity = item.Extra == "auto_increment";
+                var columnIsPrimaryKey = item.ColumnKey == "PRI";
+                var property = entity?.GetPropertyInfo(columnName);
+                var columnType = GetCSharpType(item.DataType, true, property);
+                var column = new Column(columnName, item.ColumnName, columnType, columnDescription, columnIsIdentity, columnIsPrimaryKey);
+                table.Columns.Add(column);
+            }            
+            yield return table;
+        }
+    }
+
+    public static string GetCSharpType(string columnType, bool isNullable, Configuration.PropertyInfo property)
+    {
+        var type = "string";
+        switch (columnType)
+        {
+            case "varchar": type = "string"; break;
+            case "tinytext": type = "string"; break;
+            case "text": type = "string"; break;
+            case "longtext": type = "string"; break;
+            case "char": type = "string"; break;
+            case "bit": type = "bool"; break;
+            case "tinyint": type = "short"; break;
+            case "smallint": type = "short"; break;
+            case "int": type = "int"; break;
+            case "integer": type = "int"; break;
+            case "bigint": type = "long"; break;
+            case "mediumint": type = "int"; break;
+            case "real": type = "float"; break;
+            case "float": type = "float"; break;
+            case "double": type = "double"; break;
+            case "decimal": type = "decimal"; break;
+            case "date": type = "DateTime"; break;
+            case "datetime": type = "DateTime"; break;
+            case "timestamp": type = "DateTime"; break;
+            case "time": type = "TimeSpan"; break;
+            case "blob": type = "byte[]"; break;
+            case "year": type = "int"; break;
+            case "json": type = "JsonElement"; break;
+        }        
+        if(property != null && !string.IsNullOrEmpty(property.Type))
+        {
+            return property.Type;
+        }
+        if (isNullable && type != "string")
+        {
+            return $"{type}?";
+        }
+        return type;
+    }
+       
+    public static string GetCSharpName(string name) 
+    {
+        var list = new List<string>();
+        foreach (var item in name.Split('_').Where(a => !string.IsNullOrEmpty(a)))
+        {
+            var names = item.ToArray().Select(s => char.ToLower(s)).ToArray();
+            names[0] = char.ToUpper(names[0]);
+            list.Add(new string(names));
+        }
+        return string.Join("", list);
+    }
+      
+    public static string Camel(string name)
+    {
+        name = GetCSharpName(name);
+        return char.ToLower(name[0]) + name.Substring(1);
+    }
+
+    public class Table 
+    {
+        public string Name { get; }
+        public string TableName { get; }
+        public string Description { get; }
+        public List<Column> Columns { get; } = new List<Column>();
+        
+        public Table(string name,string tableName, string description)
+        {
+            Name = name;
+            TableName = tableName;
+            Description = description;
+        }
+    }
+   
+    public class Column 
+    {
+        public string Name { get; }
+        public string ColumnName { get; }
+        public string Type { get; }
+        public string Description { get; }
+        public bool IsIdentity { get; }
+        public bool IsPrimaryKey { get; }
+
+        public Column(string name, string columnName, string type, string description, bool isIdentity, bool isPrimaryKey)
+        {
+            Name = name;
+            ColumnName = columnName;
+            Type = type;
+            Description = description;
+            IsIdentity = isIdentity;
+            IsPrimaryKey = isPrimaryKey;
+        }
+    }
+    class TableDTO
+    {
+        public string TableName { get; set;}
+
+        public string TableType { get; set;}
+        public string TableComment { get; set;}
+    }
+
+    class ColumnDTO 
+    {
+        public string TableName { get; set;}
+        public string ColumnName { get; set;}
+        public string ColumnComment { get; set;}
+        public string ColumnDefault { get; set;}
+        public string IsNullable { get; set;}
+        public string ColumnType { get; set;}
+        public string DataType { get; set;}
+        public string ColumnKey { get; set;}
+        public string Extra { get; set;}
+    }
+}
+
+[XmlRoot("config")]
+public class Configuration
+{
+    [XmlElement("database")]
+    public DatabaseInfo Database { get; set; } = new DatabaseInfo();
+
+    [XmlArray("entities")]
+    public List<EntityInfo> Entities { get; set; } = new List<EntityInfo>();
+   
+    [XmlType("entity")]
+    public class EntityInfo
+    {
+        [XmlAttribute("name")]
+        public string Name { get; set; }
+        [XmlArray("properties")]
+        public List<PropertyInfo> Properties { get; set; } = new List<PropertyInfo>();
+        public PropertyInfo GetPropertyInfo(string name)
+        {
+            return Properties.Where(a => a.Name == name).FirstOrDefault();
+        }
+    }
+   
+    [XmlType("property")]
+    public class PropertyInfo
+    {
+        [XmlAttribute("name")]
+        public string Name { get; set; }
+        [XmlAttribute("type")]
+        public string Type { get; set; }
+    }
+    
+    [XmlType("database")]
+    public class DatabaseInfo
+    {
+        [XmlAttribute("connectionString")]
+        public string ConnectionString { get; set; } 
+    }
+
+    public EntityInfo GetEntity(string name)
+    {
+        return Entities.Where(a=>a.Name == name).FirstOrDefault();
+    }
+}	
+#>
