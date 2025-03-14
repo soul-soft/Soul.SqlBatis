@@ -16,6 +16,10 @@ namespace Soul.SqlBatis.Test.Entities
         [Column("age")]
         public int? Age { get; set; }
 
+        [Key]
+        [Column("tenant_id")]
+        public int? TenantId { get; set; }
+
         [Column("dep_ids")]
         public int[] DepIds { get; set; } = default!;
 

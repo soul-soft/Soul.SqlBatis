@@ -329,6 +329,10 @@ namespace Soul.SqlBatis
 
         private bool UsingDefaultOrder(SqlBuilder sb, string column)
         {
+            if (sb.Tokens.ContainsKey(nameof(SqlBuilder.GroupBy)))
+            {
+                return false;
+            }
             if (!sb.Tokens.ContainsKey(nameof(SqlBuilder.OrderBy))) 
             {
                 return true;
