@@ -139,7 +139,12 @@ namespace Soul.SqlBatis.Expressions
                 }
                 else
                 {
-                    SqlBuilder.Append($"{node.Value}");
+                    var value = node.Value;
+                    if (value.GetType().IsEnum)
+                    {
+                        value = Convert.ToInt32(value);
+                    }
+                    SqlBuilder.Append($"{value}");
                 }
             }
             else
