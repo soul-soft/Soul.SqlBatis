@@ -261,7 +261,7 @@ namespace Soul.SqlBatis.Infrastructure
             foreach (var item in type.GetProperties())
             {
                 if (item.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
-                    || item.Name.Replace("_", string.Empty).Equals(name, StringComparison.OrdinalIgnoreCase))
+                    || name.Replace("_", string.Empty).Equals(item.Name, StringComparison.OrdinalIgnoreCase))
                 {
                     return item;
                 }
@@ -280,7 +280,7 @@ namespace Soul.SqlBatis.Infrastructure
             foreach (var item in constructor.GetParameters())
             {
                 if (item.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
-                    || item.Name.Replace("_", string.Empty).Equals(name, StringComparison.OrdinalIgnoreCase))
+                    || name.Replace("_", string.Empty).Equals(item.Name, StringComparison.OrdinalIgnoreCase))
                 {
                     return item;
                 }
