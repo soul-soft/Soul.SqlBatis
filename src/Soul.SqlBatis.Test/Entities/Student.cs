@@ -24,7 +24,7 @@ namespace Soul.SqlBatis.Test.Entities
         public int[] DepIds { get; set; } = default!;
 
         [Column("gender")]
-        public Gender Gender { get; set; }
+        public Gender? Gender { get; set; }
     }
 
     public enum Gender

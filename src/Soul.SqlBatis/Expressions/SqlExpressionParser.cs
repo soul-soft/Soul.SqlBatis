@@ -67,7 +67,7 @@ namespace Soul.SqlBatis.Expressions
             {
                 SqlBuilder.Append($" IS ");
             }
-            else if (node.NodeType == ExpressionType.NotEqual && (IsNullConstant(node.Right) || IsNullConstant( node.Left)))
+            else if (node.NodeType == ExpressionType.NotEqual && (IsNullConstant(node.Right) || IsNullConstant(node.Left)))
             {
                 SqlBuilder.Append($" IS NOT ");
             }
@@ -139,11 +139,7 @@ namespace Soul.SqlBatis.Expressions
                 }
                 else
                 {
-                    var value = node.Value;
-                    if (value.GetType().IsEnum)
-                    {
-                        value = Convert.ToInt32(value);
-                    }
+                    var value = ChangeType(node.Value);
                     SqlBuilder.Append($"{value}");
                 }
             }
@@ -152,6 +148,19 @@ namespace Soul.SqlBatis.Expressions
                 SqlBuilder.Append("NULL");
             }
             return node;
+        }
+
+        private object ChangeType(object value)
+        {
+            if (value == null)
+            {
+                return value;
+            }
+            if (value.GetType().IsEnum)
+            {
+                return Convert.ToInt32(value);
+            }
+            return value;
         }
 
         private void SetParameter(Expression expression)
@@ -166,8 +175,8 @@ namespace Soul.SqlBatis.Expressions
         {
             //in
             if (node.Method.DeclaringType == typeof(Enumerable)
-                && node.Arguments[0].Type != typeof(string) 
-                && node.Method.Name == nameof(Enumerable.Contains) 
+                && node.Arguments[0].Type != typeof(string)
+                && node.Method.Name == nameof(Enumerable.Contains)
                 && IsParameterExpression(node.Arguments[1]))
             {
                 var value = ParseValue(node.Arguments[0]) as IEnumerable;
@@ -179,8 +188,8 @@ namespace Soul.SqlBatis.Expressions
                         values.Add(item);
                     }
                 }
-                SetInQuery(node.Arguments[1], values);
-            } 
+                BuildInQuery(node.Arguments[1], values);
+            }
             //in
             else if (typeof(ICollection).IsAssignableFrom(node.Method.DeclaringType)
                 && node.Object.Type != typeof(string)
@@ -196,7 +205,7 @@ namespace Soul.SqlBatis.Expressions
                         values.Add(item);
                     }
                 }
-                SetInQuery(node.Arguments[0], values);
+                BuildInQuery(node.Arguments[0], values);
             }
             //contains
             else if (node.Method.DeclaringType == typeof(string) && node.Method.Name == nameof(string.Contains))
@@ -272,7 +281,7 @@ namespace Soul.SqlBatis.Expressions
                             values.Add(item);
                         }
                     }
-                    SetInQuery(node.Arguments[0], values);
+                    BuildInQuery(node.Arguments[0], values);
                 }
                 else if (node.Method.Name == nameof(DbOps.InSet) && node.Arguments.Count == 2)
                 {
@@ -281,7 +290,7 @@ namespace Soul.SqlBatis.Expressions
                     var values = value.ToString().Split(',')
                         .Select(s => type == typeof(string) ? s : Convert.ChangeType(s, type))
                         .ToList();
-                    SetInQuery(node.Arguments[0], values);
+                    BuildInQuery(node.Arguments[0], values);
                 }
                 else if (node.Method.Name == nameof(DbOps.InSub) && node.Arguments.Count == 2)
                 {
@@ -304,7 +313,7 @@ namespace Soul.SqlBatis.Expressions
             return node;
         }
 
-        private void SetInQuery(Expression member, List<object> values)
+        private void BuildInQuery(Expression member, List<object> values)
         {
             Visit(member);
             SqlBuilder.Append(" IN ");
@@ -314,7 +323,7 @@ namespace Soul.SqlBatis.Expressions
             }
             else if (member.Type != typeof(string))
             {
-                SqlBuilder.Append($"({string.Join(",", values)})");
+                SqlBuilder.Append($"({string.Join(",", values.Select(s => ChangeType(s)))})");
             }
             else
             {
