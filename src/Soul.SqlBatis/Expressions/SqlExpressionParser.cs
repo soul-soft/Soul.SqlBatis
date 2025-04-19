@@ -156,7 +156,7 @@ namespace Soul.SqlBatis.Expressions
             {
                 return value;
             }
-            if (value.GetType().IsEnum)
+            if (value is Enum)
             {
                 return Convert.ToInt32(value);
             }

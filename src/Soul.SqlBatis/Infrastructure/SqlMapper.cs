@@ -225,7 +225,7 @@ namespace Soul.SqlBatis
                             values.Add(item);
                         }
                     }
-                    if (values == null || values.Count == 0)
+                    if (values.Count == 0)
                     {
                         return $"IN ({_settings.EmptyQuerySql})";
                     }
@@ -256,14 +256,14 @@ namespace Soul.SqlBatis
             {
                 parameter.Value = DBNull.Value;
             }
-            else if (value is Enum)
-            {
-                parameter.Value = Convert.ToInt32(value);
-            }
             else if (_settings.HasParamMapper(value.GetType()))
             {
                 var mapper = _settings.GetParamMapper(value.GetType());
                 parameter.Value = mapper(value);
+            }
+            else if (value is Enum)
+            {
+                parameter.Value = Convert.ToInt32(value);
             }
             else
             {
