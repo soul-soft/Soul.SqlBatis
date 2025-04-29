@@ -22,13 +22,13 @@ var context = new DbContext(configureOptions =>
     configureOptions.UseNpgsql(new NpgsqlConnection("Host=127.0.0.1;Port=5432;Username=postgres;Password=1024;Database=postgres;SSL Mode=Disable;"));
 });
 
-var gs = new List<Gender?>();
+var gs = new List<Gender>();
 gs.Add(Gender.男);
 gs.Add(Gender.女);
 var pam = new DynamicParameters();
 pam.Add("@GS", gs);
 var entity = context.Set<Student>(pam)
-    .Where("gender IN @GS")
+    .Where(a => DbOps.In(a.Gender, gs))
     .AsTracking()
     .ToList();
 Console.WriteLine();

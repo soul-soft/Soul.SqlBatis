@@ -20,17 +20,17 @@ namespace Soul.SqlBatis
             throw new NotImplementedException();
         }
 
-        public static bool In<TColumn>(TColumn column, params TColumn[] values)
+        public static bool In<TColumn, TValue>(TColumn column, params TValue[] values)
         {
             throw new NotImplementedException();
         }
 
-        public static bool In<TColumn>(TColumn column, List<TColumn> values)
+        public static bool In<TColumn, TValue>(TColumn column, List<TValue> values)
         {
             throw new NotImplementedException();
         }
 
-        public static bool In<TColumn>(TColumn column, IEnumerable<TColumn> values)
+        public static bool In<TColumn, TValue>(TColumn column, IEnumerable<TValue> values)
         {
             throw new NotImplementedException();
         }
