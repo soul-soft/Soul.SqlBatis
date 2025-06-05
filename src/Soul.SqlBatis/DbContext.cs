@@ -3,6 +3,7 @@ using Soul.SqlBatis.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -177,6 +178,22 @@ namespace Soul.SqlBatis
             else
             {
                 return _transaction;
+            }
+        }
+
+        public virtual void OpenConnection()
+        {
+            if (_connection.State != ConnectionState.Open)
+            {
+                _connection.Open();
+            }
+        }
+
+        public virtual async Task OpenConnectionAsync()
+        {
+            if (_connection.State != ConnectionState.Open)
+            {
+                await (_connection as DbConnection).OpenAsync();
             }
         }
 
