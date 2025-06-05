@@ -93,13 +93,13 @@ namespace Soul.SqlBatis.Infrastructure
             }
             try
             {
-                _reader?.Dispose();
-                _reader?.Close();
+                _reader.Dispose();
+                _reader.Close();
             }
             catch { }
             try
             {
-                _command?.Dispose();
+                _command.Dispose();
            
             }
             catch { throw; }

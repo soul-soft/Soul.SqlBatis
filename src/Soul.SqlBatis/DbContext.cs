@@ -189,6 +189,14 @@ namespace Soul.SqlBatis
             }
         }
 
+        public virtual void CloseConnection()
+        {
+            if (_connection.State != ConnectionState.Closed)
+            {
+                _connection.Close();
+            }
+        }
+
         public virtual async Task OpenConnectionAsync()
         {
             if (_connection.State != ConnectionState.Open)
