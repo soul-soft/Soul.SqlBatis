@@ -8,9 +8,11 @@ namespace Soul.SqlBatis.Infrastructure
 {
     public class DbDataGrid : IDisposable
     {
+        private int _index = 0;
         private IDataReader _reader;
-        private bool _closeConnection;
         private IDbCommand _command;
+        private bool _closeConnection;
+        private bool _disposed = false;
         private EntityMappper _entityMapper;
 
         internal DbDataGrid(IDbCommand command, IDataReader reader, EntityMappper entityMapper, bool closeConnection)
@@ -71,23 +73,34 @@ namespace Soul.SqlBatis.Infrastructure
 
         private IDataReader ReadNextResult()
         {
-            _reader.NextResult();
+            if (_index == 0)
+            {
+                _index++;
+                return _reader;
+            }
+            else
+            {
+                _reader.NextResult();
+            }
             return _reader;
         }
 
         public void Dispose()
         {
+            if (_disposed)
+            {
+                return;
+            }
             try
             {
                 _reader?.Dispose();
                 _reader?.Close();
-                _reader = null;
             }
             catch { }
             try
             {
                 _command?.Dispose();
-                _command = null;
+           
             }
             catch { }
             try 
@@ -100,6 +113,7 @@ namespace Soul.SqlBatis.Infrastructure
                 }
             }
             catch { }
+            _disposed = true;
         }
     }
 }

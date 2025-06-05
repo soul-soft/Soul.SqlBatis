@@ -25,19 +25,8 @@ using (var context = new DbContext(configureOptions =>
 }))
 {
     var entity = context.Set<Student>()
-    .ToList();
+        .ToPageResult(1,10);
 }
 
-using (var context = new DbContext(configureOptions =>
-{
-    configureOptions.UseLogger((sql, param) =>
-    {
-        Console.WriteLine(sql);
-    });
-    configureOptions.UseNpgsql(new NpgsqlConnection("Host=127.0.0.1;Port=5432;Username=postgres;Password=1024;Database=postgres;SSL Mode=Disable;"));
-}))
-{
-    var entity = context.Set<Student>()
-    .ToList();
-}
+
 
