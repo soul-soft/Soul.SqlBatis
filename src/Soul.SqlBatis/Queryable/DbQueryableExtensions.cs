@@ -435,7 +435,6 @@ namespace Soul.SqlBatis
         public static (List<T>, int) ToPageResult<T>(this IDbQueryable<T> queryable, int pageIndex, int pageSize)
         {
             queryable.Skip((pageIndex - 1) * pageSize).Take(pageSize);
-            var command = queryable.GetSqlMapper();
             var (queryer, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.UseDefaultOrder = true;
@@ -445,30 +444,49 @@ namespace Soul.SqlBatis
                 configureOptions.HasColumnsAlias = false;
                 configureOptions.HasDefaultColumns = false;
             });
-            var pageSql = $"{queryer.QuerySql};\r\n{counter.CountSql}";
-            using (var grid = command.QueryMultiple(pageSql, param))
+            var context = queryable.GetDbContext();
+            if (context.Options.DbType == DbType.Npgsql)
             {
-                var list = grid.Read<T>();
-                var total = grid.ReadFirst<int>();
+                var list = context.Sql.Query<T>(queryer.QuerySql);
+                var total = context.Sql.ExecuteScalar<int>(queryer.QuerySql);
                 return (list, total);
+            }
+            else
+            {
+                var pageSql = $"{queryer.QuerySql};\r\n{counter.CountSql}";
+                using (var grid = context.Sql.QueryMultiple(pageSql, param))
+                {
+                    var list = grid.Read<T>();
+                    var total = grid.ReadFirst<int>();
+                    return (list, total);
+                }
             }
         }
 
         public static async Task<(List<T>, int)> ToPageResultAsync<T>(this IDbQueryable<T> queryable, int pageIndex, int pageSize)
         {
             queryable.Skip((pageIndex - 1) * pageSize).Take(pageSize);
-            var command = queryable.GetSqlMapper();
             var (queryer, param) = queryable.Build(configureOptions =>
             {
                 configureOptions.UseDefaultOrder = true;
             });
             var (counter, _) = queryable.Clone<int>().Build();
-            var pageSql = $"{queryer.QuerySql};\r\n{counter.CountSql}";
-            using (var grid = command.QueryMultiple(pageSql, param))
+            var context = queryable.GetDbContext();
+            if (context.Options.DbType == DbType.Npgsql)
             {
-                var list = await grid.ReadAsync<T>();
-                var total = await grid.ReadFirstAsync<int>();
+                var list = context.Sql.Query<T>(queryer.QuerySql);
+                var total = context.Sql.ExecuteScalar<int>(queryer.QuerySql);
                 return (list, total);
+            }
+            else
+            {
+                var pageSql = $"{queryer.QuerySql};\r\n{counter.CountSql}";
+                using (var grid = context.Sql.QueryMultiple(pageSql, param))
+                {
+                    var list = await grid.ReadAsync<T>();
+                    var total = await grid.ReadFirstAsync<int>();
+                    return (list, total);
+                }
             }
         }
 

@@ -14,6 +14,7 @@ namespace Soul.SqlBatis
         private bool _disposed;
 
         private IModel _model;
+
         public IModel Model => _model;
 
         private SqlMapper _sql;
