@@ -447,8 +447,8 @@ namespace Soul.SqlBatis
             var context = queryable.GetDbContext();
             if (context.Options.DbType == DbType.Npgsql)
             {
-                var list = context.Sql.Query<T>(queryer.QuerySql);
-                var total = context.Sql.ExecuteScalar<int>(queryer.QuerySql);
+                var list = context.Sql.Query<T>(queryer.QuerySql, param);
+                var total = context.Sql.ExecuteScalar<int>(queryer.QuerySql, param);
                 return (list, total);
             }
             else
@@ -474,8 +474,8 @@ namespace Soul.SqlBatis
             var context = queryable.GetDbContext();
             if (context.Options.DbType == DbType.Npgsql)
             {
-                var list = context.Sql.Query<T>(queryer.QuerySql);
-                var total = context.Sql.ExecuteScalar<int>(queryer.QuerySql);
+                var list = context.Sql.Query<T>(queryer.QuerySql, param);
+                var total = context.Sql.ExecuteScalar<int>(queryer.QuerySql, param);
                 return (list, total);
             }
             else
