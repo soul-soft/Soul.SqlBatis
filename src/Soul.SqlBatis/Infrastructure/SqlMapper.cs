@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -24,149 +25,110 @@ namespace Soul.SqlBatis
 
         public virtual int Execute(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
-            return Start(() =>
+            using (OpenConnection())
+            using (var command = CreateCommand(sql, param, configure))
             {
-                using (var command = CreateCommand(sql, param, configure))
-                {
-                    return command.ExecuteNonQuery();
-                }
-            });
+                return command.ExecuteNonQuery();
+            }
         }
 
         public virtual Task<int> ExecuteAsync(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
-            return StartAsync(() =>
+            using (OpenConnection())
+            using (var command = CreateAsyncCommand(sql, param, configure))
             {
-                using (var command = CreateAsyncCommand(sql, param, configure))
-                {
-                    return command.ExecuteNonQueryAsync();
-                }
-            });
+                return command.ExecuteNonQueryAsync();
+            }
         }
 
         public virtual object ExecuteScalar(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
-            return Start(() =>
+            using (OpenConnection())
+            using (var command = CreateCommand(sql, param, configure))
             {
-                using (var command = CreateCommand(sql, param, configure))
-                {
-                    return command.ExecuteScalar();
-                }
-            });
+                return command.ExecuteScalar();
+            }
         }
 
         public virtual Task<object> ExecuteScalarAsync(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
-            return StartAsync(() =>
+            using (OpenConnection())
+            using (var command = CreateAsyncCommand(sql, param, configure))
             {
-                using (var command = CreateAsyncCommand(sql, param, configure))
-                {
-                    return command.ExecuteScalarAsync();
-                }
-            });
+                return command.ExecuteScalarAsync();
+            }
         }
 
         public virtual T ExecuteScalar<T>(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
-            return Start(() =>
+            using (OpenConnection())
+            using (var command = CreateCommand(sql, param, configure))
             {
-                using (var command = CreateCommand(sql, param, configure))
-                {
-                    var result = command.ExecuteScalar();
-                    return ChangeType<T>(result);
-                }
-            });
+                var result = command.ExecuteScalar();
+                return ChangeType<T>(result);
+            }
         }
 
-        public virtual Task<T> ExecuteScalarAsync<T>(string sql, object param = null, Action<DbCommandOptions> configure = null)
+        public virtual async Task<T> ExecuteScalarAsync<T>(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
-            return StartAsync(async () =>
+            using (OpenConnection())
+            using (var command = CreateAsyncCommand(sql, param, configure))
             {
-                using (var command = CreateAsyncCommand(sql, param, configure))
-                {
-                    var result = await command.ExecuteScalarAsync();
-                    return ChangeType<T>(result);
-                }
-            });
+                var result = await command.ExecuteScalarAsync();
+                return ChangeType<T>(result);
+            }
         }
 
         public virtual List<T> Query<T>(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
-            return Start(() =>
+            var list = new List<T>();
+            using (OpenConnection())
+            using (var command = CreateCommand(sql, param, configure))
+            using (var reader = command.ExecuteReader())
             {
-                var list = new List<T>();
-                using (var command = CreateCommand(sql, param, configure))
-                using (var reader = command.ExecuteReader())
+                var mapper = _mapper.CreateMapper<T>(reader);
+                while (reader.Read())
                 {
-                    var mapper = _mapper.CreateMapper<T>(reader);
-                    while (reader.Read())
-                    {
-                        var entity = mapper(reader);
-                        list.Add(entity);
-                    }
+                    var entity = mapper(reader);
+                    list.Add(entity);
                 }
-                return list;
-            });
+            }
+            return list;
         }
 
-        public virtual Task<List<T>> QueryAsync<T>(string sql, object param = null, Action<DbCommandOptions> configure = null)
+        public virtual async Task<List<T>> QueryAsync<T>(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
-            return StartAsync(async () =>
+            var list = new List<T>();
+            using (OpenConnection())
+            using (var command = CreateAsyncCommand(sql, param, configure))
+            using (var reader = await command.ExecuteReaderAsync())
             {
-                var list = new List<T>();
-                using (var command = CreateAsyncCommand(sql, param, configure))
-                using (var reader = await command.ExecuteReaderAsync())
+                var mapper = _mapper.CreateMapper<T>(reader);
+                while (reader.Read())
                 {
-                    var mapper = _mapper.CreateMapper<T>(reader);
-                    while (reader.Read())
-                    {
-                        var entity = mapper(reader);
-                        list.Add(entity);
-                    }
+                    var entity = mapper(reader);
+                    list.Add(entity);
                 }
-                return list;
-            });
+            }
+            return list;
         }
 
         public virtual T QueryFirst<T>(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
-            return Start(() =>
-            {
-                using (var command = CreateAsyncCommand(sql, param, configure))
-                using (var reader = command.ExecuteReader())
-                {
-                    var mapper = _mapper.CreateMapper<T>(reader);
-                    while (reader.Read())
-                    {
-                        var entity = mapper(reader);
-                        return entity;
-                    }
-                    return default;
-                }
-            });
+            return Query<T>(sql, param, configure).First();
         }
 
-        public virtual Task<T> QueryFirstAsync<T>(string sql, object param = null, Action<DbCommandOptions> configure = null)
+        public virtual async Task<T> QueryFirstAsync<T>(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
-            return StartAsync(async () =>
-            {
-                using (var command = CreateAsyncCommand(sql, param, configure))
-                using (var reader = await command.ExecuteReaderAsync())
-                {
-                    var mapper = _mapper.CreateMapper<T>(reader);
-                    while (reader.Read())
-                    {
-                        var entity = mapper(reader);
-                        return entity;
-                    }
-                    return default;
-                }
-            });
+            return (await QueryAsync<T>(sql, param, configure)).First();
         }
 
         public DbDataGrid QueryMultiple(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
-            return new DbDataGrid(_context, () => CreateCommand(sql, param, configure), _mapper);
+            var connectionDisable = OpenConnection();
+            var command = CreateCommand(sql, param, configure);
+            var reader = command.ExecuteReader();
+            return new DbDataGrid(command, reader, _mapper, connectionDisable.CloaseConnection);
         }
 
         public DbCommand CreateAsyncCommand(string sql, object param, Action<DbCommandOptions> configure)
@@ -273,52 +235,6 @@ namespace Soul.SqlBatis
             command.Parameters.Add(parameter);
         }
 
-        private T Start<T>(Func<T> func)
-        {
-            var connection = _context.GetDbConnection() as DbConnection;
-            var closeConnection = false;
-            try
-            {
-                if (connection.State == ConnectionState.Closed)
-                {
-                    connection.Open();
-                    closeConnection = true;
-                }
-                var result = func();
-                return result;
-            }
-            finally
-            {
-                if (closeConnection)
-                {
-                    connection.Close();
-                }
-            }
-        }
-
-        private async Task<T> StartAsync<T>(Func<Task<T>> func)
-        {
-            var connection = _context.GetDbConnection() as DbConnection;
-            var closeConnection = false;
-            try
-            {
-                if (connection.State == ConnectionState.Closed)
-                {
-                    await connection.OpenAsync();
-                    closeConnection = true;
-                }
-                var result = await func();
-                return result;
-            }
-            finally
-            {
-                if (closeConnection)
-                {
-                    connection.Close();
-                }
-            }
-        }
-
         private T ChangeType<T>(object value)
         {
             if (value == null || value is DBNull)
@@ -334,5 +250,39 @@ namespace Soul.SqlBatis
             }
             return (T)Convert.ChangeType(value, underlyingType);
         }
+
+        private ConnectionCloseable OpenConnection()
+        {
+            var _closeConnection = false;
+            var connection = _context.GetDbConnection();
+            if (connection.State == ConnectionState.Closed)
+            {
+                connection.Open();
+                _closeConnection = true;
+            }
+            return new ConnectionCloseable(_closeConnection, connection);
+        }
+    }
+
+    class ConnectionCloseable : IDisposable
+    {
+        private readonly bool _closeConnection;
+        private readonly IDbConnection _connection;
+
+        public ConnectionCloseable(bool closeConnection, IDbConnection connection)
+        {
+            _closeConnection = closeConnection;
+            _connection = connection;
+        }
+
+        public void Dispose()
+        {
+            if (_closeConnection)
+            {
+                _connection.Close();
+            }
+        }
+
+        public bool CloaseConnection => _closeConnection;
     }
 }

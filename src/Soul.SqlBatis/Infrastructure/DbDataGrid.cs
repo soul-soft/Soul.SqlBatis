@@ -9,23 +9,22 @@ namespace Soul.SqlBatis.Infrastructure
     public class DbDataGrid : IDisposable
     {
         private IDataReader _reader;
-        private IDbCommand _command;
         private bool _closeConnection;
-        private readonly DbContext _context;
-        private Func<IDbCommand> _createCommand;
-        private readonly EntityMappper _entityMapper;
+        private IDbCommand _command;
+        private EntityMappper _entityMapper;
 
-        internal DbDataGrid(DbContext context, Func<IDbCommand> createCommand, EntityMappper entityMapper)
+        internal DbDataGrid(IDbCommand command, IDataReader reader, EntityMappper entityMapper, bool closeConnection)
         {
-            _context = context;
-            _createCommand = createCommand;
+            _reader = reader;
+            _command = command;
             _entityMapper = entityMapper;
+            _closeConnection = closeConnection;
         }
 
         public List<T> Read<T>()
         {
             var list = new List<T>();
-            var reader = ExecuteReader();
+            var reader = ReadNextResult();
             var mapper = _entityMapper.CreateMapper<T>(reader);
             while (reader.Read())
             {
@@ -37,87 +36,43 @@ namespace Soul.SqlBatis.Infrastructure
 
         public T ReadFirst<T>()
         {
-            var list = new List<T>();
-            var reader = ExecuteReader();
+            var reader = ReadNextResult();
             var mapper = _entityMapper.CreateMapper<T>(reader);
             while (reader.Read())
             {
-                var entity = mapper(reader);
-                list.Add(entity);
-                break;
+                return mapper(reader);
             }
-            return list.FirstOrDefault();
+            return default;
         }
 
-        public async Task<List<T>> ReadAsync<T>()
+        public  Task<List<T>> ReadAsync<T>()
         {
             var list = new List<T>();
-            var reader = await ExecuteReaderAsync();
-            var mapper = _entityMapper.CreateMapper<T>(reader);
-            while (reader.Read())
-            {
-                var entity = mapper(reader);
-                list.Add(entity);
-            }
-            return list;
-        }
-
-        public async Task<T> ReadFirstAsync<T>()
-        {
-            var list = new List<T>();
-            var reader = await ExecuteReaderAsync();
+            var reader = ReadNextResult();
             var mapper = _entityMapper.CreateMapper<T>(reader);
             while (reader.Read())
             {
                 var entity = mapper(reader);
                 list.Add(entity);
             }
-            return list.FirstOrDefault();
+            return Task.FromResult(list);
         }
 
-        private IDataReader ExecuteReader()
+        public Task<T> ReadFirstAsync<T>()
         {
-            var connection = _context.GetDbConnection();
-            if (_context.GetDbConnection().State == ConnectionState.Closed)
+            var reader = ReadNextResult();
+            var mapper = _entityMapper.CreateMapper<T>(reader);
+            while (reader.Read())
             {
-                connection.Open();
-                _closeConnection = true;
+                return Task.FromResult(mapper(reader));
             }
-            if (_reader == null)
-            {
-                _command = _createCommand();
-                _reader = _command.ExecuteReader();
-            }
-            else
-            {
-                _reader.NextResult();
-            }
+            return Task.FromResult<T>(default);
+        }
+
+        private IDataReader ReadNextResult()
+        {
+            _reader.NextResult();
             return _reader;
-        }
-
-        private async Task<IDataReader> ExecuteReaderAsync()
-        {
-            var connection = _context.GetDbConnection();
-            if (connection.State == ConnectionState.Closed)
-            {
-                connection.Open();
-                _closeConnection = true;
-            }
-            if (_reader == null)
-            {
-                _command = _createCommand();
-                _reader = await (_command as System.Data.Common.DbCommand).ExecuteReaderAsync();
-            }
-            else
-            {
-                _reader.NextResult();
-            }
-            return _reader;
-        }
-
-        ~DbDataGrid()
-        {
-            Dispose();
         }
 
         public void Dispose()
@@ -125,20 +80,21 @@ namespace Soul.SqlBatis.Infrastructure
             try
             {
                 _reader?.Dispose();
+                _reader?.Close();
                 _reader = null;
             }
             catch { }
             try
             {
                 _command?.Dispose();
-                _createCommand = null;
+                _command = null;
             }
             catch { }
             try 
             {
                 if (_closeConnection)
                 {
-                    var connection = _context.GetDbConnection();
+                    var connection = _command.Connection;
                     connection.Close();
                     _closeConnection = false;
                 }
