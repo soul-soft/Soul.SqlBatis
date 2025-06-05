@@ -384,7 +384,7 @@ namespace Soul.SqlBatis
         {
             var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build();
-            var entity = command.QueryFirst<T>(sqler.QuerySql, param);
+            var entity = command.QueryFirstOrDefault<T>(sqler.QuerySql, param);
             queryable.Track(ref entity);
             return entity;
         }
@@ -398,7 +398,7 @@ namespace Soul.SqlBatis
         {
             var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build();
-            var entity = await command.QueryFirstAsync<T>(sqler.QuerySql, param);
+            var entity = await command.QueryFirstOrDefaultAsync<T>(sqler.QuerySql, param);
             queryable.Track(ref entity);
             return entity;
         }

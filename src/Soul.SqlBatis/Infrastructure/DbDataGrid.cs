@@ -102,7 +102,7 @@ namespace Soul.SqlBatis.Infrastructure
                 _command?.Dispose();
            
             }
-            catch { }
+            catch { throw; }
             try 
             {
                 if (_closeConnection)
@@ -112,7 +112,7 @@ namespace Soul.SqlBatis.Infrastructure
                     _closeConnection = false;
                 }
             }
-            catch { }
+            catch { throw; }
             _disposed = true;
         }
     }

@@ -241,17 +241,15 @@ namespace Soul.SqlBatis
                 try
                 {
                     _transaction?.Dispose();
-                    _transaction = null;
                 }
                 catch { throw; }
                 try
                 {
                     if (_connection.State != ConnectionState.Closed)
                     {
-                        _connection?.Close();
+                        _connection.Close();
                     }
                     _connection?.Dispose();
-                    _connection = null;
                 }
                 catch { throw; }
                 _disposed = true;

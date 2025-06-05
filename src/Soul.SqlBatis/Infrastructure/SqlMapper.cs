@@ -123,6 +123,16 @@ namespace Soul.SqlBatis
             return (await QueryAsync<T>(sql, param, configure)).First();
         }
 
+        public virtual T QueryFirstOrDefault<T>(string sql, object param = null, Action<DbCommandOptions> configure = null)
+        {
+            return Query<T>(sql, param, configure).FirstOrDefault();
+        }
+
+        public virtual async Task<T> QueryFirstOrDefaultAsync<T>(string sql, object param = null, Action<DbCommandOptions> configure = null)
+        {
+            return (await QueryAsync<T>(sql, param, configure)).FirstOrDefault();
+        }
+
         public DbDataGrid QueryMultiple(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
             var connectionDisable = OpenConnection();
