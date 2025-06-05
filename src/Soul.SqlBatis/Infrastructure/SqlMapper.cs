@@ -137,8 +137,7 @@ namespace Soul.SqlBatis
         {
             var connectionDisable = OpenConnection();
             var command = CreateCommand(sql, param, configure);
-            var reader = command.ExecuteReader();
-            return new DbDataGrid(command, reader, _mapper, connectionDisable.CloaseConnection);
+            return new DbDataGrid(command,  _mapper, connectionDisable.CloaseConnection);
         }
 
         public DbCommand CreateAsyncCommand(string sql, object param, Action<DbCommandOptions> configure)

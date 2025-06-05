@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -8,16 +9,14 @@ namespace Soul.SqlBatis.Infrastructure
 {
     public class DbDataGrid : IDisposable
     {
-        private int _index = 0;
         private IDataReader _reader;
         private IDbCommand _command;
         private bool _closeConnection;
         private bool _disposed = false;
         private EntityMappper _entityMapper;
 
-        internal DbDataGrid(IDbCommand command, IDataReader reader, EntityMappper entityMapper, bool closeConnection)
+        internal DbDataGrid(IDbCommand command, EntityMappper entityMapper, bool closeConnection)
         {
-            _reader = reader;
             _command = command;
             _entityMapper = entityMapper;
             _closeConnection = closeConnection;
@@ -47,36 +46,48 @@ namespace Soul.SqlBatis.Infrastructure
             return default;
         }
 
-        public  Task<List<T>> ReadAsync<T>()
+        public async Task<List<T>> ReadAsync<T>()
         {
             var list = new List<T>();
-            var reader = ReadNextResult();
+            var reader = await ReadNextResultAsync();
             var mapper = _entityMapper.CreateMapper<T>(reader);
             while (reader.Read())
             {
                 var entity = mapper(reader);
                 list.Add(entity);
             }
-            return Task.FromResult(list);
+            return list;
         }
 
-        public Task<T> ReadFirstAsync<T>()
+        public async Task<T> ReadFirstAsync<T>()
         {
-            var reader = ReadNextResult();
+            var reader = await ReadNextResultAsync();
             var mapper = _entityMapper.CreateMapper<T>(reader);
             while (reader.Read())
             {
-                return Task.FromResult(mapper(reader));
+                return mapper(reader);
             }
-            return Task.FromResult<T>(default);
+            return default;
         }
 
         private IDataReader ReadNextResult()
         {
-            if (_index == 0)
+            if (_reader == null)
             {
-                _index++;
-                return _reader;
+                _reader = _command.ExecuteReader();
+            }
+            else
+            {
+                _reader.NextResult();
+            }
+            return _reader;
+        }
+
+        private async Task<IDataReader> ReadNextResultAsync()
+        {
+            if (_reader == null)
+            {
+                _reader = await (_command as DbCommand).ExecuteReaderAsync();
             }
             else
             {
@@ -93,26 +104,24 @@ namespace Soul.SqlBatis.Infrastructure
             }
             try
             {
-                _reader.Dispose();
                 _reader.Close();
+                _reader.Dispose();
             }
             catch { }
             try
             {
                 _command.Dispose();
-           
+
             }
-            catch { throw; }
-            try 
+            catch { }
+            try
             {
                 if (_closeConnection)
                 {
-                    var connection = _command.Connection;
-                    connection.Close();
-                    _closeConnection = false;
+                    _command.Connection.Close();
                 }
             }
-            catch { throw; }
+            catch { }
             _disposed = true;
         }
     }

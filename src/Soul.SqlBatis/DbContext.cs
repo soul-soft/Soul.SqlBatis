@@ -268,7 +268,7 @@ namespace Soul.SqlBatis
                 {
                     _transaction?.Dispose();
                 }
-                catch { throw; }
+                catch {  }
                 try
                 {
                     if (_connection.State != ConnectionState.Closed)
@@ -277,7 +277,7 @@ namespace Soul.SqlBatis
                     }
                     _connection?.Dispose();
                 }
-                catch { throw; }
+                catch {  }
                 _disposed = true;
             }
         }
