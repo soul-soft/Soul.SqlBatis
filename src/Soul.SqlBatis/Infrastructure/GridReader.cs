@@ -91,7 +91,8 @@ namespace Soul.SqlBatis.Infrastructure
             }
             else
             {
-                await (_reader as DbDataReader).NextResultAsync();
+                var reader = _reader as DbDataReader;
+                await reader.NextResultAsync();
             }
             return _reader;
         }

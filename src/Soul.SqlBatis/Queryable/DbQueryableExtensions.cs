@@ -432,7 +432,7 @@ namespace Soul.SqlBatis
             return entities;
         }
       
-        public static async Task<(List<T>, int)> ToPageResult<T>(this IDbQueryable<T> queryable, int pageIndex, int pageSize)
+        public static (List<T>, int) ToPageResult<T>(this IDbQueryable<T> queryable, int pageIndex, int pageSize)
         {
             queryable.Skip((pageIndex - 1) * pageSize).Take(pageSize);
             var (queryer, param) = queryable.Build(configureOptions =>
@@ -454,10 +454,10 @@ namespace Soul.SqlBatis
             else
             {
                 var pageSql = $"{queryer.QuerySql};\r\n{counter.CountSql}";
-                using (var grid = await context.Sql.QueryMultipleAsync(pageSql, param))
+                using (var grid = context.Sql.QueryMultiple(pageSql, param))
                 {
-                    var list = await grid.ReadAsync<T>();
-                    var total = await grid.ReadFirstAsync<int>();
+                    var list = grid.Read<T>();
+                    var total = grid.ReadFirst<int>();
                     return (list, total);
                 }
             }
@@ -470,7 +470,11 @@ namespace Soul.SqlBatis
             {
                 configureOptions.UseDefaultOrder = true;
             });
-            var (counter, _) = queryable.Clone<int>().Build();
+            var (counter, _) = queryable.Clone<int>().Build(configureOptions =>
+            {
+                configureOptions.HasColumnsAlias = false;
+                configureOptions.HasDefaultColumns = false;
+            });
             var context = queryable.GetDbContext();
             var pageSql = $"{queryer.QuerySql};\r\n{counter.CountSql}";
             using (var grid = await context.Sql.QueryMultipleAsync(pageSql, param))
