@@ -162,7 +162,7 @@ namespace Soul.SqlBatis
                 {
                     _transaction = null;
                     if (closeConnection)
-                        _connection.Close();
+                        CloseConnection();
                 });
                 return _transaction;
             }
@@ -182,7 +182,7 @@ namespace Soul.SqlBatis
                 {
                     _transaction = null;
                     if (closeConnection)
-                        _connection.Close();
+                        CloseConnection();
                 });
                 return _transaction;
             }
