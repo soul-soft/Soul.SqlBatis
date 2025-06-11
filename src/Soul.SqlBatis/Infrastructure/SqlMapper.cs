@@ -25,34 +25,34 @@ namespace Soul.SqlBatis
 
         public virtual int Execute(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
-            using (OpenConnection())
+            using (CreateConnectionManager())
             using (var command = CreateCommand(sql, param, configure))
             {
                 return command.ExecuteNonQuery();
             }
         }
 
-        public virtual Task<int> ExecuteAsync(string sql, object param = null, Action<DbCommandOptions> configure = null)
+        public virtual async Task<int> ExecuteAsync(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
-            using (OpenConnection())
+            using (await CreateConnectionManagerAsync())
             using (var command = CreateAsyncCommand(sql, param, configure))
             {
-                return command.ExecuteNonQueryAsync();
+                return await command.ExecuteNonQueryAsync();
             }
         }
 
         public virtual object ExecuteScalar(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
-            using (OpenConnection())
+            using (CreateConnectionManager())
             using (var command = CreateCommand(sql, param, configure))
             {
                 return command.ExecuteScalar();
             }
         }
 
-        public virtual Task<object> ExecuteScalarAsync(string sql, object param = null, Action<DbCommandOptions> configure = null)
+        public virtual async Task<object> ExecuteScalarAsync(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
-            using (OpenConnection())
+            using (await CreateConnectionManagerAsync())
             using (var command = CreateAsyncCommand(sql, param, configure))
             {
                 return command.ExecuteScalarAsync();
@@ -61,7 +61,7 @@ namespace Soul.SqlBatis
 
         public virtual T ExecuteScalar<T>(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
-            using (OpenConnection())
+            using (CreateConnectionManager())
             using (var command = CreateCommand(sql, param, configure))
             {
                 var result = command.ExecuteScalar();
@@ -71,7 +71,7 @@ namespace Soul.SqlBatis
 
         public virtual async Task<T> ExecuteScalarAsync<T>(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
-            using (OpenConnection())
+            using (await CreateConnectionManagerAsync())
             using (var command = CreateAsyncCommand(sql, param, configure))
             {
                 var result = await command.ExecuteScalarAsync();
@@ -82,7 +82,7 @@ namespace Soul.SqlBatis
         public virtual List<T> Query<T>(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
             var list = new List<T>();
-            using (OpenConnection())
+            using (CreateConnectionManager())
             using (var command = CreateCommand(sql, param, configure))
             using (var reader = command.ExecuteReader())
             {
@@ -99,7 +99,7 @@ namespace Soul.SqlBatis
         public virtual async Task<List<T>> QueryAsync<T>(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
             var list = new List<T>();
-            using (OpenConnection())
+            using (await CreateConnectionManagerAsync())
             using (var command = CreateAsyncCommand(sql, param, configure))
             using (var reader = await command.ExecuteReaderAsync())
             {
@@ -133,11 +133,18 @@ namespace Soul.SqlBatis
             return (await QueryAsync<T>(sql, param, configure)).FirstOrDefault();
         }
 
-        public DbDataGrid QueryMultiple(string sql, object param = null, Action<DbCommandOptions> configure = null)
+        public GridReader QueryMultiple(string sql, object param = null, Action<DbCommandOptions> configure = null)
         {
-            var connectionDisable = OpenConnection();
+            var connectionDisable = CreateConnectionManager();
             var command = CreateCommand(sql, param, configure);
-            return new DbDataGrid(command,  _mapper, connectionDisable.CloaseConnection);
+            return new GridReader(command,  _mapper, connectionDisable.IsAutoCloseConnection);
+        }
+
+        public async Task<GridReader> QueryMultipleAsync(string sql, object param = null, Action<DbCommandOptions> configure = null)
+        {
+            var connectionManager = await CreateConnectionManagerAsync();
+            var command = CreateCommand(sql, param, configure);
+            return new GridReader(command, _mapper, connectionManager.IsAutoCloseConnection);
         }
 
         public DbCommand CreateAsyncCommand(string sql, object param, Action<DbCommandOptions> configure)
@@ -153,7 +160,7 @@ namespace Soul.SqlBatis
             configure?.Invoke(commandOptions);
             var command = _context.GetDbConnection().CreateCommand();
             command.CommandText = sql;
-            command.Transaction = _context.GetDbTransaction();
+            command.Transaction = _context.CurrentTransaction?.GetDbTransaction();
             command.CommandType = commandOptions.CommandType;
             command.CommandTimeout = commandOptions.CommandTimeout;
             if (param != null)
@@ -260,25 +267,37 @@ namespace Soul.SqlBatis
             return (T)Convert.ChangeType(value, underlyingType);
         }
 
-        private ConnectionCloseable OpenConnection()
+        private DbConnectionManager CreateConnectionManager()
         {
             var _closeConnection = false;
             var connection = _context.GetDbConnection();
             if (connection.State == ConnectionState.Closed)
             {
-                connection.Open();
+                _context.OpenConnection();
                 _closeConnection = true;
             }
-            return new ConnectionCloseable(_closeConnection, connection);
+            return new DbConnectionManager(_closeConnection, connection);
+        }
+
+        private async Task<DbConnectionManager> CreateConnectionManagerAsync()
+        {
+            var _closeConnection = false;
+            var connection = _context.GetDbConnection();
+            if (connection.State == ConnectionState.Closed)
+            {
+                await _context.OpenConnectionAsync();
+                _closeConnection = true;
+            }
+            return new DbConnectionManager(_closeConnection, connection);
         }
     }
 
-    class ConnectionCloseable : IDisposable
+    class DbConnectionManager : IDisposable
     {
         private readonly bool _closeConnection;
         private readonly IDbConnection _connection;
 
-        public ConnectionCloseable(bool closeConnection, IDbConnection connection)
+        public DbConnectionManager(bool closeConnection, IDbConnection connection)
         {
             _closeConnection = closeConnection;
             _connection = connection;
@@ -292,6 +311,6 @@ namespace Soul.SqlBatis
             }
         }
 
-        public bool CloaseConnection => _closeConnection;
+        public bool IsAutoCloseConnection => _closeConnection;
     }
 }

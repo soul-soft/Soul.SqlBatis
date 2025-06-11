@@ -432,7 +432,7 @@ namespace Soul.SqlBatis
             return entities;
         }
       
-        public static (List<T>, int) ToPageResult<T>(this IDbQueryable<T> queryable, int pageIndex, int pageSize)
+        public static async Task<(List<T>, int)> ToPageResult<T>(this IDbQueryable<T> queryable, int pageIndex, int pageSize)
         {
             queryable.Skip((pageIndex - 1) * pageSize).Take(pageSize);
             var (queryer, param) = queryable.Build(configureOptions =>
@@ -454,10 +454,10 @@ namespace Soul.SqlBatis
             else
             {
                 var pageSql = $"{queryer.QuerySql};\r\n{counter.CountSql}";
-                using (var grid = context.Sql.QueryMultiple(pageSql, param))
+                using (var grid = await context.Sql.QueryMultipleAsync(pageSql, param))
                 {
-                    var list = grid.Read<T>();
-                    var total = grid.ReadFirst<int>();
+                    var list = await grid.ReadAsync<T>();
+                    var total = await grid.ReadFirstAsync<int>();
                     return (list, total);
                 }
             }
@@ -472,21 +472,12 @@ namespace Soul.SqlBatis
             });
             var (counter, _) = queryable.Clone<int>().Build();
             var context = queryable.GetDbContext();
-            if (context.Options.DbType == DbType.Npgsql)
+            var pageSql = $"{queryer.QuerySql};\r\n{counter.CountSql}";
+            using (var grid = await context.Sql.QueryMultipleAsync(pageSql, param))
             {
-                var list = context.Sql.Query<T>(queryer.QuerySql, param);
-                var total = context.Sql.ExecuteScalar<int>(counter.CountSql, param);
+                var list = await grid.ReadAsync<T>();
+                var total = await grid.ReadFirstAsync<int>();
                 return (list, total);
-            }
-            else
-            {
-                var pageSql = $"{queryer.QuerySql};\r\n{counter.CountSql}";
-                using (var grid = context.Sql.QueryMultiple(pageSql, param))
-                {
-                    var list = await grid.ReadAsync<T>();
-                    var total = await grid.ReadFirstAsync<int>();
-                    return (list, total);
-                }
             }
         }
 

@@ -152,22 +152,12 @@ namespace Soul.SqlBatis
             return _connection;
         }
 
-        public IDbTransaction GetDbTransaction()
-        {
-            return _transaction?.DbTransaction;
-        }
-
-
         public virtual DbContextTransaction BeginTransaction()
         {
             var closeConnection = false;
             if (_transaction == null)
             {
-                if (_connection.State == ConnectionState.Closed)
-                {
-                    _connection.Open();
-                    closeConnection = true;
-                }
+                closeConnection = OpenConnection();
                 _transaction = new DbContextTransaction(_connection.BeginTransaction(), () =>
                 {
                     _transaction = null;
@@ -182,12 +172,44 @@ namespace Soul.SqlBatis
             }
         }
 
-        public virtual void OpenConnection()
+        public virtual async Task<DbContextTransaction> BeginTransactionAsync()
+        {
+            var closeConnection = false;
+            if (_transaction == null)
+            {
+                closeConnection = await OpenConnectionAsync();
+                _transaction = new DbContextTransaction(_connection.BeginTransaction(), () =>
+                {
+                    _transaction = null;
+                    if (closeConnection)
+                        _connection.Close();
+                });
+                return _transaction;
+            }
+            else
+            {
+                return _transaction;
+            }
+        }
+
+        public virtual bool OpenConnection()
         {
             if (_connection.State != ConnectionState.Open)
             {
                 _connection.Open();
+                return true;
             }
+            return false;
+        }
+
+        public virtual async Task<bool> OpenConnectionAsync()
+        {
+            if (_connection.State != ConnectionState.Open)
+            {
+                await (_connection as DbConnection).OpenAsync();
+                return true;
+            }
+            return false;
         }
 
         public virtual void CloseConnection()
@@ -195,14 +217,6 @@ namespace Soul.SqlBatis
             if (_connection.State != ConnectionState.Closed)
             {
                 _connection.Close();
-            }
-        }
-
-        public virtual async Task OpenConnectionAsync()
-        {
-            if (_connection.State != ConnectionState.Open)
-            {
-                await (_connection as DbConnection).OpenAsync();
             }
         }
 
@@ -241,7 +255,7 @@ namespace Soul.SqlBatis
             {
                 if (transaction == null)
                 {
-                    transaction = BeginTransaction();
+                    transaction = await BeginTransactionAsync();
                 }
                 var affectedRows = await _unitWork.SaveChangesAsync(ChangeTracker.GetChangedEntries());
                 if (isTransactionOwner)

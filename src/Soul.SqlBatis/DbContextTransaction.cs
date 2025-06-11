@@ -17,6 +17,11 @@ namespace Soul.SqlBatis
             _transaction = transaction;
         }
 
+        public IDbTransaction GetDbTransaction()
+        {
+            return _transaction;
+        }
+
         public void CommitTransaction()
         {
             _transaction.Commit();

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-    public class DbDataGrid : IDisposable
+    public class GridReader : IDisposable
     {
         private IDataReader _reader;
         private IDbCommand _command;
@@ -15,7 +15,7 @@ namespace Soul.SqlBatis.Infrastructure
         private bool _disposed = false;
         private EntityMappper _entityMapper;
 
-        internal DbDataGrid(IDbCommand command, EntityMappper entityMapper, bool closeConnection)
+        internal GridReader(IDbCommand command, EntityMappper entityMapper, bool closeConnection)
         {
             _command = command;
             _entityMapper = entityMapper;
@@ -91,7 +91,7 @@ namespace Soul.SqlBatis.Infrastructure
             }
             else
             {
-                _reader.NextResult();
+                await (_reader as DbDataReader).NextResultAsync();
             }
             return _reader;
         }
