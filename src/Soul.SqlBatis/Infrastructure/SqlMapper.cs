@@ -55,7 +55,7 @@ namespace Soul.SqlBatis
             using (await CreateConnectionManagerAsync())
             using (var command = CreateAsyncCommand(sql, param, configure))
             {
-                return command.ExecuteScalarAsync();
+                return await command.ExecuteScalarAsync();
             }
         }
 
