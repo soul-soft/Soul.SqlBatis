@@ -51,7 +51,7 @@ namespace Soul.SqlBatis.Infrastructure
             var list = new List<T>();
             var reader = await ReadNextResultAsync();
             var mapper = _entityMapper.CreateMapper<T>(reader);
-            while (reader.Read())
+            while (await reader.ReadAsync())
             {
                 var entity = mapper(reader);
                 list.Add(entity);
@@ -63,7 +63,7 @@ namespace Soul.SqlBatis.Infrastructure
         {
             var reader = await ReadNextResultAsync();
             var mapper = _entityMapper.CreateMapper<T>(reader);
-            while (reader.Read())
+            while (await reader.ReadAsync())
             {
                 return mapper(reader);
             }
@@ -83,7 +83,7 @@ namespace Soul.SqlBatis.Infrastructure
             return _reader;
         }
 
-        private async Task<IDataReader> ReadNextResultAsync()
+        private async Task<DbDataReader> ReadNextResultAsync()
         {
             if (_reader == null)
             {
@@ -94,7 +94,7 @@ namespace Soul.SqlBatis.Infrastructure
                 var reader = _reader as DbDataReader;
                 await reader.NextResultAsync();
             }
-            return _reader;
+            return _reader as DbDataReader;
         }
 
         public void Dispose()
