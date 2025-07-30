@@ -445,21 +445,12 @@ namespace Soul.SqlBatis
                 configureOptions.HasDefaultColumns = false;
             });
             var context = queryable.GetDbContext();
-            if (context.Options.DbType == DbType.Npgsql)
+            var pageSql = $"{queryer.QuerySql};\r\n{counter.CountSql}";
+            using (var grid = context.Sql.QueryMultiple(pageSql, param))
             {
-                var list = context.Sql.Query<T>(queryer.QuerySql, param);
-                var total = context.Sql.ExecuteScalar<int>(counter.CountSql, param);
+                var list = grid.Read<T>();
+                var total = grid.ReadFirst<int>();
                 return (list, total);
-            }
-            else
-            {
-                var pageSql = $"{queryer.QuerySql};\r\n{counter.CountSql}";
-                using (var grid = context.Sql.QueryMultiple(pageSql, param))
-                {
-                    var list = grid.Read<T>();
-                    var total = grid.ReadFirst<int>();
-                    return (list, total);
-                }
             }
         }
 
