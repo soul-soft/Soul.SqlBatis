@@ -104,7 +104,7 @@ namespace Soul.SqlBatis
             using (var reader = await command.ExecuteReaderAsync())
             {
                 var mapper = _mapper.CreateMapper<T>(reader);
-                while (reader.Read())
+                while (await reader.ReadAsync())
                 {
                     var entity = mapper(reader);
                     list.Add(entity);
@@ -158,6 +158,7 @@ namespace Soul.SqlBatis
             _context.WriteLog(sql, param);
             var commandOptions = new DbCommandOptions();
             configure?.Invoke(commandOptions);
+
             var command = _context.GetDbConnection().CreateCommand();
             command.CommandText = sql;
             command.Transaction = _context.CurrentTransaction?.GetDbTransaction();
