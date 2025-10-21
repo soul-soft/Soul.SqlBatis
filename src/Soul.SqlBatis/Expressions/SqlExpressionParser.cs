@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Soul.SqlBatis.Metadata;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -98,8 +99,8 @@ namespace Soul.SqlBatis.Expressions
             if (IsParameterExpression(node))
             {
                 var entityType = Context.Model.FindEntityType(node.Expression.Type);
-                var property = entityType.GetProperty(node.Member.Name);
-                var columnName = property.ColumnName;
+                var property = entityType.FindProperty(node.Member.Name);
+                var columnName = property.GetColumnName();
                 if (!string.IsNullOrEmpty(Context.Alias))
                 {
                     columnName = $"{Context.Alias}.{columnName}";

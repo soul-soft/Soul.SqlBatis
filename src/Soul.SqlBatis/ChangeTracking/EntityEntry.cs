@@ -1,352 +1,154 @@
-﻿using System;
-using System.Collections;
+﻿using Soul.SqlBatis.Metadata;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 
 namespace Soul.SqlBatis.ChangeTracking
 {
-    public interface IEntityEntry : IEntityType
-    {
-        bool IsChanged { get; }
-
-        EntityState State { get; set; }
-
-        object Entity { get; }
-
-        IReadOnlyList<IMemberEntry> Members { get; }
-    }
-
-    public interface IMemberEntry : IEntityProperty
-    {
-        bool IsChanged { get; }
-
-        object OriginalValue { get; }
-
-        object CurrentValue { get; }
-
-        void SetValue(object value);
-    }
-
     public class EntityEntry : IEntityEntry
     {
+        private EntityState _state;
         private readonly object _entity;
-        private readonly IEntityType _entityType;
-        private readonly bool _ignoreNullMembers;
-        internal EntityState StateSnapshot = EntityState.Detached;
-        private readonly List<MemberEntry> _members;
+        private readonly Dictionary<string, object> _originalValues;
+        private readonly List<PropertyEntry> _properties = new List<PropertyEntry>();
 
-        internal EntityEntry(object entity, bool ignoreNullMembers, IEntityType entityType, IEnumerable<MemberEntry> members)
+        internal EntityEntry(object entity, IEntityType metadata)
         {
             _entity = entity;
-            _entityType = entityType;
-            _members = members.ToList();
-            _ignoreNullMembers = ignoreNullMembers;
+            Metadata = metadata;
+            _originalValues = CreateOriginalValues(entity, metadata);
         }
 
-        public bool IsChanged => _members.Any(p => p.IsChanged);
+        public object Entity => _entity;
 
         public EntityState State
         {
             get
             {
-                if (StateSnapshot == EntityState.Unchanged && IsChanged)
-                {
-                    StateSnapshot = EntityState.Modified;
-                }
-                else if (StateSnapshot == EntityState.Modified && !IsChanged)
-                {
-                    StateSnapshot = EntityState.Unchanged;
-                }
-                return StateSnapshot;
+                DetectChanges();
+                return _state;
             }
             set
             {
-                if ((value == EntityState.Deleted || value == EntityState.Modified) && Members.Where(a => a.IsKey()).All(a => a.CurrentValue == null))
-                {
-                    throw new InvalidOperationException("Primary key values cannot be null when the entity is being deleted or modified.");
-                }
-
-                if (value == EntityState.Modified && StateSnapshot == EntityState.Detached)
-                {
-                    ResetMemberValue(); // 重置默认值
-                }
-
-                StateSnapshot = value;
+                SetEntityState(value);
             }
         }
 
-        private void ResetMemberValue()
+        private void DetectChanges()
         {
-            foreach (var item in _members)
+            if (IsPersisted() && _state == EntityState.Unchanged)
             {
-                if (item.IsKey())
+                foreach (var item in Properties)
                 {
-                    continue;
-                }
-                if (!_ignoreNullMembers)
-                {
-                    item.OriginalValue = DBNull.Value;
-                }
-                else
-                {
-                    item.OriginalValue = null;
+                    if (item.IsModified)
+                    {
+                        _state = EntityState.Modified;
+                        return;
+                    }
                 }
             }
-
         }
 
-        public IEntityProperty GetProperty(string memberName)
+
+        public IEntityType Metadata { get; private set; }
+
+
+        public IReadOnlyList<PropertyEntry> Properties => _properties;
+
+
+        public object GetOriginalValue(IProperty property)
         {
-            return _entityType.GetProperty(memberName);
+            if (_originalValues.TryGetValue(property.Name, out object value))
+            {
+                return value;
+            }
+            return DBNull.Value;
         }
 
-        public IReadOnlyList<IEntityProperty> GetProperties()
+        public object GetCurrentValue(IProperty property)
         {
-            return _entityType.GetProperties();
+            return property.PropertyInfo.GetValue(_entity);
         }
 
-        public object Entity => _entity;
-
-        public IReadOnlyList<IMemberEntry> Members => _members;
-
-        public Type DeclaringType => _entityType.DeclaringType;
-
-        public string TableName => _entityType.TableName;
-
-        internal static bool ValueEquals(object currentValue, object originalValue)
+        public void SetCurrentValue(IProperty property, object value)
         {
-            // 如果引用相同，立即返回 true
-            if (ReferenceEquals(currentValue, originalValue))
-            {
-                return true;
-            }
-
-            // 如果任一对象为 null，立即返回 false
-            if (currentValue == null || originalValue == null)
-            {
-                return false;
-            }
-
-            // 使用 Equals 方法进行快速类型相等性比较
-            if (currentValue.Equals(originalValue))
-            {
-                return true;
-            }
-
-            // 特殊处理字符串
-            if (currentValue is string currentString && originalValue is string originalString)
-            {
-                return string.Equals(currentString, originalString, StringComparison.Ordinal);
-            }
-
-            // 特殊处理数值类型
-            if (IsNumericType(currentValue) && IsNumericType(originalValue))
-            {
-                return Convert.ToDouble(currentValue) == Convert.ToDouble(originalValue);
-            }
-
-            // 特殊处理集合类型
-            if (currentValue is IEnumerable currentEnumerable && originalValue is IEnumerable originalEnumerable)
-            {
-                return EnumerablesEqual(currentEnumerable, originalEnumerable);
-            }
-
-            // 默认使用 Equals 方法
-            return currentValue.Equals(originalValue);
+            property.PropertyInfo.SetValue(_entity, Convert.ChangeType(value, property.PropertyInfo.PropertyType));
         }
 
-        private static bool IsNumericType(object obj)
+        internal void AddProperty(IProperty property)
         {
-            return obj is byte || obj is sbyte ||
-                   obj is short || obj is ushort ||
-                   obj is int || obj is uint ||
-                   obj is long || obj is ulong ||
-                   obj is float || obj is double ||
-                   obj is decimal;
+            _properties.Add(new PropertyEntry(this, property));
         }
 
-        private static bool EnumerablesEqual(IEnumerable first, IEnumerable second)
+        private void SetEntityState(EntityState state)
         {
-            var firstEnumerator = first.GetEnumerator();
-            var secondEnumerator = second.GetEnumerator();
+            _state = state;
+            SetPropertyModifiedFlags(state);
+        }
 
-            while (firstEnumerator.MoveNext())
+        private void SetPropertyModifiedFlags(EntityState state)
+        {
+            if (state == EntityState.Unchanged)
             {
-                if (!(secondEnumerator.MoveNext() && ValueEquals(firstEnumerator.Current, secondEnumerator.Current)))
+                foreach (var item in Metadata.GetProperties())
                 {
-                    return false;
+                    if (Metadata.PrimaryKey != null && Metadata.PrimaryKey.Properties.Contains(item))
+                    {
+                        continue;
+                    }
+                    var currentValue = GetCurrentValue(item);
+                    _originalValues[item.Name] = currentValue;
+                }
+            }
+            else if (state == EntityState.Modified)
+            {
+                foreach (var item in Metadata.GetProperties())
+                {
+                    if (Metadata.PrimaryKey != null && Metadata.PrimaryKey.Properties.Contains(item))
+                    {
+                        continue;
+                    }
+                    _originalValues[item.Name] = DBNull.Value;
+                }
+            }
+        }
+
+        private static Dictionary<string, object> CreateOriginalValues(object entity, IEntityType entityType)
+        {
+            var mapper = ObjectMapper.GetOrCreateMapper(entityType.TypeInfo);
+            var values = mapper(entity);
+            return values;
+        }
+
+        public bool IsPersisted()
+        {
+            var primaryKey = Metadata.PrimaryKey;
+            if (primaryKey != null)
+            {
+                foreach (var item in primaryKey.Properties)
+                {
+                    var value = GetOriginalValue(item);
+
+                    if (value == null)
+                    {
+                        return false;
+                    }
+                    else if (value is int i32 && i32 <= 0)
+                    {
+                        return false;
+                    }
+                    else if (value is long i64 && i64 <= 0)
+                    {
+                        return false;
+                    }
+                    else if (value is string str && str == string.Empty)
+                    {
+                        return false;
+                    }
                 }
             }
 
-            return !secondEnumerator.MoveNext();
-        }
-    }
-
-    public class EntityEntry<T> : IEntityEntry
-    {
-        private readonly IEntityEntry _entityEntry;
-
-        internal EntityEntry(EntityEntry entityEntry)
-        {
-            _entityEntry = entityEntry;
-        }
-
-        public bool IsChanged => _entityEntry.IsChanged;
-
-        public EntityState State { get => _entityEntry.State; set => _entityEntry.State = value; }
-
-        public object Entity => _entityEntry.Entity;
-
-        public IReadOnlyList<IMemberEntry> Members => _entityEntry.Members;
-
-        public Type DeclaringType => _entityEntry.DeclaringType;
-
-        public string TableName => _entityEntry.TableName;
-
-        public IReadOnlyList<IEntityProperty> GetProperties()
-        {
-            return _entityEntry.GetProperties();
-        }
-
-        public IEntityProperty GetProperty(string memberName)
-        {
-            return _entityEntry.GetProperty(memberName);
-        }
-    }
-
-    public class MemberEntry : IMemberEntry
-    {
-        private readonly IEntityProperty _property;
-
-        private readonly object _entity;
-
-        public object OriginalValue { get; internal set; }
-
-
-        internal MemberEntry(object entity, object originalValue, IEntityProperty property)
-        {
-            _entity = entity;
-            _property = property;
-            OriginalValue = originalValue;
-        }
-
-        public object CurrentValue
-        {
-            get
-            {
-                return Property.GetValue(_entity);
-            }
-        }
-
-        public PropertyInfo Property => _property.Property;
-
-        public string ColumnName => _property.ColumnName;
-
-        public bool IsChanged => !EntityEntry.ValueEquals(CurrentValue, OriginalValue);
-
-        public bool IsIdentity()
-        {
-            return _property.IsIdentity();
-        }
-
-        public bool IsNotMapped()
-        {
-            return _property.IsNotMapped();
-        }
-
-        public bool IsKey()
-        {
-            return _property.IsKey();
-        }
-
-        public void SetValue(object value)
-        {
-            var propertyType = Nullable.GetUnderlyingType(Property.PropertyType) ?? Property.PropertyType;
-
-            if (value != null && value.GetType() != propertyType)
-            {
-                value = Convert.ChangeType(value, propertyType);
-            }
-            Property.SetValue(_entity, value);
-        }
-    }
-
-    internal class EntityEntrySnapshot : IEntityEntry
-    {
-        private readonly IEntityEntry _entityEntry;
-
-        public bool IsChanged { get; }
-
-        public EntityState State { get; set; }
-
-        public object Entity => _entityEntry.Entity;
-
-        public IReadOnlyList<IMemberEntry> Members { get; }
-
-        public Type DeclaringType => _entityEntry.DeclaringType;
-
-        public string TableName => _entityEntry.TableName;
-
-        public EntityEntrySnapshot(IEntityEntry entityEntry, bool isChanged, EntityState state, IReadOnlyList<MemberEntrySnapshot> members)
-        {
-            _entityEntry = entityEntry;
-            IsChanged = isChanged;
-            State = state;
-            Members = members;
-        }
-
-        public IReadOnlyList<IEntityProperty> GetProperties()
-        {
-            return _entityEntry.GetProperties();
-        }
-
-        public IEntityProperty GetProperty(string memberName)
-        {
-            return _entityEntry.GetProperty(memberName);
-        }
-    }
-
-    internal class MemberEntrySnapshot : IMemberEntry
-    {
-        private readonly IMemberEntry _memberEntry;
-
-        public bool IsChanged { get; }
-
-        public object OriginalValue { get; }
-
-        public object CurrentValue { get; }
-
-        public PropertyInfo Property => _memberEntry.Property;
-
-        public string ColumnName => _memberEntry.ColumnName;
-
-        public MemberEntrySnapshot(IMemberEntry memberEntry, bool isChanged, object originalValue, object currentValue)
-        {
-            _memberEntry = memberEntry;
-            IsChanged = isChanged;
-            OriginalValue = originalValue;
-            CurrentValue = currentValue;
-        }
-
-        public bool IsIdentity()
-        {
-            return _memberEntry.IsIdentity();
-        }
-
-        public bool IsKey()
-        {
-            return _memberEntry.IsKey();
-        }
-
-        public bool IsNotMapped()
-        {
-            return _memberEntry.IsNotMapped();
-        }
-
-        public void SetValue(object value)
-        {
-            _memberEntry.SetValue(value);
+            return true;
         }
     }
 }

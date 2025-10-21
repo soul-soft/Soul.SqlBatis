@@ -10,7 +10,7 @@ namespace Soul.SqlBatis
     {
         private static readonly ConcurrentDictionary<Type, Delegate> _mappers = new ConcurrentDictionary<Type, Delegate>();
 
-        public static Func<object, Dictionary<string, object>> CreateMapper(Type type)
+        public static Func<object, Dictionary<string, object>> GetOrCreateMapper(Type type)
         {
             return (Func<object, Dictionary<string, object>>)_mappers.GetOrAdd(type, key => 
             {

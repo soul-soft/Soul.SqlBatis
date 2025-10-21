@@ -1,4 +1,5 @@
 ﻿using Soul.SqlBatis.Expressions;
+using Soul.SqlBatis.Metadata;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -305,29 +306,31 @@ namespace Soul.SqlBatis
             if (options.HasDefaultColumns && !Tokens.ContainsKey(DbQueryTokenType.Select))
             {
                 var columns = EntityType.GetProperties()
-                        .Where(a => !a.IsNotMapped())
-                        .Select(s => options.HasColumnsAlias ? $"{s.ColumnName} AS {DbContext.Model.Format(s.Property.Name)}" : s.ColumnName);
+                        .Select(s => options.HasColumnsAlias ? $"{s.GetColumnName()} AS {DbContext.Model.Format(s.Name)}" : s.GetColumnName());
                 foreach (var item in columns)
                 {
                     sqlBuilder.Select(item);
                 }
             }
-            var view = EntityType.TableName;
+            var view = EntityType.GetTableName();
             if (!string.IsNullOrEmpty(alias))
             {
                 view = $"{view} AS {alias}";
             }
             sqlBuilder.From(view);
-            if (options.UseDefaultOrder && EntityType.GetProperties().Any(a => a.IsKey()))
+            if (options.UseDefaultOrder && EntityType.PrimaryKey != null)
             {
-                var column = EntityType.GetProperties().Where(a => a.IsKey()).First();
-                sqlBuilder.OrderBy($"{column.ColumnName} ASC", UsingDefaultOrder(sqlBuilder, column.ColumnName));
+                var column = EntityType.PrimaryKey.Properties.First();
+                if (ShouldDefaultOrder(sqlBuilder, column.GetColumnName()))
+                {
+                    sqlBuilder.OrderBy($"{column.GetColumnName()} ASC");
+                }
             }
             return (sqlBuilder, parameters);
         }
 
 
-        private bool UsingDefaultOrder(SqlBuilder sb, string column)
+        private bool ShouldDefaultOrder(SqlBuilder sb, string column)
         {
             if (sb.Tokens.ContainsKey(nameof(SqlBuilder.GroupBy)))
             {

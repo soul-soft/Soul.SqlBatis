@@ -1,5 +1,6 @@
 ﻿using Soul.SqlBatis.ChangeTracking;
 using Soul.SqlBatis.Infrastructure;
+using Soul.SqlBatis.Metadata;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -25,7 +26,7 @@ namespace Soul.SqlBatis
 
         private DbContextTransaction _transaction;
 
-        private readonly DbContextUnitWork _unitWork;
+        private readonly DbContextCommand _command;
 
         public DbContextTransaction CurrentTransaction => _transaction;
 
@@ -49,8 +50,8 @@ namespace Soul.SqlBatis
             var settings = GetSettings();
             _connection = _options.Connection;
             _sql = new SqlMapper(this, settings);
-            _model = new AnnotationModel(settings);
-            _unitWork = new DbContextUnitWork(this, settings);
+            _model = new Model(settings);
+            _command = new DbContextCommand(this, settings);
             _changeTracker = new ChangeTracker(_model);
         }
 
@@ -87,11 +88,6 @@ namespace Soul.SqlBatis
             return entities.Select(s => Attach(s));
         }
 
-        public virtual void Detach<T>(T entity)
-        {
-            ChangeTracker.Untrack(entity);
-        }
-
         public virtual EntityEntry<T> Entry<T>(T entity)
         {
             return ChangeTracker.Track(entity);
@@ -110,10 +106,18 @@ namespace Soul.SqlBatis
             }
         }
 
-        public virtual void Update<T>(T entity, bool ignoreNullMembers = false) where T : class
+        public virtual void Update<T>(T entity) where T : class
         {
-            var entry = ChangeTracker.Track(entity, ignoreNullMembers);
-            entry.State = EntityState.Modified;
+            if (ChangeTracker.HasEntry(entity))
+            {
+                return;
+            }
+            else
+            {
+                var entry = ChangeTracker.Track(entity);
+                entry.State = EntityState.Modified;
+                return;
+            }
         }
 
         public virtual void UpdateRange<T>(IEnumerable<T> entities, bool ignoreNullMembers = false) where T : class
@@ -230,12 +234,11 @@ namespace Soul.SqlBatis
                 {
                     transaction = BeginTransaction();
                 }
-                var affectedRows = _unitWork.SaveChanges(ChangeTracker.GetChangedEntries());
+                var affectedRows = _command.SaveChanges();
                 if (isTransactionOwner)
                 {
                     transaction.CommitTransaction();
                 }
-                ChangeTracker.ClearEntities();
                 return affectedRows;
             }
             finally
@@ -257,12 +260,11 @@ namespace Soul.SqlBatis
                 {
                     transaction = await BeginTransactionAsync();
                 }
-                var affectedRows = await _unitWork.SaveChangesAsync(ChangeTracker.GetChangedEntries());
+                var affectedRows = await _command.SaveChangesAsync();
                 if (isTransactionOwner)
                 {
                     transaction.CommitTransaction();
                 }
-                ChangeTracker.ClearEntities();
                 return affectedRows;
             }
             finally
@@ -282,7 +284,7 @@ namespace Soul.SqlBatis
                 {
                     _transaction?.Dispose();
                 }
-                catch {  }
+                catch { }
                 try
                 {
                     if (_connection.State != ConnectionState.Closed)
@@ -291,7 +293,7 @@ namespace Soul.SqlBatis
                     }
                     _connection?.Dispose();
                 }
-                catch {  }
+                catch { }
                 _disposed = true;
             }
         }

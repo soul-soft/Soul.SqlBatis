@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Soul.SqlBatis.Metadata;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -8,12 +9,8 @@ namespace Soul.SqlBatis.ChangeTracking
     {
         IEnumerable<EntityEntry> Entities();
         IEnumerable<EntityEntry<T>> Entities<T>() where T : class;
-        EntityEntry<T> Track<T>(T entity, bool ignoreNullMembers = false);
-        bool HasChanges();
+        EntityEntry<T> Track<T>(T entity);
         bool HasEntry<T>(T entity);
-        void Untrack(object entity);
-        void ClearEntities();
-        IEnumerable<IEntityEntry> GetChangedEntries();
     }
 
     public class ChangeTracker : IChangeTracker
@@ -44,68 +41,35 @@ namespace Soul.SqlBatis.ChangeTracking
             return _references.ContainsKey(entity);
         }
 
-        public void Untrack(object entity)
+        public EntityEntry<T> Track<T>(T entity)
         {
-            _references.Remove(entity);
-        }
-
-        public void ClearEntities()
-        {
-            _references.Clear();
-        }
-
-        public EntityEntry<T> Track<T>(T entity, bool ignoreNullMembers = false)
-        {
-            if (!_references.ContainsKey(entity))
+            if (!HasEntry(entity))
             {
-                var mapper = ObjectMapper.CreateMapper(typeof(T));
-                var values = mapper(entity);
-                var entityType = _model.FindEntityType(typeof(T));
-                var members = new List<MemberEntry>();
-                foreach (var item in entityType.GetProperties().Where(a => !a.IsNotMapped()))
-                {
-                    var value = values[item.Property.Name];
-                    members.Add(new MemberEntry(entity, value, item));
-                }
-                var entityEntry = new EntityEntry(entity, ignoreNullMembers, entityType, members);
+                var entityEntry = CreateEntityEntry(entity);
                 _references.Add(entity, entityEntry);
             }
             var entry = _references[entity];
             return new EntityEntry<T>(entry);
         }
 
-        public bool HasChanges()
-        {
-            return _references.Values.Any(e => e.IsChanged);
-        }
 
-        public IEnumerable<IEntityEntry> GetChangedEntries()
+        private EntityEntry CreateEntityEntry(object entity)
         {
-            var entries = _references.Values.Select(entry =>
+            var metadata = _model.FindEntityType(entity.GetType());
+            var entityEntry = new EntityEntry(entity, metadata);
+            foreach (var item in metadata.GetProperties())
             {
-                var members = entry.Members.Select(s =>
-                {
-                    var originalValue = s.OriginalValue;
-                    var currentValue = s.CurrentValue;
-                    return new MemberEntrySnapshot(s, !EntityEntry.ValueEquals(originalValue, currentValue), originalValue, currentValue);
-                }).ToList();
-                var state = entry.StateSnapshot;
-                var isChanged = members.Any(a => a.IsChanged);
-                if (state == EntityState.Unchanged && isChanged)
-                {
-                    state = EntityState.Modified;
-                }
-                else if (state == EntityState.Modified && !isChanged)
-                {
-                    state = EntityState.Unchanged;
-                }
-                return new EntityEntrySnapshot(entry, isChanged, state, members);
-            }).ToList();
-
-            return entries.Where(entry =>
-                     entry.State == EntityState.Added ||
-                     entry.State == EntityState.Modified ||
-                     entry.State == EntityState.Deleted).ToList();
+                entityEntry.AddProperty(item);
+            }
+            if (entityEntry.IsPersisted())
+            {
+                entityEntry.State = EntityState.Unchanged;
+            }
+            else 
+            {
+                entityEntry.State = EntityState.Added;
+            }
+            return entityEntry;
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using Npgsql;
 using Soul.SqlBatis;
-using Soul.SqlBatis.Test;
 using Soul.SqlBatis.Test.Entities;
 
 
@@ -24,9 +23,9 @@ using (var context = new DbContext(configureOptions =>
     configureOptions.UseNpgsql(new NpgsqlConnection("Host=127.0.0.1;Port=5432;Username=postgres;Password=1024;Database=postgres;SSL Mode=Disable;"));
 }))
 {
-    var (list, total) = context.Set<Student>()
-        .ToPageResult(1,10);
+    var student = context.Set<Student>().Where(a => a.Id == 1).AsTracking().Single();
+    context.Set<Student>().Update(student);
+    var state1 = context.Entry(student).State;
+    context.SaveChanges();
+    var state2 = context.Entry(student).State;
 }
-
-
-

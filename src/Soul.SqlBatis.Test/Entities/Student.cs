@@ -6,7 +6,6 @@ namespace Soul.SqlBatis.Test.Entities
     [Table("student",Schema = "public")]
     public class Student
     {
-        [Key][Identity]
         [Column("id")]
         public int Id { get; set; }
 
@@ -16,7 +15,6 @@ namespace Soul.SqlBatis.Test.Entities
         [Column("age")]
         public int? Age { get; set; }
 
-        [Key]
         [Column("tenant_id")]
         public int? TenantId { get; set; }
 

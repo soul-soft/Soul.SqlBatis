@@ -1,4 +1,5 @@
 ﻿using Soul.SqlBatis.Infrastructure;
+using Soul.SqlBatis.Metadata;
 
 namespace Soul.SqlBatis.Expressions
 {
