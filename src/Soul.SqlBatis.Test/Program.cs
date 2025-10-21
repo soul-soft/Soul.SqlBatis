@@ -24,11 +24,8 @@ using (var context = new DbContext(configureOptions =>
 }))
 {
     var student = context.Set<Student>().Where(a => a.Id == 1).Single();
-    var state1 = context.Entry(student).State;
-    student.Name = "W";
-    var state34 = context.Entry(student).State;
-    context.Set<Student>().Update(student);
-    var state2 = context.Entry(student).State;
+    context.Remove(student);
     context.SaveChanges();
-    var state3 = context.Entry(student).State;
+    var state = context.Entry(student).State;
+   
 }
