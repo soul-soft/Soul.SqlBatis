@@ -8,7 +8,6 @@ namespace Soul.SqlBatis
         IDbQueryable<T> As(string name);
         IDbQueryable<T> Take(int count);
         IDbQueryable<T> Skip(int offset);
-        IDbQueryable<T> AsTracking();
         IDbQueryable<T> AsNoTracking();
         IDbQueryable<T> Where(string expression, bool flag = true);
         IDbQueryable<T> Where(Expression<Func<T, bool>> expression, bool flag = true);

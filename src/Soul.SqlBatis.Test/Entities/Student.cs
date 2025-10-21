@@ -6,6 +6,7 @@ namespace Soul.SqlBatis.Test.Entities
     [Table("student",Schema = "public")]
     public class Student
     {
+        [Key]
         [Column("id")]
         public int Id { get; set; }
 
@@ -14,7 +15,7 @@ namespace Soul.SqlBatis.Test.Entities
 
         [Column("age")]
         public int? Age { get; set; }
-
+        [Key]
         [Column("tenant_id")]
         public int? TenantId { get; set; }
 
@@ -23,6 +24,11 @@ namespace Soul.SqlBatis.Test.Entities
 
         [Column("gender")]
         public Gender? Gender { get; set; }
+
+        public void SetName(string name)
+        {
+            this.Name = name;
+        }
     }
 
     public enum Gender

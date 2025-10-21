@@ -23,9 +23,12 @@ using (var context = new DbContext(configureOptions =>
     configureOptions.UseNpgsql(new NpgsqlConnection("Host=127.0.0.1;Port=5432;Username=postgres;Password=1024;Database=postgres;SSL Mode=Disable;"));
 }))
 {
-    var student = context.Set<Student>().Where(a => a.Id == 1).AsTracking().Single();
-    context.Set<Student>().Update(student);
+    var student = context.Set<Student>().Where(a => a.Id == 1).Single();
     var state1 = context.Entry(student).State;
-    context.SaveChanges();
+    student.Name = "W";
+    var state34 = context.Entry(student).State;
+    context.Set<Student>().Update(student);
     var state2 = context.Entry(student).State;
+    context.SaveChanges();
+    var state3 = context.Entry(student).State;
 }

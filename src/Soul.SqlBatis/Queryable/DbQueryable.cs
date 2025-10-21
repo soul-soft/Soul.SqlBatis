@@ -22,7 +22,7 @@ namespace Soul.SqlBatis
         internal DbQueryable(DbContext context, DynamicParameters parameters)
         {
             DbContext = context;
-            IsTracking = false;
+            IsTracking = true;
             EntityType = context.Model.FindEntityType(typeof(T));
             Parameters = parameters;
         }

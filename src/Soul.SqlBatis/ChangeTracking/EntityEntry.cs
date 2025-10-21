@@ -9,6 +9,7 @@ namespace Soul.SqlBatis.ChangeTracking
     {
         private EntityState _state;
         private readonly object _entity;
+        private readonly IPropertyAccessor _propertyAccessor;
         private readonly Dictionary<string, object> _originalValues;
         private readonly List<PropertyEntry> _properties = new List<PropertyEntry>();
 
@@ -16,6 +17,7 @@ namespace Soul.SqlBatis.ChangeTracking
         {
             _entity = entity;
             Metadata = metadata;
+            _propertyAccessor = EmitProxyGenerator.CreateProxy(entity);
             _originalValues = CreateOriginalValues(entity, metadata);
         }
 
@@ -36,7 +38,7 @@ namespace Soul.SqlBatis.ChangeTracking
 
         private void DetectChanges()
         {
-            if (IsPersisted() && _state == EntityState.Unchanged)
+            if (_state == EntityState.Unchanged)
             {
                 foreach (var item in Properties)
                 {
@@ -55,6 +57,11 @@ namespace Soul.SqlBatis.ChangeTracking
 
         public IReadOnlyList<PropertyEntry> Properties => _properties;
 
+        internal void AddProperty(IProperty property)
+        {
+            _properties.Add(new PropertyEntry(this, property));
+        }
+
 
         public object GetOriginalValue(IProperty property)
         {
@@ -67,18 +74,16 @@ namespace Soul.SqlBatis.ChangeTracking
 
         public object GetCurrentValue(IProperty property)
         {
-            return property.PropertyInfo.GetValue(_entity);
+            return _propertyAccessor.GetPropertyValue(property.Name);
         }
 
         public void SetCurrentValue(IProperty property, object value)
         {
-            property.PropertyInfo.SetValue(_entity, Convert.ChangeType(value, property.PropertyInfo.PropertyType));
+            var propertyValue = Convert.ChangeType(value, property.PropertyInfo.PropertyType);
+            _propertyAccessor.SetPropertyValue(property.Name, propertyValue);
         }
 
-        internal void AddProperty(IProperty property)
-        {
-            _properties.Add(new PropertyEntry(this, property));
-        }
+    
 
         private void SetEntityState(EntityState state)
         {
@@ -113,10 +118,14 @@ namespace Soul.SqlBatis.ChangeTracking
             }
         }
 
-        private static Dictionary<string, object> CreateOriginalValues(object entity, IEntityType entityType)
+        private Dictionary<string, object> CreateOriginalValues(object entity, IEntityType entityType)
         {
-            var mapper = ObjectMapper.GetOrCreateMapper(entityType.TypeInfo);
-            var values = mapper(entity);
+            var values = new Dictionary<string, object>();
+            foreach (var item in entityType.GetProperties())
+            {
+                var value = _propertyAccessor.GetPropertyValue(item.Name);
+                values.Add(item.Name, value);
+            }
             return values;
         }
 
