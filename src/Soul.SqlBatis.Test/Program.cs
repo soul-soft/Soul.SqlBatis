@@ -23,9 +23,7 @@ using (var context = new DbContext(configureOptions =>
     configureOptions.UseNpgsql(new NpgsqlConnection("Host=127.0.0.1;Port=5432;Username=postgres;Password=1024;Database=postgres;SSL Mode=Disable;"));
 }))
 {
-    var student = context.Set<Student>().Where(a => a.Id == 1).Single();
-    context.Remove(student);
-    context.SaveChanges();
-    var state = context.Entry(student).State;
-   
+    var student1 = context.Set<Student>().Where(a => a.Id == 9).Single();
+    var student2 = context.Set<Student>().Where(a => a.Id == 9).Single();
+    var flag = ReferenceEquals(student1, student2);
 }

@@ -9,16 +9,22 @@ namespace Soul.SqlBatis.ChangeTracking
     {
         private EntityState _state;
         private readonly object _entity;
+        private readonly DbContext _context;
         private readonly IPropertyAccessor _propertyAccessor;
         private readonly Dictionary<string, object> _originalValues;
         private readonly List<PropertyEntry> _properties = new List<PropertyEntry>();
 
-        internal EntityEntry(object entity, IEntityType metadata)
+        internal EntityEntry(DbContext context, object entity, IEntityType metadata)
         {
             _entity = entity;
+            _context = context;
             Metadata = metadata;
             _propertyAccessor = EmitProxyGenerator.CreateProxy(entity);
             _originalValues = CreateOriginalValues(entity, metadata);
+            foreach (var item in metadata.GetProperties())
+            {
+                AddProperty(item);
+            }
         }
 
         public object Entity => _entity;
@@ -83,7 +89,10 @@ namespace Soul.SqlBatis.ChangeTracking
             _propertyAccessor.SetPropertyValue(property.Name, propertyValue);
         }
 
-    
+        public void SetOriginalValue(IProperty property, object value)
+        {
+            _originalValues[property.Name] = value;
+        }
 
         private void SetEntityState(EntityState state)
         {
@@ -93,29 +102,77 @@ namespace Soul.SqlBatis.ChangeTracking
 
         private void SetPropertyModifiedFlags(EntityState state)
         {
-            if (state == EntityState.Unchanged)
+            switch (state)
             {
-                foreach (var item in Metadata.GetProperties())
-                {
-                    if (Metadata.PrimaryKey != null && Metadata.PrimaryKey.Properties.Contains(item))
+                case EntityState.Detached:
+                    _context.ChangeTracker.UnTrack(Entity);
+                    break;
+                case EntityState.Unchanged:
+                    foreach (var item in Metadata.GetProperties())
                     {
-                        continue;
+                        if (Metadata.PrimaryKey != null && Metadata.PrimaryKey.Properties.Contains(item))
+                        {
+                            continue;
+                        }
+                        var currentValue = GetCurrentValue(item);
+                        _originalValues[item.Name] = currentValue;
                     }
-                    var currentValue = GetCurrentValue(item);
-                    _originalValues[item.Name] = currentValue;
-                }
-            }
-            else if (state == EntityState.Modified)
-            {
-                foreach (var item in Metadata.GetProperties())
-                {
-                    if (Metadata.PrimaryKey != null && Metadata.PrimaryKey.Properties.Contains(item))
+                    _context.ChangeTracker.Track(this);
+                    break;
+                case EntityState.Deleted:
+                    if (!IsPersisted())
                     {
-                        continue;
+                        throw new NotSupportedException("The entity must be persisted before it can be updated.");
                     }
-                    _originalValues[item.Name] = DBNull.Value;
-                }
+                    _context.ChangeTracker.Track(this);
+                    break;
+                case EntityState.Modified:
+                    if (!IsPersisted())
+                    {
+                        throw new NotSupportedException("The entity must be persisted before it can be updated.");
+                    }
+                    if (!_context.ChangeTracker.HasEntry(Entity))
+                    {
+                        foreach (var item in Metadata.GetProperties())
+                        {
+                            if (Metadata.PrimaryKey != null && Metadata.PrimaryKey.Properties.Contains(item))
+                            {
+                                continue;
+                            }
+                            _originalValues[item.Name] = DBNull.Value;
+                        }
+                    }
+                    _context.ChangeTracker.Track(this);
+                    break;
+                case EntityState.Added:
+                    var property = Metadata.PrimaryKey.GetIdentity();
+                    if (property != null)
+                    {
+                        var value = GetIdentityValue();
+                        SetIdentityValue(property, value);
+                    }
+                    _context.ChangeTracker.Track(this);
+                    break;
+                default:
+                    break;
             }
+        }
+
+        private int GetIdentityValue()
+        {
+            var total = _context.ChangeTracker.Entities()
+                .Where(f => f._state == EntityState.Added)
+                .Where(a => a.Metadata.TypeInfo == Metadata.TypeInfo)
+                .Count();
+            return total + 1;
+        }
+
+        private void SetIdentityValue(IProperty identity, int lastId)
+        {
+            _context.ChangeTracker.UnTrack(Entity);
+            SetCurrentValue(identity, lastId);
+            SetOriginalValue(identity, lastId);
+            _context.ChangeTracker.Track(this);
         }
 
         private Dictionary<string, object> CreateOriginalValues(object entity, IEntityType entityType)

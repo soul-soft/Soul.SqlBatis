@@ -29,6 +29,30 @@ namespace Soul.SqlBatis.Test.Entities
         {
             this.Name = name;
         }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+            if (obj is not Student)
+            {
+                return false;
+            }
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+            var that = (Student)obj;
+
+            return that.Id == this.Id;
+        }
     }
 
     public enum Gender

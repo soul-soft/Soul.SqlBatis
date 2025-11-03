@@ -52,7 +52,7 @@ namespace Soul.SqlBatis
             _sql = new SqlMapper(this, settings);
             _model = new Model(settings);
             _command = new DbContextCommand(this, settings);
-            _changeTracker = new ChangeTracker(_model);
+            _changeTracker = new ChangeTracker(this);
         }
 
         internal SqlSettings GetSettings()
@@ -76,21 +76,17 @@ namespace Soul.SqlBatis
             return new SqlBuilder(GetSettings());
         }
 
-        public virtual EntityEntry<T> Attach<T>(T entity)
+        public virtual EntityEntry Attach(object entity)
         {
-            var entry = ChangeTracker.Track(entity);
+            var entry = ChangeTracker.Entry(entity);
             entry.State = EntityState.Unchanged;
             return entry;
         }
 
-        public virtual IEnumerable<EntityEntry<T>> AttachRange<T>(IEnumerable<T> entities)
-        {
-            return entities.Select(s => Attach(s));
-        }
-
         public virtual EntityEntry<T> Entry<T>(T entity)
         {
-            return ChangeTracker.Track(entity);
+            var entry = ChangeTracker.Entry(entity);
+            return new EntityEntry<T>(entry);
         }
 
         public virtual void Add<T>(T entity) where T : class
@@ -108,16 +104,9 @@ namespace Soul.SqlBatis
 
         public virtual void Update<T>(T entity) where T : class
         {
-            if (ChangeTracker.HasEntry(entity))
-            {
-                return;
-            }
-            else
-            {
-                var entry = ChangeTracker.Track(entity);
-                entry.State = EntityState.Modified;
-                return;
-            }
+            var entry = Entry(entity);
+            entry.State = EntityState.Modified;
+            return;
         }
 
         public virtual void UpdateRange<T>(IEnumerable<T> entities, bool ignoreNullMembers = false) where T : class

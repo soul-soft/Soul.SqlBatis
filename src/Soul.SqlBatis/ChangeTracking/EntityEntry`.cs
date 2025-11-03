@@ -16,13 +16,15 @@ namespace Soul.SqlBatis.ChangeTracking
             _entityEntry = entityEntry;
         }
 
-        public object Entity => _entityEntry.Entity;
+        public T Entity => (T)_entityEntry.Entity;
 
         public IEntityType Metadata => _entityEntry.Metadata;
 
         public EntityState State { get => _entityEntry.State; set => _entityEntry.State = value; }
 
         public IReadOnlyList<PropertyEntry> Properties => _entityEntry.Properties;
+
+        object IEntityEntry.Entity => _entityEntry.Entity;
 
         public bool IsPersisted()
         {

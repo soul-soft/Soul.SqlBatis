@@ -7,21 +7,22 @@ namespace Soul.SqlBatis.ChangeTracking
 {
     public interface IChangeTracker
     {
+        EntityEntry Entry(object entity);
         IEnumerable<EntityEntry> Entities();
-        IEnumerable<EntityEntry<T>> Entities<T>() where T : class;
-        EntityEntry<T> Track<T>(T entity);
-        bool HasEntry<T>(T entity);
+        void Track(EntityEntry entry);
+        void UnTrack(object entity);
+        bool HasEntry(object entity);
     }
 
     public class ChangeTracker : IChangeTracker
     {
-        private readonly IModel _model;
+        private readonly DbContext _context;
 
         private readonly Dictionary<object, EntityEntry> _references = new Dictionary<object, EntityEntry>();
 
-        public ChangeTracker(IModel model)
+        public ChangeTracker(DbContext context)
         {
-            _model = model;
+            _context = context;
         }
 
         public IEnumerable<EntityEntry> Entities()
@@ -29,46 +30,45 @@ namespace Soul.SqlBatis.ChangeTracking
             return _references.Select(s => s.Value);
         }
 
-        public IEnumerable<EntityEntry<T>> Entities<T>() where T : class
-        {
-            return _references.Values
-                .Where(a => a.Entity is T)
-                .Select(s => new EntityEntry<T>(s));
-        }
-
-        public bool HasEntry<T>(T entity)
+        public bool HasEntry(object entity)
         {
             return _references.ContainsKey(entity);
         }
 
-        public EntityEntry<T> Track<T>(T entity)
+        public void Track(EntityEntry entry)
         {
-            if (!HasEntry(entity))
+            if (_references.TryGetValue(entry.Entity, out var oldEntry))
             {
-                var entityEntry = CreateEntityEntry(entity);
-                _references.Add(entity, entityEntry);
+                if (!ReferenceEquals(entry.Entity, oldEntry.Entity))
+                {
+                    throw new NotSupportedException("Cannot track entity: another instance with the same key is already being tracked.");
+                }
             }
-            var entry = _references[entity];
-            return new EntityEntry<T>(entry);
+            else
+            {
+                _references[entry.Entity] = entry;
+            }
         }
 
-
-        private EntityEntry CreateEntityEntry(object entity)
+        public void Track(object entity, EntityState state)
         {
-            var metadata = _model.FindEntityType(entity.GetType());
-            var entityEntry = new EntityEntry(entity, metadata);
-            foreach (var item in metadata.GetProperties())
+            var entry = Entry(entity);
+            entry.State = state;
+        }
+
+        public void UnTrack(object entity)
+        {
+            _references.Remove(entity);
+        }
+
+        public EntityEntry Entry(object entity)
+        {
+            if (_references.TryGetValue(entity, out var entry))
             {
-                entityEntry.AddProperty(item);
+                return entry;
             }
-            if (entityEntry.IsPersisted())
-            {
-                entityEntry.State = EntityState.Unchanged;
-            }
-            else 
-            {
-                entityEntry.State = EntityState.Added;
-            }
+            var metadata = _context.Model.FindEntityType(entity.GetType());
+            var entityEntry = new EntityEntry(_context, entity, metadata);
             return entityEntry;
         }
     }

@@ -5,5 +5,7 @@ namespace Soul.SqlBatis.Metadata
     public interface IKey
     {
         IReadOnlyList<IProperty> Properties { get; }
+
+        IProperty GetIdentity();
     }
 }

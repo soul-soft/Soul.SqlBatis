@@ -8,39 +8,32 @@ namespace Soul.SqlBatis
 {
     public static class DbQueryableExtensions
     {
-        private static void Track<T>(this IDbQueryable<T> queryable, ref T entity)
+        private static T Track<T>(this IDbQueryable<T> queryable, T entity)
         {
             var query = queryable.GetDbQueryable();
-            if (!query.IsTracking || entity == null)
+            if (!query.IsTracking || entity == null || query.Tokens.Any(a => a.Key == DbQueryTokenType.Select))
             {
-                return;
+                return entity;
             }
             var context = queryable.GetDbContext();
-            if (!query.Tokens.Any(a => a.Key == DbQueryTokenType.Select))
-            {
-                entity = (T)context.Attach(entity).Entity;
-            }
+            var entry = context.Attach(entity);
+            return (T)entry.Entity;
         }
 
-        private static void Track<T>(this IDbQueryable<T> queryable, List<T> entities)
+        private static List<T> Track<T>(this IDbQueryable<T> queryable, List<T> entities)
         {
             var query = queryable.GetDbQueryable();
-            if (!query.IsTracking)
+            if (!query.IsTracking || entities.Count == 0 || query.Tokens.Any(a => a.Key == DbQueryTokenType.Select))
             {
-                return;
-            }
-            if (entities == null || entities.Count == 0)
-            {
-                return;
+                return entities;
             }
             var context = queryable.GetDbContext();
-            if (!query.Tokens.Any(a => a.Key == DbQueryTokenType.Select))
+            for (var i = 0; i < entities.Count; i++)
             {
-                for (var i = 0; i < entities.Count; i++)
-                {
-                    entities[i] = (T)context.Attach(entities[i]).Entity;
-                }
+                var entry = context.Attach(entities[i]);
+                entities[i] = (T)entry.Entity;
             }
+            return entities;
         }
 
         private static DbQueryable<T> GetDbQueryable<T>(this IDbQueryable<T> queryable)
@@ -353,8 +346,7 @@ namespace Soul.SqlBatis
             {
                 throw new InvalidOperationException("The source sequence is empty.");
             }
-            queryable.Track(ref entity);
-            return entity;
+            return queryable.Track(entity);
         }
 
         public static T Single<T>(this IDbQueryable<T> queryable)
@@ -371,8 +363,7 @@ namespace Soul.SqlBatis
             {
                 throw new InvalidOperationException("The source sequence is empty.");
             }
-            queryable.Track(ref entity);
-            return entity;
+            return queryable.Track(entity);
         }
 
         public static async Task<T> SingleAsync<T>(this IDbQueryable<T> queryable)
@@ -385,8 +376,7 @@ namespace Soul.SqlBatis
             var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build();
             var entity = command.QueryFirstOrDefault<T>(sqler.QuerySql, param);
-            queryable.Track(ref entity);
-            return entity;
+            return queryable.Track(entity);
         }
 
         public static T SingleOrDefault<T>(this IDbQueryable<T> queryable)
@@ -399,8 +389,7 @@ namespace Soul.SqlBatis
             var command = queryable.GetSqlMapper();
             var (sqler, param) = queryable.Build();
             var entity = await command.QueryFirstOrDefaultAsync<T>(sqler.QuerySql, param);
-            queryable.Track(ref entity);
-            return entity;
+            return queryable.Track(entity);
         }
 
         public static async Task<T> SingleOrDefaultAsync<T>(this IDbQueryable<T> queryable)
@@ -416,8 +405,7 @@ namespace Soul.SqlBatis
                 configureOptions.UseDefaultOrder = true;
             });
             var entities = command.Query<T>(sqler.QuerySql, param);
-            queryable.Track(entities);
-            return entities;
+            return queryable.Track(entities);
         }
 
         public static async Task<List<T>> ToListAsync<T>(this IDbQueryable<T> queryable)
@@ -428,8 +416,7 @@ namespace Soul.SqlBatis
                 configureOptions.UseDefaultOrder = true;
             });
             var entities = await command.QueryAsync<T>(sqler.QuerySql, param);
-            queryable.Track(entities);
-            return entities;
+            return queryable.Track(entities);
         }
       
         public static (List<T>, int) ToPageResult<T>(this IDbQueryable<T> queryable, int pageIndex, int pageSize)

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Soul.SqlBatis.Metadata
 {
@@ -10,5 +11,10 @@ namespace Soul.SqlBatis.Metadata
         }
 
         public IReadOnlyList<IProperty> Properties { get; }
+
+        public IProperty GetIdentity()
+        {
+            return Properties.Where(a => a.ValueGenerated == ValueGenerated.OnAdd).FirstOrDefault();
+        }
     }
 }
