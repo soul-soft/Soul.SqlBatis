@@ -20,12 +20,14 @@ namespace Soul.SqlBatis.Infrastructure
         public int SaveChanges()
         {
             var affectedRows = 0;
-            var entityEntries = _context.ChangeTracker.Entities();
+            var entityEntries = _context.ChangeTracker.Entities().ToList();
             foreach (var entityEntry in entityEntries)
             {
                 if (entityEntry.State == EntityState.Added)
                 {
-                    affectedRows += Insert(entityEntry);
+                    var (row, lastId) = Insert(entityEntry);
+                    entityEntry.SetIdentityValue(lastId);
+                    affectedRows += row;
                     entityEntry.State = EntityState.Unchanged;
                 }
                 else if (entityEntry.State == EntityState.Modified)
@@ -64,19 +66,19 @@ namespace Soul.SqlBatis.Infrastructure
             return affectedRows;
         }
 
-        private int Insert(IEntityEntry entityEntry)
+        private (int, int) Insert(IEntityEntry entityEntry)
         {
             var (sql, param) = BuildInsertCommand(entityEntry);
             var identityMember = entityEntry.Properties.FirstOrDefault(a => a.Metadata.ValueGenerated == ValueGenerated.OnAdd);
             if (identityMember != null)
             {
-                var obj = _context.Sql.ExecuteScalar(sql, param);
-                entityEntry.SetCurrentValue(identityMember.Metadata, obj);
-                return 1;
+                var lastId = _context.Sql.ExecuteScalar<int>(sql, param);             
+                return (1, lastId);
             }
             else
             {
-                return _context.Sql.Execute(sql, param);
+                var row = _context.Sql.Execute(sql, param);
+                return (row, 0);
             }
         }
 

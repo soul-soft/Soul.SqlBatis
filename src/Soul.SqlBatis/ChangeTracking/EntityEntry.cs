@@ -167,12 +167,24 @@ namespace Soul.SqlBatis.ChangeTracking
             return total + 1;
         }
 
-        private void SetIdentityValue(IProperty identity, int lastId)
+        private void SetIdentityValue(IProperty property, int lastId)
         {
             _context.ChangeTracker.UnTrack(Entity);
-            SetCurrentValue(identity, lastId);
-            SetOriginalValue(identity, lastId);
+            SetCurrentValue(property, lastId);
+            SetOriginalValue(property, lastId);
             _context.ChangeTracker.Track(this);
+        }
+
+        internal void SetIdentityValue(int lastId)
+        {
+            var property = Metadata.PrimaryKey.GetIdentity();
+            if (property != null)
+            { 
+                _context.ChangeTracker.UnTrack(Entity);
+                SetCurrentValue(property, lastId);
+                SetOriginalValue(property, lastId);
+                _context.ChangeTracker.Track(this);
+            }
         }
 
         private Dictionary<string, object> CreateOriginalValues(object entity, IEntityType entityType)
