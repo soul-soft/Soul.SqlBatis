@@ -44,6 +44,10 @@ namespace Soul.SqlBatis.ChangeTracking
 
         private void DetectChanges()
         {
+            if (!IsPersisted())
+            {
+                return;
+            }
             if (_state == EntityState.Unchanged)
             {
                 foreach (var item in Properties)
@@ -53,6 +57,22 @@ namespace Soul.SqlBatis.ChangeTracking
                         _state = EntityState.Modified;
                         return;
                     }
+                }
+            }
+            else if (_state == EntityState.Modified)
+            {
+                var isUnchanged = true;
+                foreach (var item in Properties)
+                {
+                    if (item.IsModified)
+                    {
+                        isUnchanged = false;
+                        break;
+                    }
+                }
+                if (isUnchanged)
+                {
+                    _state = EntityState.Unchanged;
                 }
             }
         }
