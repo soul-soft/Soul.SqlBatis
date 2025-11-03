@@ -13,14 +13,14 @@ namespace Soul.SqlBatis
     public class SqlMapper
     {
         private readonly DbContext _context;
-        private readonly EntityMappper _mapper;
+        private readonly EntityMapper _mapper;
         private readonly SqlSettings _settings;
 
         internal SqlMapper(DbContext context, SqlSettings settings)
         {
             _context = context;
             _settings = settings;
-            _mapper = new EntityMappper(settings);
+            _mapper = new EntityMapper(settings);
         }
 
         public virtual int Execute(string sql, object param = null, Action<DbCommandOptions> configure = null)

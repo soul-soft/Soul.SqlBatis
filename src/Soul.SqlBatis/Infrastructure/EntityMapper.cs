@@ -9,13 +9,13 @@ using System.Text;
 
 namespace Soul.SqlBatis.Infrastructure
 {
-    internal class EntityMappper
+    internal class EntityMapper
     {
         private readonly SqlSettings _settings;
 
         private static readonly ConcurrentDictionary<string, Delegate> _mappers = new ConcurrentDictionary<string, Delegate>();
 
-        public EntityMappper(SqlSettings settings)
+        public EntityMapper(SqlSettings settings)
         {
             _settings = settings;
         }
@@ -292,7 +292,7 @@ namespace Soul.SqlBatis.Infrastructure
         /// </summary>
         /// <param name="bindings"></param>
         /// <returns></returns>
-        private string GetEntityMapperCacheKey(Type entityTye,EntityBindings bindings)
+        private string GetEntityMapperCacheKey(Type entityTye, EntityBindings bindings)
         {
             if (bindings.BindType == EntityBindingType.TypeMapper)
             {

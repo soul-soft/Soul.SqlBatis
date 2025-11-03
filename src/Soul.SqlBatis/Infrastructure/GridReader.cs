@@ -13,9 +13,9 @@ namespace Soul.SqlBatis.Infrastructure
         private IDbCommand _command;
         private bool _closeConnection;
         private bool _disposed = false;
-        private EntityMappper _entityMapper;
+        private EntityMapper _entityMapper;
 
-        internal GridReader(IDbCommand command, EntityMappper entityMapper, bool closeConnection)
+        internal GridReader(IDbCommand command, EntityMapper entityMapper, bool closeConnection)
         {
             _command = command;
             _entityMapper = entityMapper;
