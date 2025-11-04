@@ -60,10 +60,12 @@ namespace Soul.SqlBatis.Infrastructure
                 else if (entityEntry.State == EntityState.Modified)
                 {
                     affectedRows += await UpdateAsync(entityEntry);
+                    entityEntry.State = EntityState.Unchanged;
                 }
                 else if (entityEntry.State == EntityState.Deleted)
                 {
                     affectedRows += await DeleteAsync(entityEntry);
+                    entityEntry.State = EntityState.Detached;
                 }
             }
             return affectedRows;
