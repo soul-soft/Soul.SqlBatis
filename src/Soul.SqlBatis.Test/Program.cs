@@ -33,12 +33,6 @@ using (var context = new DbContext(configureOptions =>
         TenantId = 2
     };
     context.Add(student1);
-    context.Add(student2);
     context.SaveChanges();
-    student1.Name = "ca";
-    var state = context.Entry(student1).State;
-    context.SaveChanges();
-    context.Remove(student2);
-    context.SaveChanges();
-    var flag = ReferenceEquals(student1, student2);
+  
 }

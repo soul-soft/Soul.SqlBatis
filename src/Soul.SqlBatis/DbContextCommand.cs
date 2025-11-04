@@ -26,8 +26,8 @@ namespace Soul.SqlBatis.Infrastructure
                 if (entityEntry.State == EntityState.Added)
                 {
                     var (row, lastId) = Insert(entityEntry);
-                    entityEntry.SetIdentityValue(lastId);
                     affectedRows += row;
+                    entityEntry.SetIdentityValue(lastId);
                     entityEntry.State = EntityState.Unchanged;
                 }
                 else if (entityEntry.State == EntityState.Modified)
@@ -47,12 +47,15 @@ namespace Soul.SqlBatis.Infrastructure
         public async Task<int> SaveChangesAsync()
         {
             var affectedRows = 0;
-            var entityEntries = _context.ChangeTracker.Entities();
+            var entityEntries = _context.ChangeTracker.Entities().ToList();
             foreach (var entityEntry in entityEntries)
             {
                 if (entityEntry.State == EntityState.Added)
                 {
-                    affectedRows += await InsertAsync(entityEntry);
+                    var (row, lastId) = await InsertAsync(entityEntry);
+                    affectedRows += row;
+                    entityEntry.SetIdentityValue(lastId);
+                    entityEntry.State = EntityState.Unchanged;
                 }
                 else if (entityEntry.State == EntityState.Modified)
                 {
@@ -94,19 +97,19 @@ namespace Soul.SqlBatis.Infrastructure
             return _context.Sql.Execute(sql, param);
         }
 
-        private async Task<int> InsertAsync(IEntityEntry entityEntry)
+        private async Task<(int, int)> InsertAsync(IEntityEntry entityEntry)
         {
             var (sql, param) = BuildInsertCommand(entityEntry);
             var identityMember = entityEntry.Properties.FirstOrDefault(a => a.Metadata.ValueGenerated == ValueGenerated.OnAdd);
             if (identityMember != null)
             {
-                var obj = await _context.Sql.ExecuteScalarAsync(sql, param);
-                entityEntry.SetCurrentValue(identityMember.Metadata, obj);
-                return 1;
+                var lastId = await _context.Sql.ExecuteScalarAsync<int>(sql, param);
+                return (1, lastId);
             }
             else
             {
-                return await _context.Sql.ExecuteAsync(sql, param);
+                var row = await _context.Sql.ExecuteAsync(sql, param);
+                return (row, 0);
             }
         }
 
