@@ -1,6 +1,5 @@
 ﻿using Soul.SqlBatis.ChangeTracking;
 using Soul.SqlBatis.Metadata;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 

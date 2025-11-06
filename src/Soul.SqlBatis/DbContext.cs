@@ -7,6 +7,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace Soul.SqlBatis
 {
@@ -24,11 +25,7 @@ namespace Soul.SqlBatis
 
         private IDbConnection _connection;
 
-        private DbContextTransaction _transaction;
-
-        private readonly DbContextCommand _command;
-
-        public DbContextTransaction CurrentTransaction => _transaction;
+        public DbContextTransaction CurrentTransaction { get; private set; }
 
         private readonly IChangeTracker _changeTracker;
 
@@ -51,7 +48,6 @@ namespace Soul.SqlBatis
             _connection = _options.Connection;
             _sql = new SqlMapper(this, settings);
             _model = new Model(settings);
-            _command = new DbContextCommand(this, settings);
             _changeTracker = new ChangeTracker(this);
         }
 
@@ -145,46 +141,6 @@ namespace Soul.SqlBatis
             return _connection;
         }
 
-        public virtual DbContextTransaction BeginTransaction()
-        {
-            var closeConnection = false;
-            if (_transaction == null)
-            {
-                closeConnection = OpenConnection();
-                _transaction = new DbContextTransaction(_connection.BeginTransaction(), () =>
-                {
-                    _transaction = null;
-                    if (closeConnection)
-                        CloseConnection();
-                });
-                return _transaction;
-            }
-            else
-            {
-                return _transaction;
-            }
-        }
-
-        public virtual async Task<DbContextTransaction> BeginTransactionAsync()
-        {
-            var closeConnection = false;
-            if (_transaction == null)
-            {
-                closeConnection = await OpenConnectionAsync();
-                _transaction = new DbContextTransaction(_connection.BeginTransaction(), () =>
-                {
-                    _transaction = null;
-                    if (closeConnection)
-                        CloseConnection();
-                });
-                return _transaction;
-            }
-            else
-            {
-                return _transaction;
-            }
-        }
-
         public virtual bool OpenConnection()
         {
             if (_connection.State != ConnectionState.Open)
@@ -213,54 +169,76 @@ namespace Soul.SqlBatis
             }
         }
 
+        public virtual bool HasTransaction()
+        {
+            return CurrentTransaction != null;
+        }
+
+
+        public virtual DbContextTransaction BeginTransaction()
+        {
+            if (CurrentTransaction != null)
+            {
+                throw new NotSupportedException("A transaction is already in progress. Nested transactions are not supported.");
+            }
+            var closeConnection = OpenConnection();
+            CurrentTransaction = new DbContextTransaction(_connection.BeginTransaction(), () =>
+            {
+                CurrentTransaction = null;
+                if (closeConnection)
+                    CloseConnection();
+            });
+            return CurrentTransaction;
+        }
+
+        public virtual async Task<DbContextTransaction> BeginTransactionAsync()
+        {
+            if (CurrentTransaction != null)
+            {
+                throw new NotSupportedException("A transaction is already in progress. Nested transactions are not supported.");
+            }
+            var closeConnection = await OpenConnectionAsync();
+            CurrentTransaction = new DbContextTransaction(_connection.BeginTransaction(), () =>
+            {
+                CurrentTransaction = null;
+                if (closeConnection)
+                    CloseConnection();
+            });
+            return CurrentTransaction;
+        }
+       
         public virtual int SaveChanges()
         {
-            var transaction = CurrentTransaction;
-            var isTransactionOwner = CurrentTransaction == null;
-            try
+            var command = new DbContextCommand(this, GetSettings());
+            if (HasTransaction())
             {
-                if (transaction == null)
-                {
-                    transaction = BeginTransaction();
-                }
-                var affectedRows = _command.SaveChanges();
-                if (isTransactionOwner)
-                {
-                    transaction.CommitTransaction();
-                }
-                return affectedRows;
+                return command.SaveChanges();
             }
-            finally
+            else
             {
-                if (isTransactionOwner)
+                using (var transaction = BeginTransaction())
                 {
-                    transaction?.Dispose();
+                    var row = command.SaveChanges();
+                    transaction.CommitTransaction();
+                    return row;
                 }
             }
         }
 
         public virtual async Task<int> SaveChangesAsync()
         {
-            var transaction = CurrentTransaction;
-            var isTransactionOwner = CurrentTransaction == null;
-            try
+            var command = new DbContextCommand(this, GetSettings());
+            if (HasTransaction())
             {
-                if (transaction == null)
-                {
-                    transaction = await BeginTransactionAsync();
-                }
-                var affectedRows = await _command.SaveChangesAsync();
-                if (isTransactionOwner)
-                {
-                    transaction.CommitTransaction();
-                }
-                return affectedRows;
+                return await command.SaveChangesAsync();
             }
-            finally
+            else
             {
-                if (isTransactionOwner)
+                using (var transaction = BeginTransaction())
                 {
-                    transaction?.Dispose();
+                    var row = command.SaveChanges();
+                    transaction.CommitTransaction();
+                    return row;
                 }
             }
         }
@@ -271,7 +249,7 @@ namespace Soul.SqlBatis
             {
                 try
                 {
-                    _transaction?.Dispose();
+                    CurrentTransaction?.Dispose();
                 }
                 catch { }
                 try
