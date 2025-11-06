@@ -230,6 +230,10 @@ namespace Soul.SqlBatis
 
         private void CreateParameter(IDbCommand command, string name, object value)
         {
+            if (command.Parameters.Contains(name))
+            {
+                return;
+            }
             var parameter = command.CreateParameter();
             if (value == null)
             {
@@ -250,6 +254,7 @@ namespace Soul.SqlBatis
             }
             parameter.ParameterName = name;
             command.Parameters.Add(parameter);
+         
         }
 
         private T ChangeType<T>(object value)
