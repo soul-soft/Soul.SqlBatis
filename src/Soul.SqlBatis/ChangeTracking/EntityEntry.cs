@@ -105,7 +105,11 @@ namespace Soul.SqlBatis.ChangeTracking
 
         public void SetCurrentValue(IProperty property, object value)
         {
-            var propertyValue = Convert.ChangeType(value, property.PropertyInfo.PropertyType);
+            var propertyValue = value;
+            if (value != null && value.GetType() != property.PropertyInfo.PropertyType)
+            {
+                Convert.ChangeType(value, property.PropertyInfo.PropertyType);
+            }
             _propertyAccessor.SetPropertyValue(property.Name, propertyValue);
         }
 
@@ -184,7 +188,7 @@ namespace Soul.SqlBatis.ChangeTracking
                 .Where(f => f._state == EntityState.Added)
                 .Where(a => a.Metadata.TypeInfo == Metadata.TypeInfo)
                 .Count();
-            return total + 1;
+            return (total + 1) - int.MaxValue;
         }
 
         private void SetIdentityValue(IProperty property, int lastId)
@@ -199,7 +203,7 @@ namespace Soul.SqlBatis.ChangeTracking
         {
             var property = Metadata.PrimaryKey.GetIdentity();
             if (property != null)
-            { 
+            {
                 _context.ChangeTracker.UnTrack(Entity);
                 SetCurrentValue(property, lastId);
                 SetOriginalValue(property, lastId);
