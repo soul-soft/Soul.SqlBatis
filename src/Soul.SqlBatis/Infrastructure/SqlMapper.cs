@@ -190,7 +190,11 @@ namespace Soul.SqlBatis
             {
                 return;
             }
-            var inQueryPattern = $@"IN\s+(?<name>@*{name})";
+            if (!IsArrayParameter(value))
+            {
+                return;
+            }
+            var inQueryPattern = $@"IN\s+(?<name>@\w+)";
             if (Regex.IsMatch(command.CommandText, inQueryPattern, RegexOptions.IgnoreCase))
             {
                 command.CommandText = Regex.Replace(command.CommandText, inQueryPattern, match =>
@@ -226,6 +230,15 @@ namespace Soul.SqlBatis
             {
                 CreateParameter(command, name, value);
             }
+        }
+
+        private bool IsArrayParameter(object value)
+        {
+            if (value is string)
+            {
+                return false;
+            }
+            return value is IEnumerable;
         }
 
         private void CreateParameter(IDbCommand command, string name, object value)
