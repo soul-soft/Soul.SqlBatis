@@ -80,14 +80,12 @@ namespace Soul.SqlBatis.ChangeTracking
 
         public IEntityType Metadata { get; private set; }
 
-
         public IReadOnlyList<PropertyEntry> Properties => _properties;
 
         internal void AddProperty(IProperty property)
         {
             _properties.Add(new PropertyEntry(this, property));
         }
-
 
         public object GetOriginalValue(IProperty property)
         {
@@ -108,7 +106,8 @@ namespace Soul.SqlBatis.ChangeTracking
             var propertyValue = value;
             if (value != null && value.GetType() != property.PropertyInfo.PropertyType)
             {
-                Convert.ChangeType(value, property.PropertyInfo.PropertyType);
+                var propertyType = Nullable.GetUnderlyingType(property.PropertyInfo.PropertyType) ?? property.PropertyInfo.PropertyType;
+                Convert.ChangeType(value, propertyType);
             }
             _propertyAccessor.SetPropertyValue(property.Name, propertyValue);
         }
