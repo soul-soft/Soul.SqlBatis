@@ -191,7 +191,7 @@ namespace Soul.SqlBatis
                 return;
             }
             // 处理In查询
-            var inQueryPattern = $@"IN\s+(?<name>@\w+)";
+            var inQueryPattern = $@"IN\s+(?<name>@{name})";
             if (IsArrayParameter(value) && Regex.IsMatch(command.CommandText, inQueryPattern, RegexOptions.IgnoreCase))
             {
                 command.CommandText = Regex.Replace(command.CommandText, inQueryPattern, match =>

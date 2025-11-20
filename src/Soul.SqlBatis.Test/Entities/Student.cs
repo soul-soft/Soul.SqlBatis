@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Soul.SqlBatis.Test.Entities
 {
-    [Table("student",Schema = "public")]
+    [Table("students")]
     public class Student
     {
         [Key]
@@ -15,20 +15,12 @@ namespace Soul.SqlBatis.Test.Entities
 
         [Column("age")]
         public int? Age { get; set; }
-        [Key]
-        [Column("tenant_id")]
-        public int? TenantId { get; set; }
 
-        [Column("dep_ids")]
-        public int[] DepIds { get; set; } = default!;
+        [Column("category_id")]
+        public int? CategoryId { get; set; }
 
-        [Column("gender")]
-        public Gender? Gender { get; set; }
-
-        public void SetName(string name)
-        {
-            this.Name = name;
-        }
+        [Column("category_sec_id")]
+        public int? CategorySecId { get; set; }
 
         public override int GetHashCode()
         {

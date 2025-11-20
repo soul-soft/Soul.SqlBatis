@@ -105,8 +105,8 @@ namespace Soul.SqlBatis.Infrastructure
             }
             try
             {
-                _reader.Close();
-                _reader.Dispose();
+                _reader?.Close();
+                _reader?.Dispose();
             }
             catch { }
             try

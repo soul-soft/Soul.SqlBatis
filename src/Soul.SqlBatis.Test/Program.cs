@@ -1,4 +1,5 @@
-﻿using Npgsql;
+﻿using MySqlConnector;
+using Npgsql;
 using Soul.SqlBatis;
 using Soul.SqlBatis.Test.Entities;
 
@@ -20,19 +21,13 @@ using (var context = new DbContext(configureOptions =>
     {
         Console.WriteLine(sql);
     });
-    configureOptions.UseNpgsql(new NpgsqlConnection("Host=127.0.0.1;Port=5432;Username=postgres;Password=1024;Database=postgres;SSL Mode=Disable;"));
+    configureOptions.UseNpgsql(new MySqlConnection("server=127.0.0.1;user id=root;password=1024;database=test;pooling=True;minpoolsize=5;maxpoolsize=200;characterSet=utf8;Allow User Variables=true"));
 }))
 {
-    var student1 = new Student() 
-    {
-        Name = "aa"
-    };
-    var student2 = new Student()
-    {
-        Name = "bb",
-        TenantId = 2
-    };
-    context.Add(student1);
-    context.SaveChanges();
-  
+    var p = new DynamicParameters();
+    p.Add("@P1", new int[] { 1, 2});
+    p.Add(" @P2", new int[] { 1, 2 });
+    var list = context.Sql.Query<Student>("select * from students where category_id IN @P1 AND category_sec_id IN @P2", p);
+
+
 }
